@@ -1,0 +1,183 @@
+<!-- usuarios.html -->
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>AirControl OS – Usuários</title>
+
+  <link rel="stylesheet" href="css/style.css" />
+
+  <!-- BRAND TOGGLE (igual ao dashboard) -->
+  <link id="app-manifest" rel="manifest" href="manifest.webmanifest" />
+  <link id="apple-icon" rel="apple-touch-icon" href="icons/empresa/icon-192.png" />
+  <link id="favicon" rel="icon" href="icons/empresa/icon-192.png" />
+  <meta name="theme-color" content="#1e90ff" />
+  <script>
+    const BRAND = localStorage.getItem('brand') || 'empresa';
+    document.getElementById('apple-icon').href = `icons/${BRAND}/icon-192.png`;
+    document.getElementById('favicon').href    = `icons/${BRAND}/icon-192.png`;
+  </script>
+</head>
+<body class="dashboard-bg page-usuarios">
+
+  <!-- Topbar -->
+  <header class="topbar">
+    <h1>AirControl OS</h1>
+    <div style="display:flex; gap:10px; align-items:center;">
+      <span id="userBadge" style="font-weight:600;"></span>
+      <button type="button" onclick="logout()">Sair</button>
+    </div>
+  </header>
+
+  <!-- Sidebar (igual ao dashboard) -->
+  <nav class="sidebar">
+    <ul>
+      <li><a href="dashboard.html">🏠 Dashboard</a></li>
+      <li><a href="ordem-servico.html">📝 Nova Ordem de Serviço</a></li>
+      <li><a href="local.html">📍 Locais</a></li>
+      <li><a href="tecnico.html">🧑‍🔧 Técnicos</a></li>
+      <li><a href="abrir-os.html">📨 Abrir OS</a></li>
+      <li><a href="usuarios.html" class="active">👤 Usuários</a></li>
+    </ul>
+  </nav>
+
+  <!-- Conteúdo -->
+  <main class="main-content usuarios-main">
+    <section class="card card-form-usuarios">
+      <h2>Cadastrar Novo Usuário (login)</h2>
+
+      <form id="formUsuario" class="form-grid-usuario" novalidate>
+        <div class="form-group">
+          <label for="uNome">Nome completo:</label>
+          <input id="uNome" type="text" required />
+        </div>
+
+        <div class="form-group">
+          <label for="uEmail">E-mail:</label>
+          <input id="uEmail" type="email" required />
+          <!-- erro específico de e-mail -->
+          <small id="emailError"
+                 style="color:#c53030; font-size:.85rem; display:none; margin-top:4px;">
+          </small>
+        </div>
+
+        <div class="form-group">
+          <label for="uTelefone">Telefone:</label>
+          <input id="uTelefone" type="tel" />
+        </div>
+
+        <div class="form-group">
+          <label for="uCargo">Cargo (função):</label>
+          <select id="uCargo" required>
+            <!-- preenchido via script.js / CARGOS -->
+          </select>
+        </div>
+
+        <div class="form-group">
+          <label for="uSenha">Senha:</label>
+          <input id="uSenha" type="password" required />
+        </div>
+
+        <div class="form-actions">
+          <button type="submit" class="btn-primary largo">Salvar Usuário</button>
+        </div>
+      </form>
+    </section>
+  </main>
+
+  <!-- JS principal -->
+  <script src="js/script.js"></script>
+
+  <!-- Só Admin acessa esta tela -->
+  <script>
+    // exige login
+    requireLogin();
+
+    // impede não-admin de abrir
+    if (role() !== "Admin") {
+      alert("Somente administradores podem gerenciar usuários.");
+      window.location.href = "dashboard.html";
+    }
+
+    // preenche o select de cargo com o mesmo array CARGOS
+    (function fillCargoSelect() {
+      const sel = document.getElementById("uCargo");
+      if (!sel || !Array.isArray(CARGOS)) return;
+      sel.innerHTML = CARGOS
+        .map(c => `<option value="${c}">${c}</option>`)
+        .join("");
+      sel.value = "Tecnico"; // padrão
+    })();
+
+    // submit -> /api/Auth/registrar
+    document.getElementById("formUsuario")?.addEventListener("submit", async (e) => {
+      e.preventDefault();
+
+      const nomeEl     = document.getElementById("uNome");
+      const emailEl    = document.getElementById("uEmail");
+      const telEl      = document.getElementById("uTelefone");
+      const senhaEl    = document.getElementById("uSenha");
+      const cargoEl    = document.getElementById("uCargo");
+      const emailError = document.getElementById("emailError");
+
+      // limpa erro visual
+      if (emailError) {
+        emailError.style.display = "none";
+        emailError.textContent = "";
+      }
+
+      const nome     = nomeEl.value.trim();
+      const email    = emailEl.value.trim().toLowerCase();
+      const telefone = telEl.value.trim();
+      const senha    = senhaEl.value.trim();
+      const cargo    = cargoEl.value;
+
+      if (!nome || !email || !senha) {
+        alert("Preencha Nome, E-mail e Senha.");
+        return;
+      }
+
+      try {
+        await api("/api/Auth/registrar", {
+          method: "POST",
+          data: { nome, email, telefone, senha, cargo }
+        });
+
+        alert("Usuário criado com sucesso!");
+        e.target.reset();
+        cargoEl.value = "Tecnico";
+
+      } catch (err) {
+        const msg = String(err.message || "");
+
+        // 409 - conflito de e-mail (índice único IX_Usuarios_Email)
+        if (msg.startsWith("409") ||
+            msg.includes("409") ||
+            msg.toLowerCase().includes("já cadastrado")) {
+
+          if (emailError) {
+            emailError.textContent = "E-mail já cadastrado. Use outro e-mail para este usuário.";
+            emailError.style.display = "block";
+          } else {
+            alert("E-mail já cadastrado.");
+          }
+
+          emailEl.focus();
+          return;
+        }
+
+        alert("Erro ao criar usuário:\n" + msg);
+      }
+    });
+  </script>
+
+  <!-- Service Worker (opcional) -->
+  <script>
+    if ('serviceWorker' in navigator && location.protocol.startsWith('http')) {
+      navigator.serviceWorker.register('./service-worker.js', { scope: './' })
+        .catch(err => console.error('SW erro:', err));
+    }
+  </script>
+</body>
+</html>

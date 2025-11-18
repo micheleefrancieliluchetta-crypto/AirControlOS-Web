@@ -1,0 +1,28 @@
+<!-- cliente.html (redirect opcional) -->
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+  <meta charset="utf-8" />
+  <meta http-equiv="refresh" content="0; url=local.html">
+  <title>Redirecionando…</title>
+  <script>
+    // fallback JS para navegadores que ignoram meta refresh
+    window.location.replace('local.html');
+  </script>
+</head>
+<body>
+  Redirecionando para <a href="local.html">Locais</a>…
+
+<script src="js/script.js"></script>
+<script>
+  const cargo = role();
+
+  if (!cargo) window.location.href = "index.html";
+
+  if (cargo !== "admin") {
+    alert("Somente administradores podem acessar esta página.");
+    window.location.href = "dashboard.html";
+  }
+</script>
+</body>
+</html>

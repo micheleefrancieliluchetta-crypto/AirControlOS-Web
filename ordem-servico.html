@@ -1,0 +1,235 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Nova OS - AirControl OS</title>
+
+  <link rel="stylesheet" href="css/style.css" />
+
+  <!-- BRAND TOGGLE -->
+  <link id="app-manifest" rel="manifest" href="manifest.webmanifest" />
+  <link id="apple-icon" rel="apple-touch-icon" href="icons/empresa/icon-192.png" />
+  <link id="favicon" rel="icon" href="icons/empresa/icon-192.png" />
+  <meta name="theme-color" content="#1e90ff" />
+  <meta name="mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-capable" content="yes" />
+  <meta name="apple-mobile-web-app-status-bar-style" content="default" />
+  <script>
+    const BRAND = localStorage.getItem('brand') || 'empresa';
+    document.addEventListener('DOMContentLoaded', () => {
+      document.getElementById('apple-icon').href = `icons/${BRAND}/icon-192.png`;
+      document.getElementById('favicon').href    = `icons/${BRAND}/icon-192.png`;
+    });
+  </script>
+</head>
+<body>
+  <!-- Topbar -->
+  <header class="topbar">
+    <h1>AirControl OS</h1>
+    <div style="display:flex; gap:10px; align-items:center;">
+      <span id="userBadge" style="font-weight:600;"></span>
+      <button onclick="logout()">Sair</button>
+    </div>
+  </header>
+
+  <!-- Sidebar -->
+  <nav class="sidebar">
+    <ul>
+      <li><a href="dashboard.html">🏠 Dashboard</a></li>
+      <li><a href="ordem-servico.html" class="active">📝 Nova Ordem de Serviço</a></li>
+      <li><a href="local.html">📍 Locais</a></li>
+      <li><a href="tecnico.html">🧑‍🔧 Técnicos</a></li>
+      <li><a href="abrir-os.html"><span>👨‍💼</span> abrir-os</a></li>
+    </ul>
+  </nav>
+
+  <!-- Conteúdo -->
+  <main class="main-content">
+    <h2>Nova Ordem de Serviço</h2>
+
+    <form id="formOrdemServico" class="form-os" autocomplete="off">
+      <section class="section">
+        <h3>Identificação</h3>
+
+        <div class="grid-ident">
+          <!-- Local (Cliente) -->
+          <div>
+            <label for="osLocalTxt">Local</label>
+            <input id="osLocalTxt" list="dlLocal" placeholder="Digite para buscar..." />
+            <datalist id="dlLocal"></datalist>
+            <input type="hidden" id="osLocal" value="0" />
+          </div>
+
+          <!-- Técnico -->
+          <div>
+            <label for="osTecnicoTxt">Técnico Responsável</label>
+            <input id="osTecnicoTxt" list="dlTecnicos" placeholder="Digite para buscar..." />
+            <datalist id="dlTecnicos"></datalist>
+            <input type="hidden" id="osTecnico" value="0" />
+          </div>
+
+          <!-- Prioridade -->
+          <div class="full-row">
+            <label for="prioridade">Prioridade</label>
+            <select id="prioridade">
+              <option>Baixa</option>
+              <option>Média</option>
+              <option>Alta</option>
+              <option>Urgente</option>
+            </select>
+          </div>
+        </div>
+      </section>
+
+      <div class="grid-3" style="margin-top:12px;">
+        <div>
+          <label for="status">Status</label>
+          <select id="status">
+            <option>Aberta</option>
+            <option>Em Andamento</option>
+            <option>Concluída</option>
+          </select>
+        </div>
+      </div>
+
+      <label for="descricao" style="margin-top:12px;">Descrição do Serviço</label>
+      <textarea id="descricao" rows="4" placeholder="Descreva o problema/serviço..."></textarea>
+
+      <!-- Localização (sem mapa) -->
+      <section class="section">
+        <h3>Localização do Chamado</h3>
+        <div class="grid-3">
+          <div>
+            <label for="endereco">Endereço</label>
+            <input id="endereco" placeholder="Rua, nº, bairro, cidade" />
+          </div>
+          <div>
+            <label for="lat">Latitude</label>
+            <input id="lat" placeholder="-23.96..." />
+          </div>
+          <div>
+            <label for="lng">Longitude</label>
+            <input id="lng" placeholder="-46.38..." />
+          </div>
+        </div>
+
+        <div class="geo-row" style="margin-top:10px; display:flex; flex-direction:column; gap:6px;">
+          <button
+            class="btn-gps btn-gps-full"
+            type="button"
+            id="btnGeo"
+            style="height:46px; font-weight:800;"
+          >
+            <span class="btn-gps-icon">📍</span>
+            Usar minha localização
+          </button>
+          <small class="geo-tip" style="color:#6b7280; text-align:center;">
+            Dica: use o botão para preencher LAT/LNG automaticamente.
+          </small>
+        </div>
+      </section>
+
+      <!-- Equipamentos -->
+      <section class="section">
+        <h3>Relação de Equipamentos</h3>
+        <div class="table-wrapper" style="max-width:none;">
+          <table class="os-table">
+            <thead>
+              <tr>
+                <th>Patrimônio</th>
+                <th>Ambiente/Local</th>
+                <th>Marca</th>
+                <th>BTUs</th>
+                <th>Modelo</th>
+                <th>Tipo</th>
+                <th>Gás</th>
+                <th style="width:90px;">Ações</th>
+              </tr>
+            </thead>
+            <tbody id="equipBody"></tbody>
+          </table>
+        </div>
+        <button type="button" id="btnAddEquip" class="outline" style="margin-top:8px;">
+          + Adicionar equipamento
+        </button>
+      </section>
+
+      <!-- Peças / Trocas -->
+      <section class="section">
+        <h3>Peças / Trocas</h3>
+        <div class="table-wrapper" style="max-width:none;">
+          <table class="os-table">
+            <thead>
+              <tr>
+                <th>Item</th>
+                <th>Qtd.</th>
+                <th style="width:90px;">Ações</th>
+              </tr>
+            </thead>
+            <tbody id="pecasBody"></tbody>
+          </table>
+        </div>
+        <button type="button" id="btnAddPeca" class="outline" style="margin-top:8px;">
+          + Adicionar peça
+        </button>
+      </section>
+
+      <!-- Fotos -->
+      <section class="section">
+        <h3>Fotos</h3>
+        <div class="grid-2">
+          <div>
+            <label for="fotosAntes">Fotos Antes</label>
+            <input id="fotosAntes" type="file" accept="image/*" multiple />
+            <div id="previewAntes" class="preview-grid"></div>
+          </div>
+          <div>
+            <label for="fotosDepois">Fotos Depois</label>
+            <input id="fotosDepois" type="file" accept="image/*" multiple />
+            <div id="previewDepois" class="preview-grid"></div>
+          </div>
+        </div>
+      </section>
+
+      <!-- Observações -->
+      <section class="section">
+        <h3>Observações</h3>
+        <textarea id="observacoes" rows="3" placeholder="Informações adicionais..."></textarea>
+      </section>
+
+      <button type="submit">Salvar OS</button>
+    </form>
+  </main>
+
+  <!-- JS principal -->
+  <script src="js/script.js"></script>
+
+  <script>
+    // Garante login
+    requireLogin();
+
+    // Mesma lógica de esconder menus de admin se quiser
+    const cargoAtual = sessionStorage.getItem("cargo") || role();
+    if (!cargoAtual) {
+      window.location.href = "index.html";
+    }
+    if (cargoAtual !== "Admin") {
+      const linkTecnico = document.querySelector('a[href="tecnico.html"]');
+      if (linkTecnico) linkTecnico.style.display = "none";
+
+      const linkAbrir = document.querySelector('a[href="abrir-os.html"]');
+      if (linkAbrir) linkAbrir.style.display = "none";
+    }
+  </script>
+
+  <!-- Service Worker -->
+  <script>
+    if ('serviceWorker' in navigator && location.protocol.startsWith('http')) {
+      navigator.serviceWorker.register('./service-worker.js', { scope: './' })
+        .then(reg => console.log('Service Worker registrado:', reg.scope))
+        .catch(err => console.error('Erro ao registrar o Service Worker:', err));
+    }
+  </script>
+</body>
+</html>

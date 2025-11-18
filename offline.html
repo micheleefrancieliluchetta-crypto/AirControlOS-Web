@@ -1,0 +1,36 @@
+<!doctype html>
+<html lang="pt-br">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <title>AirControl OS – Offline</title>
+  <link rel="stylesheet" href="css/style.css" />
+
+<!-- BRAND TOGGLE -->
+  <link id="app-manifest" rel="manifest" href="manifest.webmanifest" />
+  <link id="apple-icon" rel="apple-touch-icon" href="icons/empresa/icon-192.png" />
+  <link id="favicon" rel="icon" href="icons/empresa/icon-192.png" />
+  <meta name="theme-color" content="#1e90ff" />
+  <script>
+    const BRAND = localStorage.getItem('brand') || 'empresa';
+    document.getElementById('apple-icon').href = `icons/${BRAND}/icon-192.png`;
+    document.getElementById('favicon').href    = `icons/${BRAND}/icon-192.png`;
+  </script>
+
+  <style>
+    body{font-family:system-ui,Segoe UI,Roboto,Arial,sans-serif;margin:0;display:grid;place-items:center;height:100vh;background:#f6f7fb;color:#222}
+    .card{background:#fff;padding:24px;border-radius:16px;box-shadow:0 6px 24px rgba(0,0,0,.08);max-width:420px}
+    h1{margin:0 0 8px;font-size:22px}
+    p{margin:0 0 12px;line-height:1.5}
+    a{display:inline-block;margin-top:8px;text-decoration:none;padding:10px 14px;border-radius:10px;background:#1e90ff;color:#fff}
+  </style>
+</head>
+<body>
+  <div class="box">
+    <h1>🔌 Sem conexão</h1>
+    <p>Você está offline.<br>
+    Mas o AirControl OS continuará funcionando — os dados serão sincronizados assim que a internet voltar.</p>
+    <button onclick="window.location.reload()">Tentar novamente</button>
+  </div>
+</body>
+</html>

@@ -1,0 +1,22 @@
+# Pastas de build / Visual Studio
+bin/
+obj/
+.vs/
+Properties/
+
+# Pasta de backend (se estiver aqui dentro)
+Backend 1/
+AirControl.Api/
+
+# Arquivos de solução / configs locais
+*.suo
+*.user
+*.userosscache
+*.sln.docstates
+
+# SQLs soltos de teste
+SQLQuery*.sql
+
+# Outros comuns
+node_modules/
+dist/

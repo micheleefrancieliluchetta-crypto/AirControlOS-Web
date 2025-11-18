@@ -1,0 +1,46 @@
+<!-- index.html -->
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>AirControl OS – Login</title>
+
+  <link rel="stylesheet" href="css/style.css" />
+
+<link rel="manifest" href="manifest.webmanifest" />
+<meta name="theme-color" content="#1e90ff" />
+
+<!-- recomendado pelo aviso -->
+<meta name="mobile-web-app-capable" content="yes">
+
+<!-- iOS -->
+<link rel="icon" type="image/png" href="icons/icon-192.png">
+<meta name="apple-mobile-web-app-capable" content="yes" />
+<meta name="apple-mobile-web-app-status-bar-style" content="default" />
+
+</head>
+<body class="login-bg">
+
+  <section class="login-header">
+    <h1>AirControl OS</h1>
+    <form id="loginForm" class="login-inline">
+      <input id="loginEmail" type="email" placeholder="Email" required />
+      <input id="loginSenha" type="password" placeholder="Senha" required />
+      <button type="submit">Entrar</button>
+    </form>
+  </section>
+
+  <!-- JS principal -->
+  <script src="js/script.js"></script>
+
+  <!-- Registro do Service Worker -->
+<script>
+  if ('serviceWorker' in navigator && location.protocol.startsWith('http')) {
+    navigator.serviceWorker.register('./service-worker.js', { scope: './' })
+      .then(reg => console.log('Service Worker registrado:', reg.scope))
+      .catch(err => console.error('Erro ao registrar o Service Worker:', err));
+  }
+</script>
+</body>
+</html>

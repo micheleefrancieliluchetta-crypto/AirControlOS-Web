@@ -1,0 +1,241 @@
+<!-- local.html --> 
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Locais - AirControl OS</title>
+
+  <link rel="stylesheet" href="css/style.css" />
+
+  <!-- BRAND TOGGLE -->
+  <link id="app-manifest" rel="manifest" href="./manifest.webmanifest" />
+  <link id="apple-icon" rel="apple-touch-icon" href="icons/empresa/icon-192.png" />
+  <link id="favicon" rel="icon" href="icons/empresa/icon-192.png" />
+  <meta name="theme-color" content="#1e90ff" />
+  <meta name="apple-mobile-web-app-capable" content="yes" />
+  <meta name="mobile-web-app-capable" content="yes" />
+  <meta name="apple-mobile-web-app-status-bar-style" content="default" />
+  <script>
+    const BRAND = localStorage.getItem('brand') || 'empresa';
+    document.getElementById('apple-icon').href = `icons/${BRAND}/icon-192.png`;
+    document.getElementById('favicon').href    = `icons/${BRAND}/icon-192.png`;
+  </script>
+</head>
+<body>
+  <!-- Topbar -->
+  <header class="topbar">
+    <h1>AirControl OS</h1>
+    <div style="display:flex; gap:10px; align-items:center;">
+      <span id="userBadge" style="font-weight:600;"></span>
+      <button onclick="logout()">Sair</button>
+    </div>
+  </header>
+
+  <!-- Sidebar -->
+  <nav class="sidebar">
+    <ul>
+      <li><a href="dashboard.html">🏠 Dashboard</a></li>
+      <li><a href="ordem-servico.html">📝 Nova Ordem de Serviço</a></li>
+      <li><a href="local.html" class="active">📍 Locais</a></li>
+      <li><a href="tecnico.html">🧑‍🔧 Técnicos</a></li>
+      <li><a href="abrir-os.html"><span>👨‍💼</span> abrir-os</a></li>
+    </ul>
+  </nav>
+
+  <!-- Conteúdo -->
+  <main class="main-content">
+    <h2>Locais</h2>
+
+    <form id="formLocal" class="form-os" autocomplete="off">
+      <div class="grid-2">
+        <div class="section">
+          <label>Nome do Local:</label>
+          <input id="locNome" placeholder="Ex.: UTI - Hospital do Vicentino" />
+        </div>
+        <div class="section">
+          <label>Responsável (opcional):</label>
+          <input id="locResp" placeholder="Nome do responsável" />
+        </div>
+      </div>
+
+      <div class="section">
+        <label>Endereço:</label>
+        <input id="locEndereco" placeholder="Rua, nº, bairro, cidade" />
+      </div>
+
+      <div class="grid-3">
+        <div class="section">
+          <label>Latitude:</label>
+          <input id="locLat" placeholder="-23.96..." />
+        </div>
+        <div class="section">
+          <label>Longitude:</label>
+          <input id="locLng" placeholder="-46.38..." />
+        </div>
+        <div class="section align-end">
+          <button type="button" id="btnGPS" class="btn-primary big">
+            📍 Usar minha localização
+          </button>
+        </div>
+      </div>
+
+      <button type="submit">Salvar Local</button>
+    </form>
+
+    <div class="table-wrapper" style="margin-top:18px;">
+      <table class="os-table">
+        <thead>
+          <tr>
+            <th>Local</th>
+            <th>Responsável</th>
+            <th>Endereço</th>
+            <th>Lat</th>
+            <th>Lng</th>
+            <th style="width:110px;">Ações</th>
+          </tr>
+        </thead>
+        <tbody id="tbodyLocais"></tbody>
+      </table>
+      <p id="msgVaziaLoc" class="muted" style="display:none;">Nenhum local cadastrado.</p>
+    </div>
+  </main>
+
+  <!-- LÓGICA ESPECÍFICA DE LOCAIS -->
+  <script>
+    /* ====== Storage de Locais ====== */
+    const LOCAIS_KEY = "air_locais";
+    function getLocais(){ return JSON.parse(localStorage.getItem(LOCAIS_KEY) || "[]"); }
+    function setLocais(data){ localStorage.setItem(LOCAIS_KEY, JSON.stringify(data)); }
+
+    /* ====== UI ====== */
+    const form = document.getElementById("formLocal");
+    const msgVaziaLocEl = document.getElementById("msgVaziaLoc");
+
+    const inpNome = document.getElementById("locNome");
+    const inpResp = document.getElementById("locResp");
+    const inpEnd  = document.getElementById("locEndereco");
+    const inpLat  = document.getElementById("locLat");
+    const inpLng  = document.getElementById("locLng");
+    const btnGPS  = document.getElementById("btnGPS");
+
+    const tbodyLocais = document.getElementById("tbodyLocais");
+
+    // Botão GPS + preenchimento de endereço
+    if (btnGPS) {
+      btnGPS.addEventListener("click", () => {
+        if (!navigator.geolocation) {
+          alert("Seu navegador não suporta geolocalização.");
+          return;
+        }
+
+        navigator.geolocation.getCurrentPosition(
+          async (pos) => {
+            const lat = pos.coords.latitude.toFixed(6);
+            const lng = pos.coords.longitude.toFixed(6);
+
+            inpLat.value = lat;
+            inpLng.value = lng;
+
+            // Reverse geocoding para preencher o endereço
+            try {
+              const url = `https://nominatim.openstreetmap.org/reverse?format=jsonv2&lat=${lat}&lon=${lng}`;
+              const res = await fetch(url, { headers: { "Accept-Language": "pt-BR" } });
+              if (res.ok) {
+                const data = await res.json();
+                if (data && data.display_name) {
+                  inpEnd.value = data.display_name;
+                }
+              }
+            } catch (err) {
+              console.warn("Falha ao buscar endereço:", err);
+            }
+          },
+          (err) => {
+            console.warn(err);
+            alert("Não foi possível obter sua localização.");
+          }
+        );
+      });
+    }
+
+    form.addEventListener("submit", (e)=>{
+      e.preventDefault();
+      const nome = (inpNome.value || "").trim();
+      if (!nome){ alert("Informe o nome do local."); return; }
+
+      const item = {
+        id: Date.now(),
+        nome,
+        responsavel: (inpResp.value || "").trim(),
+        endereco: (inpEnd.value  || "").trim(),
+        lat: (inpLat.value || "").trim(),
+        lng: (inpLng.value || "").trim()
+      };
+      const lista = getLocais();
+      lista.push(item);
+      setLocais(lista);
+      form.reset();
+      renderLocais();
+      alert("Local salvo!");
+    });
+
+    function excluirLocal(id){
+      if (!confirm("Excluir este local?")) return;
+      const lista = getLocais().filter(l => l.id !== id);
+      setLocais(lista);
+      renderLocais();
+    }
+    window.excluirLocal = excluirLocal;
+
+    function renderLocais(){
+      const lista = getLocais();
+      tbodyLocais.innerHTML = "";
+      if (lista.length === 0){
+        msgVaziaLocEl.style.display = "block";
+        return;
+      }
+      msgVaziaLocEl.style.display = "none";
+      lista.forEach(l=>{
+        const tr = document.createElement("tr");
+        tr.innerHTML = `
+          <td>${l.nome || "-"}</td>
+          <td>${l.responsavel || "-"}</td>
+          <td>${l.endereco || "-"}</td>
+          <td class="nowrap">${l.lat || "-"}</td>
+          <td class="nowrap">${l.lng || "-"}</td>
+          <td class="acoes">
+            <button class="link danger" onclick="excluirLocal(${l.id})">Excluir</button>
+          </td>
+        `;
+        tbodyLocais.appendChild(tr);
+      });
+    }
+    renderLocais();
+  </script>
+
+  <!-- Service Worker -->
+  <script>
+    if ('serviceWorker' in navigator) {
+      navigator.serviceWorker.register('./service-worker.js', { scope: './' })
+        .catch(err => console.error('SW erro:', err));
+    }
+  </script>
+
+  <!-- funções globais (login, logout, role, badge, etc.) -->
+  <script src="js/script.js"></script>
+  <script>
+    // Garante que o usuário esteja logado
+    requireLogin();
+
+    let cargo = (role() || "").toLowerCase();
+
+    if (!cargo) {
+      window.location.href = "index.html";
+    } else if (cargo === "ajudante") {
+      alert("Ajudantes não podem acessar Locais.");
+      window.location.href = "dashboard.html";
+    }
+  </script>
+</body>
+</html>

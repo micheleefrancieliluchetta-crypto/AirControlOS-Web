@@ -1,0 +1,212 @@
+<!-- dashboard.html -->
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Dashboard - AirControl OS</title>
+
+  <link rel="stylesheet" href="css/style.css" />
+
+  <!-- Leaflet para o mapa do modal -->
+  <link
+    rel="stylesheet"
+    href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"
+  />
+  <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+
+  <!-- BRAND TOGGLE -->
+  <link id="app-manifest" rel="manifest" href="manifest.webmanifest" />
+  <link id="apple-icon" rel="apple-touch-icon" href="icons/empresa/icon-192.png" />
+  <link id="favicon" rel="icon" href="icons/empresa/icon-192.png" />
+  <meta name="theme-color" content="#1e90ff" />
+  <meta name="mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-capable" content="yes" />
+  <meta name="apple-mobile-web-app-status-bar-style" content="default" />
+  <script>
+    const BRAND = localStorage.getItem('brand') || 'empresa';
+    document.getElementById('apple-icon').href = `icons/${BRAND}/icon-192.png`;
+    document.getElementById('favicon').href    = `icons/${BRAND}/icon-192.png`;
+  </script>
+</head>
+<body>
+  <!-- Topbar -->
+  <header class="topbar">
+    <h1>AirControl OS</h1>
+    <div style="display:flex; gap:10px; align-items:center;">
+      <span id="userBadge" style="font-weight:600;"></span>
+      <button onclick="logout()">Sair</button>
+    </div>
+  </header>
+
+  <!-- Sidebar -->
+  <nav class="sidebar">
+    <ul>
+      <li><a href="dashboard.html" class="active">🏠 Dashboard</a></li>
+      <li><a href="ordem-servico.html">📝 Nova Ordem de Serviço</a></li>
+      <li><a href="local.html">📍 Locais</a></li>
+      <li><a href="tecnico.html">🧑‍🔧 Técnicos</a></li>
+      <li><a href="abrir-os.html">🧑‍💼 abrir-os</a></li>
+    </ul>
+  </nav>
+
+  <!-- Conteúdo -->
+  <main class="main-content">
+    <h2>Resumo de Ordens de Serviço</h2>
+
+    <div class="cards">
+      <div class="card card-blue">
+        <h3>📂 Abertas</h3>
+        <p id="osAbertas">0</p>
+      </div>
+      <div class="card card-orange">
+        <h3>🔧 Em Andamento</h3>
+        <p id="osAndamento">0</p>
+      </div>
+      <div class="card card-green">
+        <h3>✅ Concluídas</h3>
+        <p id="osConcluidas">0</p>
+      </div>
+    </div>
+
+    <section class="os-toolbar">
+      <div class="filters">
+        <button class="chip active" data-filter="Todas">Todas</button>
+        <button class="chip" data-filter="Aberta">Abertas</button>
+        <button class="chip" data-filter="Em Andamento">Em Andamento</button>
+        <button class="chip" data-filter="Concluída">Concluídas</button>
+      </div>
+
+      <div class="tools">
+        <input id="buscaOS" class="search" placeholder="Buscar OS ou Local..." />
+        <a class="btn-primary" href="ordem-servico.html">+ Nova OS</a>
+      </div>
+    </section>
+
+    <div class="table-wrapper">
+      <table class="os-table" id="tabelaOS">
+        <thead>
+          <tr>
+            <th>OS</th>
+            <th>Local</th>
+            <th>Técnico</th>
+            <th>Prioridade</th>
+            <th>Status</th>
+            <th>Criada em</th>
+            <th>Concluída em</th>
+            <th>Ações</th>
+          </tr>
+        </thead>
+        <tbody id="tbodyOS"></tbody>
+      </table>
+      <p id="msgVazia" class="muted" style="display:none;">
+        Nenhuma ordem encontrada para este filtro.
+      </p>
+    </div>
+  </main>
+
+  <!-- Modal de Detalhes -->
+  <div id="modalOS" class="modal" style="display:none;">
+    <div class="modal-body">
+      <div class="modal-header">
+        <h3>Detalhes da OS</h3>
+        <button class="close" onclick="fecharModal()" aria-label="Fechar">×</button>
+      </div>
+
+      <div class="modal-content">
+        <div class="modal-grid">
+          <div>
+            <h4>Dados</h4>
+            <p><strong>Local:</strong> <span id="detLocal">-</span></p>
+            <p><strong>Técnico:</strong> <span id="detTecnico">-</span></p>
+            <p><strong>Prioridade:</strong> <span id="detPrioridade">-</span></p>
+            <p>
+              <strong>Status:</strong>
+              <select
+                id="detStatus"
+                class="status-select"
+                style="display:inline-block; width:auto;"
+              ></select>
+              <button class="outline" type="button" onclick="salvarStatusModal()">
+                Salvar
+              </button>
+            </p>
+            <p><strong>Criada em:</strong> <span id="detCriadaEm">-</span></p>
+            <p><strong>Concluída em:</strong> <span id="detConcluidaEm">-</span></p>
+          </div>
+
+          <div>
+            <h4>Máquina</h4>
+            <p><strong>Tipo:</strong> <span id="detTipo">-</span></p>
+            <p><strong>BTUs:</strong> <span id="detBtus">-</span></p>
+            <p><strong>Marca:</strong> <span id="detMarca">-</span></p>
+            <p><strong>Modelo:</strong> <span id="detModelo">-</span></p>
+            <p><strong>Nº Série:</strong> <span id="detSerie">-</span></p>
+          </div>
+        </div>
+
+        <h4>Local</h4>
+        <p><strong>Endereço:</strong> <span id="detEndereco">-</span></p>
+        <div id="detMap" class="map" style="height:260px;"></div>
+
+        <h4 style="margin-top:14px;">Descrição</h4>
+        <p id="detDescricao">-</p>
+
+        <h4 style="margin-top:14px;">Peças / Trocas</h4>
+        <table class="tabela-pecas" id="detTabelaPecas">
+          <thead>
+            <tr><th>Item</th><th>Qtd.</th></tr>
+          </thead>
+          <tbody></tbody>
+        </table>
+
+        <div class="modal-photos">
+          <div>
+            <h4>Fotos Antes</h4>
+            <div id="detFotosAntes" class="preview-grid"></div>
+          </div>
+          <div>
+            <h4>Fotos Depois</h4>
+            <div id="detFotosDepois" class="preview-grid"></div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- JS principal -->
+  <script src="js/script.js"></script>
+
+  <!-- Controle de login e permissão -->
+  <script>
+    // Garante que o usuário esteja logado (usa função do script.js)
+    requireLogin();
+
+    // Tenta ler o cargo tanto da sessionStorage (novo) quanto da localStorage (legado)
+    const cargoAtual = sessionStorage.getItem("cargo") || role();
+
+    // Se não tiver cargo, volta pro login
+    if (!cargoAtual) {
+      window.location.href = "index.html";
+    }
+
+    // Esconder menus que só o Admin pode ver
+    if (cargoAtual !== "Admin") {
+      const linkTecnico = document.querySelector('a[href="tecnico.html"]');
+      if (linkTecnico) linkTecnico.style.display = "none";
+
+      const linkAbrir = document.querySelector('a[href="abrir-os.html"]');
+      if (linkAbrir) linkAbrir.style.display = "none";
+    }
+  </script>
+
+  <!-- Registro do Service Worker -->
+  <script>
+    if ('serviceWorker' in navigator && location.protocol.startsWith('http')) {
+      navigator.serviceWorker.register('./service-worker.js', { scope: './' })
+        .then(reg => console.log('Service Worker registrado:', reg.scope))
+        .catch(err => console.error('Erro ao registrar o Service Worker:', err));
+    }
+  </script>
+</body>
+</html>

@@ -1,0 +1,619 @@
+/* =========================
+   RESET & VARIÁVEIS
+========================= */
+* { margin: 0; padding: 0; box-sizing: border-box; }
+
+:root{
+  --azul: #1e90ff;
+  --azul-2: #00bcd4;
+  --azul-escuro: #0b2a61;
+  --cinza-bg: #f2f2f2;
+  --cinza-linha: #cfd8dc;
+  --verde: #00a86b;
+  --verde-2: #2ecc71;
+  --laranja: #ff5722;
+  --laranja-2: #ff7043;
+  --sombra: 0 2px 10px rgba(0,0,0,.08);
+}
+
+html, body { height: 100%; }
+body {
+  font-family: "Segoe UI", system-ui, -apple-system, Arial, sans-serif;
+  background: linear-gradient(90deg, var(--azul), var(--azul-2));
+  color: #111;
+  overflow: hidden; /* conteúdo rola no main-content */
+}
+
+/* LOGIN – centralizado */
+.login-bg {
+  margin: 0;
+  min-height: 100vh;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  background: linear-gradient(90deg, var(--azul), var(--azul-2));
+}
+.login-header {
+  background: #fff;
+  padding: 30px 40px;
+  border-radius: 14px;
+  box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 20px;
+}
+.login-header h1 { color: var(--azul-escuro); font-size: 36px; }
+.login-inline { display: flex; flex-direction: column; gap: 12px; width: 100%; }
+.login-inline input {
+  padding: 10px; border: 1px solid #ccc; border-radius: 8px;
+  font-size: 1rem; width: 260px;
+}
+.login-inline button {
+  padding: 10px; border: 0; border-radius: 8px;
+  background: var(--azul); color: #fff; font-weight: 700; cursor: pointer;
+}
+.login-inline button:hover { background: var(--azul-2); }
+
+/* =========================
+   TOPBAR + SIDEBAR
+========================= */
+.topbar{
+  position:fixed; top:0; left:200px; right:0; height:60px;
+  background:var(--azul); color:#fff;
+  display:flex; align-items:center; justify-content:space-between;
+  padding:15px 20px; z-index:10; box-shadow: var(--sombra);
+}
+.topbar h1{ font-size:1.5rem; font-weight:700; }
+
+/* --- reforço p/ títulos longos quando BRAND = 'fl' --- */
+.topbar h1#appName{
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  max-width: 60vw;
+}
+
+.topbar button{
+  padding:8px 15px; border:none; border-radius:8px;
+  background:#fff; color:var(--azul); font-weight:700; cursor:pointer;
+}
+.topbar button:hover{ background:#eaeff3; }
+
+.sidebar{
+  position:fixed; top:0; left:0; width:200px; height:100%;
+  background:var(--cinza-bg);
+  padding-top:80px; box-shadow: 2px 0 8px rgba(0,0,0,.06);
+}
+.sidebar ul{ list-style:none; padding:0 14px; }
+.sidebar li{ margin:14px 0; }
+.sidebar a{
+  display:block; text-decoration:none; color:#333; font-weight:700;
+  padding:10px 12px; border-radius:10px;
+}
+.sidebar a:hover, .sidebar a.active{
+  background:#d9ecff; color:var(--azul);
+}
+
+/* =========================
+   ÁREA PRINCIPAL
+========================= */
+.main-content{
+  position:relative;
+  margin-left:200px; margin-top:80px;
+  width:calc(100% - 200px); height:calc(100% - 80px);
+  padding:30px; overflow:auto;
+}
+
+/* =========================
+   FORMULÁRIOS / ELEMENTOS
+========================= */
+.form-os{
+  background:#fff; padding:25px; border-radius:14px;
+  box-shadow: var(--sombra); max-width: 1100px; margin: 0 auto;
+}
+.form-os label{ display:block; margin-top:14px; font-weight:700; }
+.form-os input, .form-os select, .form-os textarea{
+  width:100%; margin-top:6px; padding:12px;
+  border:1px solid #ccc; border-radius:8px; font-size:1rem; background:#fff;
+}
+.form-os button{
+  margin-top:20px; width:100%;
+  padding:14px; border:0; border-radius:10px; cursor:pointer;
+  background:var(--azul); color:#fff; font-weight:800; box-shadow: var(--sombra);
+}
+.form-os button:hover{ background:var(--azul-2); }
+
+/* Botões especiais */
+.cliente-btn{ background:var(--verde); }
+.cliente-btn:hover{ background:var(--verde-2); }
+.tecnico-btn{ background:var(--laranja); }
+.tecnico-btn:hover{ background:var(--laranja-2); }
+.outline{
+  background:#fff; color:var(--azul);
+  border:1px solid var(--azul);
+  padding:10px 14px; border-radius:8px; cursor:pointer;
+}
+.outline:hover{ background:#eaf4ff; }
+.danger{
+  background:#e53935; color:#fff; border:0; padding:8px 12px;
+  border-radius:8px; cursor:pointer;
+}
+.danger:hover{ background:#ff4d4a; }
+
+/* Seções internas e grids */
+.section{ margin-bottom:22px; }
+.section h3{ margin-bottom:10px; }
+.grid-2{ display:grid; grid-template-columns:1fr 1fr; gap:12px; }
+.grid-3{ display:grid; grid-template-columns:1fr 1fr 1fr; gap:12px; }
+.align-end{ display:flex; align-items:flex-end; }
+
+/* =========================
+   DASHBOARD – CARDS / TOOLBAR
+========================= */
+.cards{
+  display:flex; gap:22px; flex-wrap:wrap; max-width:1100px;
+  margin:18px auto;
+}
+.card{
+  flex:1; min-width:220px; background:#fff; padding:20px;
+  border-radius:14px; text-align:left; box-shadow: var(--sombra);
+  position:relative;
+}
+.card h3{ margin-bottom:8px; }
+.card-blue{ border-left:6px solid var(--azul); box-shadow: 6px 6px 0 rgba(30,144,255,.15), var(--sombra); }
+.card-orange{ border-left:6px solid #ffa500; box-shadow: 6px 6px 0 rgba(255,165,0,.15), var(--sombra); }
+.card-green{ border-left:6px solid #28a745; box-shadow: 6px 6px 0 rgba(40,167,69,.15), var(--sombra); }
+
+.main-content h2{
+  max-width:1100px; margin:0 auto 10px auto; font-size:1.9rem; color:#fff;
+}
+
+/* Toolbar (filtros + busca + botão) */
+.os-toolbar{
+  max-width:1100px; margin: 8px auto 14px auto;
+  display:flex; align-items:center; justify-content:space-between; gap:12px;
+}
+.filters{ display:flex; gap:8px; flex-wrap:wrap; }
+.chip{
+  padding:8px 12px; border:1px solid var(--cinza-linha);
+  border-radius:999px; background:#fff; cursor:pointer; font-weight:600;
+}
+.chip.active{ background:#d9ecff; color:var(--azul); border-color:#b5d7ff; }
+
+.tools{ display:flex; gap:10px; }
+.search{
+  background:#fff; border:1px solid var(--cinza-linha);
+  padding:12px 14px; border-radius:10px; min-width:280px;
+}
+.btn-primary{
+  text-decoration:none; background:var(--azul); color:#fff;
+  padding:12px 16px; border-radius:10px; font-weight:800;
+}
+.btn-primary:hover{ background:var(--azul-2); }
+
+/* =========================
+   Tabela de OS
+========================= */
+.table-wrapper{ max-width:1100px; margin:0 auto; }
+.os-table{
+  width:100%; background:#fff; border-radius:14px; box-shadow: var(--sombra);
+  border-collapse: collapse; overflow:hidden;
+}
+.os-table th, .os-table td{
+  padding:12px 14px; border-bottom:1px solid #eef2f5; text-align:left;
+  vertical-align: middle;
+}
+.os-table thead th{ background:#f8fafc; font-weight:800; }
+.os-table tr:last-child td{ border-bottom:0; }
+
+.nowrap{ white-space: nowrap; }
+
+/* Célula de status e select */
+.status-cell{ min-width: 240px; }
+.status-select{ min-width:170px; }
+
+/* Remover qualquer badge antigo */
+.status-badge-inline{ display:none !important; }
+.date-chip{ background:transparent; border:0; padding:0; margin:0; }
+
+.link{
+  background:transparent; border:0; color:var(--azul);
+  cursor:pointer; font-weight:700; text-decoration:underline; padding:0;
+}
+
+/* =========================
+   MAPA, FOTOS & PEÇAS (OS)
+========================= */
+.map{
+  width:100%; height:280px; margin-top:10px;
+  border:1px solid var(--cinza-linha); border-radius:12px; overflow:hidden;
+}
+
+.preview-grid{
+  display:grid; grid-template-columns:repeat(auto-fill, minmax(90px,1fr));
+  gap:8px; margin-top:8px;
+}
+.preview-grid img{
+  width:100%; aspect-ratio:1/1; object-fit:cover;
+  border-radius:10px; border:1px solid #e0e0e0;
+}
+
+.tabela-pecas{ width:100%; border-collapse:collapse; margin:10px 0 8px; }
+.tabela-pecas th, .tabela-pecas td{
+  padding:8px; border-bottom:1px solid #eceff1; text-align:left;
+}
+.tabela-pecas input{ width:100%; }
+
+/* Linha de equipamento: GÁS + OUTRO alinhados e botão não sobrepõe */
+.gas-group{
+  display:flex; gap:8px; align-items:center;
+}
+.gas-group .eq-gas{ min-width:120px; }
+.gas-group .eq-gas-outro{
+  display:none; flex:1; min-width:180px;
+}
+
+/* >>> CORREÇÃO: deixar o select de TIPO com largura visível <<< */
+.eq-tipo{
+  min-width: 120px;   /* garante que o texto apareça */
+  width: 100%;
+}
+
+/* Ações na última coluna */
+.os-table td.acoes, .tabela-pecas td.acoes{ text-align:right; }
+
+/* =========================
+   MODAL (Detalhes OS)
+========================= */
+.modal{
+  position: fixed; inset:0; background: rgba(0,0,0,.45);
+  display:none; align-items:center; justify-content:center; padding: 16px;
+  z-index: 9999;
+}
+.modal-body{
+  width: min(1000px, 95vw);
+  background:#fff; border-radius:14px; box-shadow: var(--sombra);
+  max-height: 90vh; overflow: auto;
+}
+.modal-header{
+  position: sticky; top:0;
+  background:#0ea5e9; color:#fff;
+  display:flex; align-items:center; justify-content:space-between;
+  padding:12px 16px; z-index:1;
+  border-top-left-radius:14px; border-top-right-radius:14px;
+}
+.modal-header .close{
+  background:transparent; color:#fff; border:0;
+  font-size:28px; line-height:1; cursor:pointer; padding:4px 8px;
+}
+.modal-content{ padding: 12px 16px; }
+.modal-grid{ display:grid; grid-template-columns:1fr 1fr; gap:14px; }
+.modal-photos{ display:grid; grid-template-columns:1fr 1fr; gap:12px; margin-top:12px; }
+
+/* =========================
+   RESPONSIVIDADE
+========================= */
+@media (max-width: 1024px){
+  .main-content{ padding:22px; }
+  .form-os{ max-width: 100%; }
+}
+@media (max-width: 880px){
+  .sidebar{ width:180px; }
+  .topbar{ left:180px; }
+  .main-content{ margin-left:180px; width:calc(100% - 180px); }
+  .grid-3{ grid-template-columns:1fr 1fr; }
+}
+@media (max-width: 680px){
+  .sidebar{
+    position:fixed; top:60px; left:0; width:100%; height:auto;
+    padding:10px 12px; box-shadow:none;
+  }
+  .sidebar ul{ display:flex; gap:8px; overflow:auto; }
+  .topbar{ left:0; }
+  .main-content{
+    margin-left:0; margin-top:120px;
+    width:100%; height:calc(100% - 120px);
+  }
+  .grid-2, .grid-3{ grid-template-columns:1fr; }
+  .login-header{ flex-direction:column; align-items:flex-start; gap:12px; }
+  .login-inline{ flex-wrap:wrap; }
+  .modal-grid, .modal-photos{ grid-template-columns:1fr; }
+}
+
+/* esconde o bloco do cliente/local */
+.field-cliente label { display: none; }
+
+/* =========================================================
+   ABRIR OS (página pública) – componentes usados em abrir-os.html
+   (isso evita estilos inline no HTML)
+========================================================= */
+
+/* Topbar simplificada com degradê */
+.topbar-lite{
+  background: linear-gradient(90deg,#1e90ff,#0ea5e9);
+  color:#fff;
+  padding:14px 18px;
+  border-radius:0 0 14px 14px;
+}
+.topbar-lite h1{ font-size:20px; margin:0; }
+
+/* Container e cartões reaproveitam .card; apenas um wrapper */
+.wrap{ max-width: 980px; margin: 0 auto; padding: 16px; }
+
+/* Avisos de sucesso/erro */
+.muted { color:#666; font-size:.95rem; }
+.success{
+  background:#e8f7ee; border:1px solid #bfe6cd; color:#246b3d;
+  padding:10px; border-radius:8px; display:none;
+}
+.error{
+  background:#fde8e8; border:1px solid #f5bcbc; color:#8a1f1f;
+  padding:10px; border-radius:8px; display:none;
+}
+
+/* Mini-mapa de preview no formulário público */
+.map-mini{
+  height:220px; border-radius:12px; background:#f1f5f9;
+}
+
+/* Linha de botões do formulário público */
+.btn-row{ display:flex; gap:10px; align-items:center; flex-wrap:wrap; }
+
+/* Permitir rolagem na página pública (abrir-os.html) */
+body.public-page { 
+  overflow-y: auto;     /* libera o scroll */
+}
+
+/* Opcional: dar um respiro no fim da página para não “colar” no rodapé do viewport */
+.wrap { 
+  padding-bottom: 32px; 
+}
+
+/* ====== PÁGINA USUÁRIOS ====== */
+.page-usuarios .usuarios-main {
+  max-width: 960px;
+  margin: 24px auto;
+}
+
+.card-form-usuarios {
+  border-radius: 16px;
+  padding: 20px 24px;
+  box-shadow: 0 6px 18px rgba(0, 0, 0, 0.08);
+}
+
+.card-form-usuarios h2 {
+  margin-bottom: 18px;
+}
+
+.form-grid-usuario {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 12px 16px;
+}
+
+.form-grid-usuario .form-group label {
+  font-weight: 600;
+  margin-bottom: 4px;
+  display: block;
+}
+
+.form-grid-usuario .form-group input,
+.form-grid-usuario .form-group select {
+  width: 100%;
+  padding: 10px 12px;
+  border-radius: 10px;
+  border: 1px solid #dbe2ea;
+}
+
+.form-grid-usuario .form-actions {
+  margin-top: 18px;
+  text-align: right;
+}
+
+.btn-primary.largo {
+  min-width: 220px;
+}
+
+/* ====== PÁGINA ABRIR OS ====== */
+.page-abrir-os .wrap-abertura {
+  max-width: 980px;
+  margin: 0 auto;
+  padding: 0 16px;
+}
+
+.topbar-lite-abertura {
+  background: linear-gradient(90deg, #1e90ff, #0ea5e9);
+  color: #fff;
+  padding: 14px 0;
+  border-radius: 0 0 14px 14px;
+}
+
+.main-abertura {
+  margin-top: 18px;
+  padding-bottom: 32px;
+}
+
+.card-abertura {
+  background: #ffffff;
+  border-radius: 16px;
+  box-shadow: 0 6px 18px rgba(0, 0, 0, 0.08);
+  padding: 20px 24px 24px;
+}
+
+.grid-2-abertura {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 12px 16px;
+}
+
+.grid-3-abertura {
+  display: grid;
+  grid-template-columns: 1fr 1fr 1fr;
+  gap: 12px 16px;
+}
+
+@media (max-width: 900px) {
+  .grid-2-abertura,
+  .grid-3-abertura {
+    grid-template-columns: 1fr;
+  }
+}
+
+.map-mini {
+  height: 220px;
+  border-radius: 12px;
+  background: #f1f5f9;
+  margin-top: 10px;
+}
+
+.btn-gps-wrapper {
+  display: flex;
+  align-items: flex-end;
+}
+
+.btn-row-abertura {
+  display: flex;
+  gap: 10px;
+  align-items: center;
+  margin-top: 16px;
+}
+
+.btn-outline {
+  border: 1px solid #1e90ff;
+  background: #ffffff;
+  color: #1e90ff;
+  padding: 9px 14px;
+  border-radius: 10px;
+  cursor: pointer;
+  text-decoration: none;
+}
+
+.alert-success,
+.alert-error {
+  padding: 10px 12px;
+  border-radius: 8px;
+  margin-bottom: 10px;
+  font-size: 0.95rem;
+  display: none;
+}
+
+.alert-success {
+  background: #e8f7ee;
+  border: 1px solid #bfe6cd;
+  color: #246b3d;
+}
+
+.alert-error {
+  background: #fde8e8;
+  border: 1px solid #f5bcbc;
+  color: #8a1f1f;
+}
+
+.mt-10 { margin-top: 10px; }
+.mt-18 { margin-top: 18px; }
+
+.page-abrir-os label {
+  font-weight: 600;
+}
+
+.page-abrir-os input,
+.page-abrir-os textarea,
+.page-abrir-os select {
+  width: 100%;
+  padding: 10px 12px;
+  border-radius: 10px;
+  border: 1px solid #dbe2ea;
+}
+
+.page-abrir-os textarea {
+  min-height: 120px;
+  resize: vertical;
+}
+
+/* ===== PÁGINA ABRIR OS ================================== */
+.page-abrir-os {
+  min-height: 100vh;
+  background: linear-gradient(135deg, #0ea5e9, #1e90ff);
+  overflow-y: auto;            /* permite rolar até o fim da página */
+}
+
+.page-abrir-os .wrap {
+  max-width: 1080px;
+  margin: 0 auto 32px auto;
+  padding: 24px 16px 40px;
+}
+
+/* Cartão principal da página Abrir OS */
+.page-abrir-os .card {
+  background: #ffffff;
+  border-radius: 18px;
+  box-shadow: 0 10px 30px rgba(15, 23, 42, 0.18);
+  padding: 22px 22px 26px;
+}
+
+/* Botão GPS com ícone (compartilhado entre páginas) */
+.btn-gps {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  border-radius: 999px;
+  border: 1px solid #1e90ff;
+  background: #ffffff;
+  color: #1e90ff;
+  padding: 8px 14px;
+  cursor: pointer;
+  font-weight: 600;
+  font-size: 0.95rem;
+  box-shadow: 0 4px 10px rgba(0, 0, 0, .12);
+  transition: transform .1s ease, box-shadow .1s ease, background .2s ease, color .2s ease;
+}
+
+/* versão que ocupa 100% da largura (Nova OS/ordem-servico) */
+.btn-gps-full {
+  width: 100%;
+}
+
+/* ícone do GPS (emoji ou imagem) */
+.btn-gps-icon {
+  font-size: 1.1rem;
+  line-height: 1;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+}
+
+/* se quiser imagem:
+.btn-gps-icon {
+  width: 18px;
+  height: 18px;
+  background: url("img/gps.png") no-repeat center/contain;
+}
+*/
+
+.btn-gps:hover {
+  background: #1e90ff;
+  color: #ffffff;
+  transform: translateY(-1px);
+  box-shadow: 0 6px 14px rgba(0, 0, 0, .18);
+}
+
+.btn-gps:active {
+  transform: translateY(0);
+  box-shadow: 0 2px 6px rgba(0, 0, 0, .18);
+}
+
+/* Mapa menor e responsivo */
+.map-mini {
+  height: 260px;
+  border-radius: 14px;
+  background: #f1f5f9;
+  overflow: hidden;
+}
+
+@media (max-width: 768px) {
+  .page-abrir-os .card {
+    padding: 16px 14px 22px;
+  }
+}
