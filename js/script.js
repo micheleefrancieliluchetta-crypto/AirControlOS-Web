@@ -2,10 +2,11 @@
  * CONFIG GERAL + LOGIN
  *************************************************/
 
-// Base da API (ajuste o domínio de produção quando for publicar)
-const API_BASE = (location.protocol === "https:")
-  ? "https://api.seudominio.com"     // produção
-  : "http://localhost:5151";         // DEV
+// Base da API: local (dev) x produção (Render)
+const API_BASE =
+  (location.hostname === "localhost" || location.hostname === "127.0.0.1")
+    ? "http://localhost:5151"                  // quando testar na sua máquina
+    : "https://aircontrolos-api.onrender.com"; // produção (Render)
 
 // CARGOS padronizados (iguais ao backend)
 const CARGOS = ["Admin", "Tecnico", "Ajudante", "MeioOficial", "Mecanico"];
@@ -209,7 +210,7 @@ function openIDB() {
 async function idbPut(store, value) {
   const db = await openIDB();
   return new Promise((resolve, reject) => {
-    const tx = db.transaction(store, "readwrite");
+    const tx = db.transaction(store, "readonly" === "readwrite" ? "readwrite" : "readwrite");
     tx.oncomplete = () => resolve(true);
     tx.onerror = () => reject(tx.error);
     tx.objectStore(store).put(value);
