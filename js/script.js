@@ -47,15 +47,23 @@ if (loginForm) {
 
       const user = await res.json();
 
+      // 🔹 Normaliza o cargo vindo do backend
+      const cargoBack = user.cargo || user.Cargo || "";
+      const cargoNorm = cargoBack.toString().trim().toLowerCase(); // "admin", "tecnico", etc.
+      user.cargo = cargoNorm; // garante que o objeto também fique padronizado
+
+      console.log("Login OK. Usuário:", user.email, "Cargo normalizado:", cargoNorm);
+
       // sessão atual
       sessionStorage.setItem("air_user", JSON.stringify(user));
-      sessionStorage.setItem("cargo", user.cargo || "");
+      sessionStorage.setItem("cargo", cargoNorm);
 
       // também no localStorage (PWA / rotas)
       localStorage.setItem("air_user", JSON.stringify(user));
-      localStorage.setItem("userRole", user.cargo || user.role || "");
+      localStorage.setItem("userRole", cargoNorm);
 
       window.location.href = "dashboard.html";
+
     } catch (err) {
       console.error(err);
       alert("Falha de conexão com o servidor.");
@@ -96,11 +104,7 @@ function isLogged() {
 }
 
 function role() {
-  return (
-    sessionStorage.getItem("cargo") ||
-    localStorage.getItem("userRole") ||
-    ""
-  );
+  return getCargoAtual(); // já vem em minúsculo
 }
 
 /** Requer login; se não tiver, volta pro index */
@@ -1122,17 +1126,20 @@ function getStoredUser() {
 
 function getCargoAtual() {
   const u = getStoredUser();
-  if (u?.cargo) return u.cargo;
+  if (u?.cargo) return (u.cargo || "").toLowerCase();
   return (
-    sessionStorage.getItem("cargo") ||
-    localStorage.getItem("userRole") ||
-    ""
+    (
+      sessionStorage.getItem("cargo") ||
+      localStorage.getItem("userRole") ||
+      ""
+    ).toLowerCase()
   );
 }
 
 /** Garante que só admin acesse a página */
 function ensureAdmin() {
-  const cargo = (getCargoAtual() || "").toLowerCase();
+  const cargo = getCargoAtual(); // já é minúsculo
+  console.log("ensureAdmin() cargo atual =", cargo);
 
   if (!cargo) {
     alert("Faça login novamente.");
@@ -1141,7 +1148,7 @@ function ensureAdmin() {
   }
 
   if (cargo !== "admin") {
-    alert("Somente administradores podem acessar esta página.");
+    alert("Somente administradores podem gerenciar usuários.");
     window.location.href = "dashboard.html";
   }
 }
