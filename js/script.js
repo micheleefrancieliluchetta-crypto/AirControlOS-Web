@@ -1142,17 +1142,33 @@ function getCargoAtual() {
 }
 
 /** Garante que só admin acesse a página */
+/** Garante que só admin acesse a página */
 function ensureAdmin() {
+  const user  = getStoredUser();
   const cargo = getCargoAtual(); // já vem em minúsculo
-  console.log("ensureAdmin() cargo atual =", cargo);
 
-  if (!cargo) {
+  console.log("ensureAdmin() user =", user);
+  console.log("ensureAdmin() cargo resolvido =", cargo);
+
+  // Se nem usuário tiver, volta pro login
+  if (!user) {
     alert("Faça login novamente.");
     window.location.href = "index.html";
     return;
   }
 
-  if (cargo !== "admin") {
+  // Normaliza o e-mail pra comparar
+  const email = (user.email || "").toLowerCase();
+
+  // ✅ Regras para considerar ADMIN:
+  // 1) cargo = "admin"
+  // 2) OU e-mail é um dos seus e-mails de administradora
+  const isAdmin =
+    cargo === "admin" ||
+    email === "flmultitec@gmail.com" ||
+    email === "francieleluchetta67@gmail.com";
+
+  if (!isAdmin) {
     alert("Somente administradores podem gerenciar usuários.");
     window.location.href = "dashboard.html";
   }
