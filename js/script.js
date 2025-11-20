@@ -1113,6 +1113,7 @@ window.salvarStatusModal = function () {
  *************************************************/
 const formUsuario = document.getElementById("formUsuario");
 
+/** Lê o usuário salvo no storage */
 function getStoredUser() {
   try {
     const raw =
@@ -1124,12 +1125,13 @@ function getStoredUser() {
   }
 }
 
+/** Descobre o cargo atual (sempre em minúsculo) */
 function getCargoAtual() {
   const u = getStoredUser();
 
   // 1º tenta pegar do objeto salvo (air_user)
   if (u?.cargo) {
-    return (u.cargo || "").toLowerCase();
+    return String(u.cargo || "").toLowerCase();
   }
 
   // 2º tenta pegar do session/localStorage
@@ -1138,55 +1140,28 @@ function getCargoAtual() {
     localStorage.getItem("userRole") ||
     "";
 
-  return (c || "").toLowerCase();
+  return String(c || "").toLowerCase();
 }
 
-/** Garante que só admin acesse a página */
+/** Garante que só admin acesse a página de usuários */
 function ensureAdmin() {
-  const u = getStoredUser();
-  const cargo = getCargoAtual(); // já em minúsculo
-
-  console.log("ensureAdmin() user =", u);
+  const cargo = getCargoAtual(); // já vem em minúsculo
   console.log("ensureAdmin() cargo atual =", cargo);
 
-  // se não tiver usuário, manda logar de novo
-  if (!u) {
+  if (!cargo) {
     alert("Faça login novamente.");
     window.location.href = "index.html";
     return;
   }
 
-  // regra extra: sempre permitir SEU e-mail principal (troque se precisar)
-  const email = (u.email || "").toLowerCase();
-  const isEmailMaster =
-    email === "flmultitec@gmail.com" ||  // seu e-mail 1
-    email === "flmulitec@gmail.com";    // se tiver outro admin, pode por aqui
-
-  // se não for admin e nem o e-mail master, bloqueia
-  if (cargo !== "admin" && !isEmailMaster) {
-    alert("Somente administradores podem gerenciar usuários.");
-    window.location.href = "dashboard.html";
-  }
-}
-
-  // Normaliza o e-mail pra comparar
-  const email = (user.email || "").toLowerCase();
-
-  // ✅ Regras para considerar ADMIN:
-  // 1) cargo = "admin"
-  // 2) OU e-mail é um dos seus e-mails de administradora
-  const isAdmin =
-    cargo === "admin" ||
-    email === "flmultitec@gmail.com" ||
-    email === "francieleluchetta67@gmail.com";
-
-  if (!isAdmin) {
+  if (cargo !== "admin") {
     alert("Somente administradores podem gerenciar usuários.");
     window.location.href = "dashboard.html";
   }
 }
 
 if (formUsuario) {
+  // Bloqueio de rota
   ensureAdmin();
 
   const selCargoU = document.getElementById("uCargo");
