@@ -1142,20 +1142,32 @@ function getCargoAtual() {
 }
 
 /** Garante que só admin acesse a página */
-/** Garante que só admin acesse a página */
 function ensureAdmin() {
-  const user  = getStoredUser();
-  const cargo = getCargoAtual(); // já vem em minúsculo
+  const u = getStoredUser();
+  const cargo = getCargoAtual(); // já em minúsculo
 
-  console.log("ensureAdmin() user =", user);
-  console.log("ensureAdmin() cargo resolvido =", cargo);
+  console.log("ensureAdmin() user =", u);
+  console.log("ensureAdmin() cargo atual =", cargo);
 
-  // Se nem usuário tiver, volta pro login
-  if (!user) {
+  // se não tiver usuário, manda logar de novo
+  if (!u) {
     alert("Faça login novamente.");
     window.location.href = "index.html";
     return;
   }
+
+  // regra extra: sempre permitir SEU e-mail principal (troque se precisar)
+  const email = (u.email || "").toLowerCase();
+  const isEmailMaster =
+    email === "flmultitec@gmail.com" ||  // seu e-mail 1
+    email === "flmulitec@gmail.com";    // se tiver outro admin, pode por aqui
+
+  // se não for admin e nem o e-mail master, bloqueia
+  if (cargo !== "admin" && !isEmailMaster) {
+    alert("Somente administradores podem gerenciar usuários.");
+    window.location.href = "dashboard.html";
+  }
+}
 
   // Normaliza o e-mail pra comparar
   const email = (user.email || "").toLowerCase();
