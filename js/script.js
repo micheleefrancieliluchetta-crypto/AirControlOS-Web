@@ -1126,19 +1126,24 @@ function getStoredUser() {
 
 function getCargoAtual() {
   const u = getStoredUser();
-  if (u?.cargo) return (u.cargo || "").toLowerCase();
-  return (
-    (
-      sessionStorage.getItem("cargo") ||
-      localStorage.getItem("userRole") ||
-      ""
-    ).toLowerCase()
-  );
+
+  // 1º tenta pegar do objeto salvo (air_user)
+  if (u?.cargo) {
+    return (u.cargo || "").toLowerCase();
+  }
+
+  // 2º tenta pegar do session/localStorage
+  const c =
+    sessionStorage.getItem("cargo") ||
+    localStorage.getItem("userRole") ||
+    "";
+
+  return (c || "").toLowerCase();
 }
 
 /** Garante que só admin acesse a página */
 function ensureAdmin() {
-  const cargo = getCargoAtual(); // já é minúsculo
+  const cargo = getCargoAtual(); // já vem em minúsculo
   console.log("ensureAdmin() cargo atual =", cargo);
 
   if (!cargo) {
