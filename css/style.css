@@ -617,3 +617,40 @@ body.public-page {
     padding: 16px 14px 22px;
   }
 }
+
+/* ===== AJUSTES ESPECÍFICOS PARA usuarios.html ===== */
+
+body.page-usuarios {
+  overflow-x: hidden;          /* some com rolagem horizontal */
+}
+
+.page-usuarios .usuarios-main {
+  margin-left: 260px;          /* mesma largura da sidebar, se já usa isso */
+  padding: 2rem 1.5rem;
+  display: flex;
+  justify-content: center;     /* centraliza o card */
+}
+
+.page-usuarios .card-form-usuarios {
+  width: 100%;
+  max-width: 800px;            /* limita a largura do card */
+  box-sizing: border-box;
+}
+
+.page-usuarios .form-grid-usuario {
+  display: flex;
+  flex-direction: column;      /* uma coluna no mobile/desktop */
+  gap: 1rem;
+}
+
+.page-usuarios .form-grid-usuario .form-group,
+.page-usuarios .form-grid-usuario .form-actions {
+  width: 100%;
+}
+
+.page-usuarios .form-grid-usuario input,
+.page-usuarios .form-grid-usuario select {
+  width: 100%;
+  max-width: 100%;
+  box-sizing: border-box;
+}
