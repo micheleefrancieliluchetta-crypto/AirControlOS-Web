@@ -49,7 +49,13 @@ if (loginForm) {
 
       // 🔹 Normaliza o cargo vindo do backend
       const cargoBack = user.cargo || user.Cargo || "";
-      const cargoNorm = cargoBack.toString().trim().toLowerCase(); // "admin", "tecnico", etc.
+      let cargoNorm = cargoBack.toString().trim().toLowerCase(); // "admin", "tecnico", "administrador", etc.
+
+      // se vier "administrador", padroniza pra "admin"
+      if (cargoNorm === "administrador") {
+      cargoNorm = "admin";
+     }
+
       user.cargo = cargoNorm; // garante que o objeto também fique padronizado
 
       console.log("Login OK. Usuário:", user.email, "Cargo normalizado:", cargoNorm);
