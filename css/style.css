@@ -657,8 +657,16 @@ body.page-usuarios .form-actions {
   margin-top: 20px;
 }
 
-/* botão ocupa toda a largura do card (igual outros forms) */
-body.page-usuarios .form-actions .btn-primary {
-  width: 100%;
-  display: block;
+/* Botão igual ao das outras páginas */
+.page-usuarios .form-actions {
+  margin-top: 18px;
+  display: flex;
+  justify-content: flex-start; /* igual às outras telas */
+}
+
+.page-usuarios .form-actions .btn-primary {
+  width: auto;                /* tira o 100% */
+  min-width: 180px;           /* tamanho padrão */
+  padding: 12px 16px;         /* igual aos botões normais */
+  border-radius: 10px;
 }
