@@ -618,19 +618,29 @@ body.public-page {
   }
 }
 
-/* ===== Ajustes específicos da página de Usuários ===== */
+/* ===== Ajuste correto da página de Usuários ===== */
 
-body.page-usuarios .main-content {
-  padding: 32px 32px 40px;
-}
-
-body.page-usuarios .card-form-usuarios {
-  max-width: 900px;
-  margin: 24px auto;     /* centraliza o card no meio da tela */
-}
-
-body.page-usuarios .form-actions {
-  margin-top: 24px;
+.page-usuarios .main-content {
+  padding: 32px;
   display: flex;
-  justify-content: flex-end;  /* botão vai ficar alinhado à direita */
+  justify-content: center;
+}
+
+.page-usuarios .usuarios-main {
+  width: 100%;
+  max-width: 900px;
+}
+
+.page-usuarios .card-form-usuarios {
+  width: 100%;
+  background: #fff;
+  border-radius: 16px;
+  padding: 24px 28px;
+  box-shadow: 0 6px 18px rgba(0,0,0,.1);
+}
+
+.page-usuarios .form-actions {
+  display: flex;
+  justify-content: flex-end;
+  margin-top: 20px;
 }
