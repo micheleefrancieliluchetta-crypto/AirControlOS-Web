@@ -617,3 +617,20 @@ body.public-page {
     padding: 16px 14px 22px;
   }
 }
+
+/* ===== Ajustes específicos da página de Usuários ===== */
+
+body.page-usuarios .main-content {
+  padding: 32px 32px 40px;
+}
+
+body.page-usuarios .card-form-usuarios {
+  max-width: 900px;
+  margin: 24px auto;     /* centraliza o card no meio da tela */
+}
+
+body.page-usuarios .form-actions {
+  margin-top: 24px;
+  display: flex;
+  justify-content: flex-end;  /* botão vai ficar alinhado à direita */
+}
