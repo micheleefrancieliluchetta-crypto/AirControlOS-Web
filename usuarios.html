@@ -95,10 +95,14 @@
     requireLogin();
 
     // impede não-admin de abrir
-    if (role() !== "Admin") {
-      alert("Somente administradores podem gerenciar usuários.");
-      window.location.href = "dashboard.html";
-    }
+    // exige login
+    requireLogin();
+
+    // impede não-admin de abrir (comparando em minúsculo)
+    if ((role() || "").toLowerCase() !== "admin") {
+    alert("Somente administradores podem gerenciar usuários.");
+    window.location.href = "dashboard.html";
+   }
 
     // preenche o select de cargo com o mesmo array CARGOS
     (function fillCargoSelect() {
