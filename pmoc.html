@@ -1,0 +1,149 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Checklist PMOC</title>
+
+    <style>
+        body {
+            background: #f5f5f5;
+            font-family: Arial, sans-serif;
+            padding: 20px;
+        }
+
+        .card {
+            background: white;
+            padding: 20px;
+            border-radius: 10px;
+            box-shadow: 0 3px 10px rgba(0,0,0,0.1);
+            max-width: 600px;
+            margin: auto;
+        }
+
+        h2 {
+            text-align: center;
+            margin-bottom: 20px;
+        }
+
+        .item {
+            background: #f0f0f0;
+            padding: 10px;
+            border-radius: 8px;
+            margin-bottom: 10px;
+        }
+
+        select, textarea, button {
+            width: 100%;
+            margin-top: 5px;
+            padding: 10px;
+            border-radius: 5px;
+            border: 1px solid #ccc;
+        }
+
+        button {
+            background: #0066ff;
+            color: white;
+            border: none;
+            font-size: 16px;
+            margin-top: 20px;
+            cursor: pointer;
+        }
+    </style>
+</head>
+
+<body>
+
+<div class="card">
+    <h2>Checklist PMOC</h2>
+
+    <p><strong>Aparelho:</strong> <span id="nomeAparelho"></span></p>
+
+    <div id="listaItens"></div>
+
+    <button onclick="salvarPmoc()">Salvar Checklist</button>
+</div>
+
+<script>
+    // ✔️ pegar o id do aparelho vindo da URL
+    const urlParams = new URLSearchParams(window.location.search);
+    const aparelhoId = urlParams.get("id");
+
+    // ✔️ token salvo no login
+    const token = localStorage.getItem("token");
+
+    // ✔️ e-mail do técnico
+    const tecnicoEmail = localStorage.getItem("email");
+
+    if (!aparelhoId) {
+        alert("Erro: ID do aparelho não informado.");
+    }
+
+    // ITENS DO PMOC – você pode aumentar depois
+    const itensChecklist = [
+        { item: "Filtro de ar" },
+        { item: "Evaporadora" },
+        { item: "Condensadora" },
+        { item: "Dreno" },
+        { item: "Ventilador" }
+    ];
+
+    // montar lista na tela
+    const listaDiv = document.getElementById("listaItens");
+    listaDiv.innerHTML = itensChecklist.map((i, index) => `
+        <div class="item">
+            <strong>${i.item}</strong>
+
+            <select id="status_${index}">
+                <option value="OK">OK</option>
+                <option value="Problema">Problema</option>
+                <option value="NA">Não se aplica</option>
+            </select>
+
+            <textarea id="obs_${index}" placeholder="Observação"></textarea>
+        </div>
+    `).join("");
+
+    // FUNÇÃO PARA SALVAR
+    async function salvarPmoc() {
+
+        const itens = itensChecklist.map((i, index) => ({
+            item: i.item,
+            status: document.getElementById(`status_${index}`).value,
+            observacao: document.getElementById(`obs_${index}`).value
+        }));
+
+        const body = {
+            aparelhoHdvId: Number(aparelhoId),
+            tecnicoEmail: tecnicoEmail,
+            itensJson: JSON.stringify(itens)
+        };
+
+        console.log("Enviando:", body);
+
+        try {
+            const resp = await fetch("https://aircontrolos-api.onrender.com/api/PmocRegistros", {
+                method: "POST",
+                headers: {
+                    "Content-Type": "application/json",
+                    "Authorization": "Bearer " + token
+                },
+                body: JSON.stringify(body)
+            });
+
+            if (resp.ok) {
+                alert("Checklist salvo com sucesso!");
+                window.location.href = "ordem-servico.html"; // ajuste se quiser outra tela
+            } else {
+                const erro = await resp.text();
+                alert("Erro ao salvar: " + erro);
+            }
+
+        } catch (e) {
+            alert("Falha ao enviar. Verifique sua internet.");
+        }
+    }
+</script>
+
+</body>
+</html>
