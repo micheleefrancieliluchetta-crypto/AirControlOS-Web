@@ -1,98 +1,159 @@
 <!DOCTYPE html>
 <html lang="pt-BR">
 <head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
 <title>Checklist PMOC</title>
 
 <style>
   body {
-    background: #f5f5f5;
     margin: 0;
+    background: #f3f4f6;
     font-family: Arial, sans-serif;
   }
 
+  /* Topo estilo app */
   .topo {
     background: #007bff;
     color: white;
-    padding: 15px;
+    padding: 16px;
     font-size: 20px;
-    font-weight: bold;
     display: flex;
     align-items: center;
-    gap: 10px;
-    box-shadow: 0px 2px 6px rgba(0,0,0,0.15);
+    gap: 12px;
+    font-weight: bold;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.15);
+  }
+
+  .voltar {
+    background: rgba(255,255,255,0.25);
+    border: none;
+    padding: 6px 10px;
+    border-radius: 6px;
+    cursor: pointer;
+    color: white;
+    font-size: 14px;
   }
 
   .container {
-    padding: 15px;
     max-width: 900px;
     margin: auto;
+    padding: 16px;
   }
 
+  /* Cartões */
   .card {
     background: white;
-    padding: 18px;
+    padding: 16px;
     border-radius: 12px;
-    box-shadow: 0px 2px 6px rgba(0,0,0,0.1);
-    margin-bottom: 20px;
+    margin-bottom: 16px;
+    box-shadow: 0 2px 6px rgba(0,0,0,0.1);
   }
 
+  h2 {
+    margin-top: 0;
+    font-size: 18px;
+  }
+
+  /* Campos de dados */
+  .grid {
+    display: grid;
+    gap: 12px;
+  }
+
+  .campo label {
+    font-size: 13px;
+    color: #555;
+  }
+
+  .campo input {
+    width: 100%;
+    padding: 10px;
+    border-radius: 8px;
+    border: 1px solid #ccc;
+    font-size: 14px;
+  }
+
+  /* Checklist itens */
   .item {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    padding: 14px 0;
+    padding: 12px 0;
     border-bottom: 1px solid #eee;
   }
 
-  .item:last-child {
-    border-bottom: none;
+  .linha-item {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
   }
 
   .nome-item {
-    font-size: 16px;
+    font-size: 15px;
     font-weight: 600;
   }
 
-  /* BOLINHA */
-  .bolinha {
-    width: 26px;
-    height: 26px;
-    border-radius: 50%;
+  /* Botões estilo ON/OFF (OK/Problema) */
+  .toggle {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+
+  .toggle button {
     border: none;
+    padding: 6px 12px;
+    border-radius: 20px;
     cursor: pointer;
-    background: #ccc; /* desligado */
-    transition: 0.2s;
+    font-size: 13px;
   }
 
-  .bolinha.ok {
-    background: #36d96f; /* verde */
+  .ok {
+    background: #c8f7cd;
+    color: #118f2c;
   }
 
-  .bolinha.problem {
-    background: #ff4c4c; /* vermelho */
+  .problem {
+    background: #f7c8c8;
+    color: #b30000;
   }
 
   textarea {
     width: 100%;
+    margin-top: 8px;
     padding: 8px;
-    margin-top: 10px;
     border-radius: 8px;
     border: 1px solid #ccc;
+    resize: vertical;
   }
 
+  /* Obs técnicas */
+  .btn-obs {
+    width: 100%;
+    padding: 10px;
+    background: #e7f1ff;
+    border: 1px solid #70a9ff;
+    border-radius: 8px;
+    color: #0056c7;
+    cursor: pointer;
+    margin-top: 10px;
+  }
+
+  #obsTecnicaBox {
+    margin-top: 10px;
+    display: none;
+  }
+
+  /* Botão salvar */
   .btn-salvar {
     width: 100%;
-    padding: 15px;
-    border: none;
     background: #007bff;
+    border: none;
+    padding: 14px;
     color: white;
-    font-size: 17px;
+    font-size: 16px;
+    font-weight: bold;
     border-radius: 10px;
     cursor: pointer;
-    font-weight: bold;
-    margin-top: 20px;
+    margin-top: 18px;
   }
 
 </style>
@@ -100,64 +161,118 @@
 
 <body>
 
-<div class="topo">Checklist PMOC</div>
+<div class="topo">
+  <button class="voltar" onclick="history.back()">←</button>
+  Checklist PMOC
+</div>
 
 <div class="container">
 
+  <!-- Dados do aparelho -->
+  <div class="card">
+    <h2>Dados do aparelho</h2>
+
+    <div class="grid">
+      <div class="campo">
+        <label>Unidade</label>
+        <input id="unidade" type="text">
+      </div>
+
+      <div class="campo">
+        <label>Local</label>
+        <input id="local" type="text">
+      </div>
+
+      <div class="campo">
+        <label>Marca</label>
+        <input id="marca" type="text">
+      </div>
+
+      <div class="campo">
+        <label>BTUs</label>
+        <input id="btu" type="text">
+      </div>
+
+      <div class="campo">
+        <label>Modelo</label>
+        <input id="modelo" type="text">
+      </div>
+
+      <div class="campo">
+        <label>Data</label>
+        <input id="data" type="date">
+      </div>
+    </div>
+  </div>
+
+  <!-- CHECKLIST -->
   <div class="card">
     <h2>Checklist</h2>
 
-    <!-- ITEM 1 -->
+    <!-- Item 1 -->
     <div class="item">
-      <span class="nome-item">Filtro de ar</span>
-      <div>
-        <button class="bolinha" onclick="toggleBolinha(this)"></button>
+      <div class="linha-item">
+        <span class="nome-item">Funcionamento geral</span>
+        <div class="toggle">
+          <button class="ok">OK</button>
+          <button class="problem">Problema</button>
+        </div>
       </div>
+      <textarea placeholder="Observações (opcional)"></textarea>
     </div>
 
-    <!-- ITEM 2 -->
+    <!-- Item 2 -->
     <div class="item">
-      <span class="nome-item">Evaporadora</span>
-      <div>
-        <button class="bolinha" onclick="toggleBolinha(this)"></button>
+      <div class="linha-item">
+        <span class="nome-item">Filtro de ar</span>
+        <div class="toggle">
+          <button class="ok">OK</button>
+          <button class="problem">Problema</button>
+        </div>
       </div>
+      <textarea placeholder="Observações (opcional)"></textarea>
     </div>
 
-    <!-- ITEM 3 -->
+    <!-- Item 3 -->
     <div class="item">
-      <span class="nome-item">Condensadora</span>
-      <div>
-        <button class="bolinha" onclick="toggleBolinha(this)"></button>
+      <div class="linha-item">
+        <span class="nome-item">Evaporadora</span>
+        <div class="toggle">
+          <button class="ok">OK</button>
+          <button class="problem">Problema</button>
+        </div>
       </div>
+      <textarea placeholder="Observações (opcional)"></textarea>
     </div>
 
-    <!-- ITEM 4 -->
+    <!-- Item 4 -->
     <div class="item">
-      <span class="nome-item">Funcionamento geral</span>
-      <div>
-        <button class="bolinha" onclick="toggleBolinha(this)"></button>
+      <div class="linha-item">
+        <span class="nome-item">Condensadora</span>
+        <div class="toggle">
+          <button class="ok">OK</button>
+          <button class="problem">Problema</button>
+        </div>
       </div>
+      <textarea placeholder="Observações (opcional)"></textarea>
     </div>
 
-    <h3>Observações técnicas</h3>
-    <textarea rows="5"></textarea>
+    <button class="btn-obs" onclick="toggleObs()">+ Adicionar observações técnicas</button>
+
+    <div id="obsTecnicaBox">
+      <textarea placeholder="Escreva observações técnicas detalhadas..."></textarea>
+    </div>
 
     <button class="btn-salvar">Salvar checklist</button>
 
   </div>
+
 </div>
 
 <script>
-function toggleBolinha(botao) {
-  // ordem: cinza → verde → vermelho → cinza
-  if (!botao.classList.contains("ok") && !botao.classList.contains("problem")) {
-    botao.classList.add("ok"); // liga verde
-  } else if (botao.classList.contains("ok")) {
-    botao.classList.remove("ok");
-    botao.classList.add("problem"); // muda para vermelho
-  } else {
-    botao.classList.remove("problem"); // volta para cinza
-  }
+function toggleObs() {
+  const box = document.getElementById("obsTecnicaBox");
+  box.style.display = box.style.display === "none" ? "block" : "none";
 }
 </script>
 
