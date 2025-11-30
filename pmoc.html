@@ -91,7 +91,7 @@
     font-weight: 600;
   }
 
-  /* ====== SWITCH TIPO ANDROID / IOS ====== */
+  /* ====== SWITCH ====== */
 .switch {
     position: relative;
     display: inline-block;
@@ -105,6 +105,7 @@
     height: 0;
 }
 
+/* FUNDO DO SWITCH */
 .slider {
     position: absolute;
     cursor: pointer;
@@ -112,11 +113,12 @@
     left: 0;
     right: 0;
     bottom: 0;
-    background-color: #ccc;
+    background-color: #37d67a; /* VERDE POR PADRÃO */
     transition: 0.2s;
     border-radius: 999px;
 }
 
+/* BOLINHA */
 .slider:before {
     position: absolute;
     content: "";
@@ -129,12 +131,12 @@
     border-radius: 50%;
 }
 
-/* ligado (checked) */
-.switch input:checked + .slider {
-    background-color: #37d67a;
+/* --- ESTILO PARA QUANDO ESTIVER "PROBLEMA" (VERMELHO) --- */
+.switch input.problem + .slider {
+    background-color: #ff4d4d !important;
 }
 
-.switch input:checked + .slider:before {
+.switch input.problem + .slider:before {
     transform: translateX(20px);
 }
 
@@ -243,7 +245,7 @@ textarea {
       <div class="linha-item">
         <span class="nome-item">Funcionamento geral</span>
         <label class="switch">
-          <input type="checkbox" id="funcionamentoGeral">
+          <input type="checkbox" onclick="toggleColor(this)">
           <span class="slider"></span>
         </label>
       </div>
@@ -254,7 +256,7 @@ textarea {
       <div class="linha-item">
         <span class="nome-item">Filtro de ar</span>
         <label class="switch">
-          <input type="checkbox" id="filtroAr">
+          <input type="checkbox" onclick="toggleColor(this)">
           <span class="slider"></span>
         </label>
       </div>
@@ -265,7 +267,7 @@ textarea {
       <div class="linha-item">
         <span class="nome-item">Evaporadora</span>
         <label class="switch">
-          <input type="checkbox" id="evaporadora">
+          <input type="checkbox" onclick="toggleColor(this)">
           <span class="slider"></span>
         </label>
       </div>
@@ -276,7 +278,7 @@ textarea {
       <div class="linha-item">
         <span class="nome-item">Condensadora</span>
         <label class="switch">
-          <input type="checkbox" id="condensadora">
+          <input type="checkbox" onclick="toggleColor(this)">
           <span class="slider"></span>
         </label>
       </div>
@@ -299,6 +301,11 @@ textarea {
 function toggleObs() {
   const box = document.getElementById("obsTecnicaBox");
   box.style.display = box.style.display === "none" ? "block" : "none";
+}
+
+/* alterna entre verde (OK) e vermelho (Problema) */
+function toggleColor(el) {
+  el.classList.toggle("problem");
 }
 </script>
 
