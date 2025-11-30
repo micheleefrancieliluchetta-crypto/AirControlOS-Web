@@ -1,0 +1,293 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Aparelhos por unidade - AirControl OS</title>
+
+  <style>
+    body {
+      margin: 0;
+      background: #f3f4f6;
+      font-family: Arial, sans-serif;
+    }
+
+    .topo {
+      background: #007bff;
+      color: white;
+      padding: 16px;
+      font-size: 20px;
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      font-weight: bold;
+      box-shadow: 0 2px 8px rgba(0,0,0,0.15);
+    }
+
+    .voltar {
+      background: rgba(255,255,255,0.25);
+      border: none;
+      padding: 6px 10px;
+      border-radius: 6px;
+      cursor: pointer;
+      color: white;
+      font-size: 14px;
+    }
+
+    .container {
+      max-width: 1000px;
+      margin: auto;
+      padding: 16px;
+    }
+
+    .filtro-card {
+      background: white;
+      padding: 16px;
+      border-radius: 12px;
+      box-shadow: 0 2px 6px rgba(0,0,0,0.1);
+      margin-bottom: 16px;
+    }
+
+    .filtro-row {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 12px;
+      align-items: center;
+    }
+
+    label {
+      font-size: 14px;
+      color: #444;
+    }
+
+    select {
+      padding: 8px;
+      border-radius: 8px;
+      border: 1px solid #ccc;
+      font-size: 14px;
+      min-width: 120px;
+    }
+
+    .tabela-card {
+      background: white;
+      padding: 16px;
+      border-radius: 12px;
+      box-shadow: 0 2px 6px rgba(0,0,0,0.1);
+    }
+
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      font-size: 14px;
+    }
+
+    thead {
+      background: #e9f2ff;
+    }
+
+    th, td {
+      padding: 8px;
+      border-bottom: 1px solid #eee;
+      text-align: left;
+    }
+
+    th {
+      font-weight: 600;
+    }
+
+    tbody tr:hover {
+      background: #f7f9fc;
+    }
+
+    .msg {
+      margin-top: 10px;
+      font-size: 13px;
+      color: #666;
+    }
+
+    @media (max-width: 600px) {
+      table, thead, tbody, th, td, tr {
+        display: block;
+      }
+
+      thead {
+        display: none;
+      }
+
+      tbody tr {
+        border: 1px solid #eee;
+        border-radius: 8px;
+        margin-bottom: 8px;
+        padding: 6px 8px;
+      }
+
+      td {
+        border-bottom: none;
+        padding: 4px 0;
+      }
+
+      td::before {
+        content: attr(data-label) ": ";
+        font-weight: bold;
+      }
+    }
+  </style>
+</head>
+<body>
+
+  <header class="topo">
+    <button class="voltar" onclick="history.back()">←</button>
+    Aparelhos por unidade
+  </header>
+
+  <main class="container">
+
+    <!-- FILTRO -->
+    <section class="filtro-card">
+      <div class="filtro-row">
+        <div>
+          <label for="unidadeSelect">Unidade externa:</label><br />
+          <select id="unidadeSelect">
+            <option value="">Selecione...</option>
+          </select>
+        </div>
+      </div>
+      <p class="msg" id="msgFiltro">
+        Selecione a unidade externa para listar os aparelhos.
+      </p>
+    </section>
+
+    <!-- TABELA -->
+    <section class="tabela-card">
+      <table>
+        <thead>
+          <tr>
+            <th>Unidade externa</th>
+            <th>Local</th>
+            <th>Marca</th>
+            <th>BTU</th>
+            <th>Modelo</th>
+          </tr>
+        </thead>
+        <tbody id="tabelaCorpo">
+          <!-- linhas criadas via JS -->
+        </tbody>
+      </table>
+
+      <p class="msg" id="msgTabela"></p>
+    </section>
+
+  </main>
+
+  <script>
+    // URL base da SUA API no Render:
+    const API_BASE_URL = "https://aircontrolos-api.onrender.com/api/aparelhos-hdv";
+
+    const unidadeSelect = document.getElementById("unidadeSelect");
+    const tabelaCorpo = document.getElementById("tabelaCorpo");
+    const msgFiltro = document.getElementById("msgFiltro");
+    const msgTabela = document.getElementById("msgTabela");
+
+    // 1) Carregar todas as unidades externas únicas ao abrir a página
+    async function carregarUnidades() {
+      try {
+        const resp = await fetch(API_BASE_URL);
+        if (!resp.ok) throw new Error("Erro ao buscar aparelhos.");
+
+        const dados = await resp.json();
+
+        // pega somente unidadeExterna não nula
+        const unidades = [...new Set(
+          dados
+            .map(a => a.unidadeExterna)
+            .filter(v => v !== null && v !== undefined)
+        )].sort((a, b) => a - b);
+
+        // preenche o select
+        unidades.forEach(u => {
+          const opt = document.createElement("option");
+          opt.value = u;
+          opt.textContent = u;
+          unidadeSelect.appendChild(opt);
+        });
+
+        if (unidades.length === 0) {
+          msgFiltro.textContent = "Nenhuma unidade externa encontrada na base de aparelhos.";
+        } else {
+          msgFiltro.textContent = "Selecione a unidade externa para listar os aparelhos.";
+        }
+
+      } catch (e) {
+        console.error(e);
+        msgFiltro.textContent = "Erro ao carregar unidades externas.";
+      }
+    }
+
+    // 2) Quando trocar o select, buscar aparelhos da unidade
+    unidadeSelect.addEventListener("change", async () => {
+      const valor = unidadeSelect.value;
+      tabelaCorpo.innerHTML = "";
+      msgTabela.textContent = "";
+
+      if (!valor) {
+        msgTabela.textContent = "Escolha uma unidade externa para ver os aparelhos.";
+        return;
+      }
+
+      try {
+        const resp = await fetch(`${API_BASE_URL}/por-unidade/${valor}`);
+        if (!resp.ok) throw new Error("Erro ao buscar aparelhos por unidade.");
+
+        const lista = await resp.json();
+
+        if (!lista || lista.length === 0) {
+          msgTabela.textContent = "Nenhum aparelho encontrado para essa unidade externa.";
+          return;
+        }
+
+        lista.forEach(item => {
+          const tr = document.createElement("tr");
+
+          const tdUnidade = document.createElement("td");
+          tdUnidade.textContent = item.unidadeExterna ?? "-";
+          tdUnidade.setAttribute("data-label", "Unidade externa");
+
+          const tdLocal = document.createElement("td");
+          tdLocal.textContent = item.local ?? "-";
+          tdLocal.setAttribute("data-label", "Local");
+
+          const tdMarca = document.createElement("td");
+          tdMarca.textContent = item.marca ?? "-";
+          tdMarca.setAttribute("data-label", "Marca");
+
+          const tdBtu = document.createElement("td");
+          tdBtu.textContent = item.btu ?? "-";
+          tdBtu.setAttribute("data-label", "BTU");
+
+          const tdModelo = document.createElement("td");
+          tdModelo.textContent = item.modelo ?? "-";
+          tdModelo.setAttribute("data-label", "Modelo");
+
+          tr.appendChild(tdUnidade);
+          tr.appendChild(tdLocal);
+          tr.appendChild(tdMarca);
+          tr.appendChild(tdBtu);
+          tr.appendChild(tdModelo);
+
+          tabelaCorpo.appendChild(tr);
+        });
+
+        msgTabela.textContent = `${lista.length} aparelho(s) encontrado(s) para a unidade externa ${valor}.`;
+
+      } catch (e) {
+        console.error(e);
+        msgTabela.textContent = "Erro ao carregar aparelhos desta unidade.";
+      }
+    });
+
+    // iniciar
+    carregarUnidades();
+  </script>
+
+</body>
+</html>
