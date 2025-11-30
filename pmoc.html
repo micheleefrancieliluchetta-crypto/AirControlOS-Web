@@ -91,32 +91,54 @@
     font-weight: 600;
   }
 
-  /* Botões estilo ON/OFF (OK/Problema) */
-  .toggle {
-    display: flex;
-    align-items: center;
-    gap: 8px;
-  }
+  /* ====== SWITCH TIPO ANDROID / IOS ====== */
+.switch {
+    position: relative;
+    display: inline-block;
+    width: 44px;
+    height: 24px;
+}
 
-  .toggle button {
-    border: none;
-    padding: 6px 12px;
-    border-radius: 20px;
+.switch input {
+    opacity: 0;
+    width: 0;
+    height: 0;
+}
+
+.slider {
+    position: absolute;
     cursor: pointer;
-    font-size: 13px;
-  }
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background-color: #ccc;
+    transition: 0.2s;
+    border-radius: 999px;
+}
 
-  .ok {
-    background: #c8f7cd;
-    color: #118f2c;
-  }
+.slider:before {
+    position: absolute;
+    content: "";
+    height: 20px;
+    width: 20px;
+    left: 2px;
+    bottom: 2px;
+    background-color: white;
+    transition: 0.2s;
+    border-radius: 50%;
+}
 
-  .problem {
-    background: #f7c8c8;
-    color: #b30000;
-  }
+/* ligado (checked) */
+.switch input:checked + .slider {
+    background-color: #37d67a;
+}
 
-  textarea {
+.switch input:checked + .slider:before {
+    transform: translateX(20px);
+}
+
+textarea {
     width: 100%;
     margin-top: 8px;
     padding: 8px;
@@ -155,55 +177,8 @@
     cursor: pointer;
     margin-top: 18px;
   }
-
-  /* ====== SWITCH TIPO ANDROID / IOS ====== */
-.switch {
-    position: relative;
-    display: inline-block;
-    width: 44px;   /* largura da pílula */
-    height: 24px;  /* altura da pílula */
-}
-
-.switch input {
-    opacity: 0;    /* esconde o checkbox original */
-    width: 0;
-    height: 0;
-}
-
-.slider {
-    position: absolute;
-    cursor: pointer;
-    top: 0;
-    left: 0;
-    right: 0;
-    bottom: 0;
-    background-color: #ccc;          /* cinza quando desligado */
-    transition: 0.2s;
-    border-radius: 999px;            /* pílula arredondada */
-}
-
-.slider:before {
-    position: absolute;
-    content: "";
-    height: 20px;
-    width: 20px;
-    left: 2px;
-    bottom: 2px;
-    background-color: #fff;          /* bolinha branca */
-    transition: 0.2s;
-    border-radius: 50%;
-}
-
-/* ligado (checked) */
-.switch input:checked + .slider {
-    background-color: #37d67a;       /* verde igual da foto */
-}
-
-.switch input:checked + .slider:before {
-    transform: translateX(20px);     /* desliza a bolinha */
-}
-
 </style>
+
 </head>
 
 <body>
@@ -256,50 +231,47 @@
   <div class="card">
     <h2>Checklist</h2>
 
-    <!-- Item 1 -->
+    <!-- Item -->
     <div class="item">
       <div class="linha-item">
         <span class="nome-item">Funcionamento geral</span>
-        <div class="toggle">
-          <button class="ok">OK</button>
-          <button class="problem">Problema</button>
-        </div>
+        <label class="switch">
+          <input type="checkbox" id="funcionamentoGeral">
+          <span class="slider"></span>
+        </label>
       </div>
       <textarea placeholder="Observações (opcional)"></textarea>
     </div>
 
-    <!-- Item 2 -->
     <div class="item">
       <div class="linha-item">
         <span class="nome-item">Filtro de ar</span>
-        <div class="toggle">
-          <button class="ok">OK</button>
-          <button class="problem">Problema</button>
-        </div>
+        <label class="switch">
+          <input type="checkbox" id="filtroAr">
+          <span class="slider"></span>
+        </label>
       </div>
       <textarea placeholder="Observações (opcional)"></textarea>
     </div>
 
-    <!-- Item 3 -->
     <div class="item">
       <div class="linha-item">
         <span class="nome-item">Evaporadora</span>
-        <div class="toggle">
-          <button class="ok">OK</button>
-          <button class="problem">Problema</button>
-        </div>
+        <label class="switch">
+          <input type="checkbox" id="evaporadora">
+          <span class="slider"></span>
+        </label>
       </div>
       <textarea placeholder="Observações (opcional)"></textarea>
     </div>
 
-    <!-- Item 4 -->
     <div class="item">
       <div class="linha-item">
         <span class="nome-item">Condensadora</span>
-        <div class="toggle">
-          <button class="ok">OK</button>
-          <button class="problem">Problema</button>
-        </div>
+        <label class="switch">
+          <input type="checkbox" id="condensadora">
+          <span class="slider"></span>
+        </label>
       </div>
       <textarea placeholder="Observações (opcional)"></textarea>
     </div>
@@ -325,4 +297,3 @@ function toggleObs() {
 
 </body>
 </html>
-
