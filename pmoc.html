@@ -1,401 +1,279 @@
 <!DOCTYPE html>
 <html lang="pt-BR">
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Checklist PMOC - AirControl OS</title>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Checklist PMOC</title>
 
-  <style>
-    * {
-      box-sizing: border-box;
-    }
+<style>
+  body {
+    margin: 0;
+    background: #f3f4f6;
+    font-family: Arial, sans-serif;
+  }
 
-    body {
-      margin: 0;
-      font-family: Arial, sans-serif;
-      background: #f5f5f5;
-      color: #222;
-    }
+  /* Topo estilo app */
+  .topo {
+    background: #007bff;
+    color: white;
+    padding: 16px;
+    font-size: 20px;
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    font-weight: bold;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.15);
+  }
 
-    .topbar {
-      background: linear-gradient(90deg, #008cff, #00b0ff);
-      color: #fff;
-      padding: 12px 16px;
-      display: flex;
-      align-items: center;
-      gap: 12px;
-    }
+  .voltar {
+    background: rgba(255,255,255,0.25);
+    border: none;
+    padding: 6px 10px;
+    border-radius: 6px;
+    cursor: pointer;
+    color: white;
+    font-size: 14px;
+  }
 
-    .topbar h1 {
-      font-size: 20px;
-      margin: 0;
-      font-weight: 600;
-    }
+  .container {
+    max-width: 900px;
+    margin: auto;
+    padding: 16px;
+  }
 
-    .btn-voltar {
-      border: none;
-      background: rgba(255,255,255,0.15);
-      color: #fff;
-      padding: 6px 10px;
-      border-radius: 6px;
-      cursor: pointer;
-      font-size: 14px;
-    }
+  /* Cartões */
+  .card {
+    background: white;
+    padding: 16px;
+    border-radius: 12px;
+    margin-bottom: 16px;
+    box-shadow: 0 2px 6px rgba(0,0,0,0.1);
+  }
 
-    .btn-voltar:hover {
-      background: rgba(255,255,255,0.3);
-    }
+  h2 {
+    margin-top: 0;
+    font-size: 18px;
+  }
 
-    .container {
-      max-width: 900px;
-      margin: 16px auto 32px;
-      padding: 0 12px;
-    }
+  /* Campos de dados */
+  .grid {
+    display: grid;
+    gap: 12px;
+  }
 
-    .info-aparelho {
-      font-size: 14px;
-      margin-bottom: 8px;
-      color: #555;
-    }
+  .campo label {
+    font-size: 13px;
+    color: #555;
+  }
 
-    .card {
-      background: #fff;
-      border-radius: 12px;
-      box-shadow: 0 3px 10px rgba(0,0,0,0.08);
-      padding: 20px;
-      margin-bottom: 18px;
-    }
+  .campo input {
+    width: 100%;
+    padding: 10px;
+    border-radius: 8px;
+    border: 1px solid #ccc;
+    font-size: 14px;
+  }
 
-    .card h2 {
-      margin: 0 0 12px;
-      font-size: 18px;
-    }
+  /* Checklist itens */
+  .item {
+    padding: 12px 0;
+    border-bottom: 1px solid #eee;
+  }
 
-    .subtitulo {
-      margin-top: 0;
-      margin-bottom: 16px;
-      font-size: 14px;
-      color: #555;
-    }
+  .linha-item {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+  }
 
-    /* Dados do aparelho */
-    .grid-dados {
-      display: grid;
-      grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
-      gap: 10px 14px;
-    }
+  .nome-item {
+    font-size: 15px;
+    font-weight: 600;
+  }
 
-    .campo label {
-      display: block;
-      font-size: 13px;
-      margin-bottom: 4px;
-      color: #444;
-    }
+  /* Botões estilo ON/OFF (OK/Problema) */
+  .toggle {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
 
-    .campo input {
-      width: 100%;
-      padding: 6px 8px;
-      border-radius: 6px;
-      border: 1px solid #ccc;
-      font-size: 14px;
-    }
+  .toggle button {
+    border: none;
+    padding: 6px 12px;
+    border-radius: 20px;
+    cursor: pointer;
+    font-size: 13px;
+  }
 
-    /* Checklist */
-    .item {
-      border-bottom: 1px solid #eee;
-      padding: 10px 0;
-    }
+  .ok {
+    background: #c8f7cd;
+    color: #118f2c;
+  }
 
-    .item:last-child {
-      border-bottom: none;
-    }
+  .problem {
+    background: #f7c8c8;
+    color: #b30000;
+  }
 
-    .linha-item {
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-      gap: 12px;
-      margin-bottom: 6px;
-    }
+  textarea {
+    width: 100%;
+    margin-top: 8px;
+    padding: 8px;
+    border-radius: 8px;
+    border: 1px solid #ccc;
+    resize: vertical;
+  }
 
-    .nome-item {
-      font-size: 14px;
-      font-weight: 500;
-    }
+  /* Obs técnicas */
+  .btn-obs {
+    width: 100%;
+    padding: 10px;
+    background: #e7f1ff;
+    border: 1px solid #70a9ff;
+    border-radius: 8px;
+    color: #0056c7;
+    cursor: pointer;
+    margin-top: 10px;
+  }
 
-    .linha-item select {
-      min-width: 120px;
-      padding: 4px 6px;
-      border-radius: 6px;
-      border: 1px solid #ccc;
-      font-size: 14px;
-    }
+  #obsTecnicaBox {
+    margin-top: 10px;
+    display: none;
+  }
 
-    .item textarea {
-      width: 100%;
-      min-height: 40px;
-      resize: vertical;
-      padding: 6px 8px;
-      border-radius: 6px;
-      border: 1px solid #ddd;
-      font-size: 13px;
-    }
+  /* Botão salvar */
+  .btn-salvar {
+    width: 100%;
+    background: #007bff;
+    border: none;
+    padding: 14px;
+    color: white;
+    font-size: 16px;
+    font-weight: bold;
+    border-radius: 10px;
+    cursor: pointer;
+    margin-top: 18px;
+  }
 
-    /* Observações técnicas */
-    .obs-tecnica-bloco {
-      margin-top: 16px;
-      border-top: 1px dashed #ddd;
-      padding-top: 12px;
-    }
-
-    .btn-secundario {
-      border-radius: 8px;
-      border: 1px solid #008cff;
-      background: #e6f3ff;
-      color: #0057c2;
-      padding: 6px 10px;
-      font-size: 14px;
-      cursor: pointer;
-    }
-
-    .btn-secundario:hover {
-      background: #d6ebff;
-    }
-
-    .obs-tecnica label {
-      display: block;
-      font-size: 13px;
-      margin: 10px 0 4px;
-    }
-
-    .obs-tecnica textarea {
-      width: 100%;
-      min-height: 70px;
-      resize: vertical;
-      padding: 6px 8px;
-      border-radius: 6px;
-      border: 1px solid #ccc;
-      font-size: 13px;
-    }
-
-    .btn-salvar {
-      margin-top: 18px;
-      width: 100%;
-      border: none;
-      border-radius: 10px;
-      padding: 10px;
-      font-size: 16px;
-      font-weight: 600;
-      cursor: pointer;
-      background: #008cff;
-      color: #fff;
-    }
-
-    .btn-salvar:hover {
-      background: #0074d6;
-    }
-
-    .hidden {
-      display: none;
-    }
-
-    @media (max-width: 600px) {
-      .linha-item {
-        flex-direction: column;
-        align-items: flex-start;
-      }
-
-      .linha-item select {
-        width: 100%;
-      }
-    }
-  </style>
+</style>
 </head>
+
 <body>
-  <header class="topbar">
-    <button class="btn-voltar" onclick="history.back()">← Voltar</button>
-    <h1>Checklist PMOC</h1>
-  </header>
 
-  <main class="container">
-    <p id="infoAparelho" class="info-aparelho"></p>
+<div class="topo">
+  <button class="voltar" onclick="history.back()">←</button>
+  Checklist PMOC
+</div>
 
-    <!-- DADOS DO APARELHO (parecido com a ficha em papel) -->
-    <section class="card">
-      <h2>Dados do aparelho</h2>
+<div class="container">
 
-      <div class="grid-dados">
-        <div class="campo">
-          <label for="unidade">Unidade</label>
-          <input id="unidade" type="text" placeholder="Ex.: Hospital Olavo" />
-        </div>
+  <!-- Dados do aparelho -->
+  <div class="card">
+    <h2>Dados do aparelho</h2>
 
-        <div class="campo">
-          <label for="patrimonio">Patrimônio</label>
-          <input id="patrimonio" type="text" />
-        </div>
+    <div class="grid">
+      <div class="campo">
+        <label>Unidade</label>
+        <input id="unidade" type="text">
+      </div>
 
-        <div class="campo">
-          <label for="local">Local</label>
-          <input id="local" type="text" />
-        </div>
+      <div class="campo">
+        <label>Local</label>
+        <input id="local" type="text">
+      </div>
 
-        <div class="campo">
-          <label for="marca">Marca</label>
-          <input id="marca" type="text" />
-        </div>
+      <div class="campo">
+        <label>Marca</label>
+        <input id="marca" type="text">
+      </div>
 
-        <div class="campo">
-          <label for="btu">BTU/h</label>
-          <input id="btu" type="text" />
-        </div>
+      <div class="campo">
+        <label>BTUs</label>
+        <input id="btu" type="text">
+      </div>
 
-        <div class="campo">
-          <label for="modelo">Modelo</label>
-          <input id="modelo" type="text" />
-        </div>
+      <div class="campo">
+        <label>Modelo</label>
+        <input id="modelo" type="text">
+      </div>
 
-        <div class="campo">
-          <label for="normal">Normal / Inativo</label>
-          <input id="normal" type="text" placeholder="Ex.: Normal" />
-        </div>
+      <div class="campo">
+        <label>Data</label>
+        <input id="data" type="date">
+      </div>
+    </div>
+  </div>
 
-        <div class="campo">
-          <label for="data">Data</label>
-          <input id="data" type="date" />
+  <!-- CHECKLIST -->
+  <div class="card">
+    <h2>Checklist</h2>
+
+    <!-- Item 1 -->
+    <div class="item">
+      <div class="linha-item">
+        <span class="nome-item">Funcionamento geral</span>
+        <div class="toggle">
+          <button class="ok">OK</button>
+          <button class="problem">Problema</button>
         </div>
       </div>
-    </section>
+      <textarea placeholder="Observações (opcional)"></textarea>
+    </div>
 
-    <!-- CHECKLIST EM COLUNA -->
-    <section class="card">
-      <h2>Checklist</h2>
-      <p class="subtitulo">
-        Marque o estado de cada item e, se necessário, escreva uma observação.
-      </p>
-
-      <form id="pmocForm">
-        <!-- Item 1 -->
-        <div class="item">
-          <div class="linha-item">
-            <span class="nome-item">Funcionamento geral do equipamento</span>
-            <select name="status_0">
-              <option value="OK">OK</option>
-              <option value="Problema">Problema</option>
-              <option value="NA">N/A</option>
-            </select>
-          </div>
-          <textarea
-            name="obs_0"
-            placeholder="Observação (opcional)"
-          ></textarea>
+    <!-- Item 2 -->
+    <div class="item">
+      <div class="linha-item">
+        <span class="nome-item">Filtro de ar</span>
+        <div class="toggle">
+          <button class="ok">OK</button>
+          <button class="problem">Problema</button>
         </div>
+      </div>
+      <textarea placeholder="Observações (opcional)"></textarea>
+    </div>
 
-        <!-- Item 2 -->
-        <div class="item">
-          <div class="linha-item">
-            <span class="nome-item">Limpeza de filtros</span>
-            <select name="status_1">
-              <option value="OK">OK</option>
-              <option value="Problema">Problema</option>
-              <option value="NA">N/A</option>
-            </select>
-          </div>
-          <textarea
-            name="obs_1"
-            placeholder="Observação (opcional)"
-          ></textarea>
+    <!-- Item 3 -->
+    <div class="item">
+      <div class="linha-item">
+        <span class="nome-item">Evaporadora</span>
+        <div class="toggle">
+          <button class="ok">OK</button>
+          <button class="problem">Problema</button>
         </div>
+      </div>
+      <textarea placeholder="Observações (opcional)"></textarea>
+    </div>
 
-        <!-- Item 3 -->
-        <div class="item">
-          <div class="linha-item">
-            <span class="nome-item">Evaporadora</span>
-            <select name="status_2">
-              <option value="OK">OK</option>
-              <option value="Problema">Problema</option>
-              <option value="NA">N/A</option>
-            </select>
-          </div>
-          <textarea
-            name="obs_2"
-            placeholder="Observação (opcional)"
-          ></textarea>
+    <!-- Item 4 -->
+    <div class="item">
+      <div class="linha-item">
+        <span class="nome-item">Condensadora</span>
+        <div class="toggle">
+          <button class="ok">OK</button>
+          <button class="problem">Problema</button>
         </div>
+      </div>
+      <textarea placeholder="Observações (opcional)"></textarea>
+    </div>
 
-        <!-- Item 4 -->
-        <div class="item">
-          <div class="linha-item">
-            <span class="nome-item">Condensadora</span>
-            <select name="status_3">
-              <option value="OK">OK</option>
-              <option value="Problema">Problema</option>
-              <option value="NA">N/A</option>
-            </select>
-          </div>
-          <textarea
-            name="obs_3"
-            placeholder="Observação (opcional)"
-          ></textarea>
-        </div>
+    <button class="btn-obs" onclick="toggleObs()">+ Adicionar observações técnicas</button>
 
-        <!-- BLOCO DE OBSERVAÇÕES TÉCNICAS -->
-        <div class="obs-tecnica-bloco">
-          <button
-            type="button"
-            id="btnObsTecnica"
-            class="btn-secundario"
-          >
-            + Adicionar observações técnicas
-          </button>
+    <div id="obsTecnicaBox">
+      <textarea placeholder="Escreva observações técnicas detalhadas..."></textarea>
+    </div>
 
-          <div id="obsTecnicaContainer" class="obs-tecnica hidden">
-            <label for="obsTecnica">Observações técnicas</label>
-            <textarea
-              id="obsTecnica"
-              name="obsTecnica"
-              placeholder="Descreva aqui um laudo técnico mais completo, como você escreve na ficha em papel."
-            ></textarea>
-          </div>
-        </div>
+    <button class="btn-salvar">Salvar checklist</button>
 
-        <button type="submit" class="btn-salvar">
-          Salvar checklist
-        </button>
-      </form>
-    </section>
-  </main>
+  </div>
 
-  <script>
-    // Mostra o número do aparelho vindo da URL, ex.: pmoc.html?aparelhoId=3
-    const params = new URLSearchParams(window.location.search);
-    const aparelhoId = params.get("aparelhoId");
-    const info = document.getElementById("infoAparelho");
+</div>
 
-    if (info && aparelhoId) {
-      info.textContent = "Checklist do aparelho HDV #" + aparelhoId;
-    }
-
-    // Botão que abre/fecha o bloco de observações técnicas
-    const btnObs = document.getElementById("btnObsTecnica");
-    const obsContainer = document.getElementById("obsTecnicaContainer");
-
-    btnObs.addEventListener("click", () => {
-      const estavaEscondido = obsContainer.classList.contains("hidden");
-      obsContainer.classList.toggle("hidden");
-
-      btnObs.textContent = estavaEscondido
-        ? "− Ocultar observações técnicas"
-        : "+ Adicionar observações técnicas";
-    });
-
-    // Por enquanto, o submit é só visual.
-    // Depois vamos ligar isso na API /api/PmocRegistros.
-    const form = document.getElementById("pmocForm");
-    form.addEventListener("submit", (event) => {
-      event.preventDefault();
-      alert("Checklist preenchido (modo visual). Depois vamos enviar para a API.");
-    });
-  </script>
+<script>
+function toggleObs() {
+  const box = document.getElementById("obsTecnicaBox");
+  box.style.display = box.style.display === "none" ? "block" : "none";
+}
+</script>
 </body>
 </html>
