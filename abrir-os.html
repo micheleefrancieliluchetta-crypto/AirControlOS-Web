@@ -111,14 +111,19 @@
       }
     }
   </style>
+
+  <!-- Script principal (API, helpers, requireRole, etc.) -->
+  <script src="js/script.js" defer></script>
 </head>
 
 <body class="page-abrir-os">
-  <!-- Script principal (API, helpers, requireRole, etc.) -->
-  <script src="js/script.js"></script>
   <script>
     // Bloqueia acesso para não admin
-    requireRole(["Admin"]);
+    document.addEventListener("DOMContentLoaded", () => {
+      if (typeof requireRole === 'function') {
+        requireRole(["Admin"]);
+      }
+    });
   </script>
 
   <header class="topbar-lite" style="border-radius:0 0 18px 18px; background:linear-gradient(90deg,#1e90ff,#0ea5e9); color:#fff; padding:16px 0;">
@@ -178,9 +183,9 @@
           </div>
           <div style="display:flex; align-items:flex-end;">
             <button type="button" id="btnGeo" class="btn-gps">
-            <span class="btn-gps-icon">📍</span>
+              <span class="btn-gps-icon">📍</span>
               Usar GPS
-          </button>
+            </button>
           </div>
         </div>
 
@@ -226,124 +231,136 @@
 
   <!-- Lógica da página Abrir OS -->
   <script>
-    const okBox  = document.getElementById('okBox');
-    const errBox = document.getElementById('errBox');
+    document.addEventListener("DOMContentLoaded", () => {
+      const okBox     = document.getElementById('okBox');
+      const errBox    = document.getElementById('errBox');
+      const form      = document.getElementById('formAbrirOS');
+      const solNome   = document.getElementById('solNome');
+      const solEmail  = document.getElementById('solEmail');
+      const solTel    = document.getElementById('solTel');
+      const descricao = document.getElementById('descricao');
+      const localNomeTxt = document.getElementById('localNomeTxt');
+      const dlLocais  = document.getElementById('dlLocais');
 
-    // ====== Carrega lista de locais (Clientes) ======
-    (async function carregarLocais() {
-      try {
-        const r = await getJson(`${API_BASE}/api/Clientes?page=1&pageSize=1000`);
-        const itens = toItems(r);
-        const dl = document.getElementById('dlLocais');
-        dl.innerHTML = itens
-          .map(c => `<option value="${c.nome}" data-id="${c.id}"></option>`)
-          .join('');
-      } catch (e) {
-        console.warn('Falha ao carregar locais:', e);
+      // ====== Carrega lista de locais (Clientes) ======
+      (async function carregarLocais() {
+        try {
+          const r = await getJson(`${API_BASE}/api/Clientes?page=1&pageSize=1000`);
+          const itens = toItems(r);
+          dlLocais.innerHTML = itens
+            .map(c => `<option value="${c.nome}" data-id="${c.id}"></option>`)
+            .join('');
+        } catch (e) {
+          console.warn('Falha ao carregar locais:', e);
+        }
+      })();
+
+      // ====== Mapa Leaflet ======
+      let map, marker;
+      function atualizarMapa(lat, lng) {
+        const numLat = Number(lat);
+        const numLng = Number(lng);
+        if (!isFinite(numLat) || !isFinite(numLng)) return;
+
+        if (!map) {
+          map = L.map('mapMini').setView([numLat, numLng], 16);
+          L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+            attribution: '&copy; OpenStreetMap'
+          }).addTo(map);
+        } else {
+          map.setView([numLat, numLng], 16);
+        }
+
+        if (marker) marker.remove();
+        marker = L.marker([numLat, numLng]).addTo(map);
       }
-    })();
 
-    // ====== Mapa Leaflet ======
-    let map, marker;
-    function atualizarMapa(lat, lng) {
-      const numLat = Number(lat);
-      const numLng = Number(lng);
-      if (!isFinite(numLat) || !isFinite(numLng)) return;
+      // ====== GPS (geolocalização) ======
+      document.getElementById("btnGeo").addEventListener("click", () => {
+        if (!navigator.geolocation) {
+          alert("Geolocalização não suportada neste navegador.");
+          return;
+        }
+        navigator.geolocation.getCurrentPosition(
+          async (pos) => {
+            const lat = pos.coords.latitude.toFixed(6);
+            const lng = pos.coords.longitude.toFixed(6);
+            document.getElementById("lat").value = lat;
+            document.getElementById("lng").value = lng;
+            atualizarMapa(lat, lng);
 
-      if (!map) {
-        map = L.map('mapMini').setView([numLat, numLng], 16);
-        L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
-          attribution: '&copy; OpenStreetMap'
-        }).addTo(map);
-      } else {
-        map.setView([numLat, numLng], 16);
-      }
-
-      if (marker) marker.remove();
-      marker = L.marker([numLat, numLng]).addTo(map);
-    }
-
-    // ====== GPS (geolocalização) ======
-    document.getElementById("btnGeo").addEventListener("click", () => {
-      if (!navigator.geolocation) {
-        alert("Geolocalização não suportada neste navegador.");
-        return;
-      }
-      navigator.geolocation.getCurrentPosition(
-        async (pos) => {
-          const lat = pos.coords.latitude.toFixed(6);
-          const lng = pos.coords.longitude.toFixed(6);
-          document.getElementById("lat").value = lat;
-          document.getElementById("lng").value = lng;
-          atualizarMapa(lat, lng);
-
-          // reverse geocoding simples para preencher o endereço
-          try {
-            const url = `https://nominatim.openstreetmap.org/reverse?format=jsonv2&lat=${lat}&lon=${lng}`;
-            const resp = await fetch(url, { headers: { "Accept-Language": "pt-BR" } });
-            if (resp.ok) {
-              const data = await resp.json();
-              if (data && data.display_name) {
-                document.getElementById("endereco").value = data.display_name;
+            // reverse geocoding simples para preencher o endereço
+            try {
+              const url = `https://nominatim.openstreetmap.org/reverse?format=jsonv2&lat=${lat}&lon=${lng}`;
+              const resp = await fetch(url, { headers: { "Accept-Language": "pt-BR" } });
+              if (resp.ok) {
+                const data = await resp.json();
+                if (data && data.display_name) {
+                  document.getElementById("endereco").value = data.display_name;
+                }
               }
+            } catch (e) {
+              console.warn("Falha ao obter endereço pelo GPS:", e);
             }
-          } catch (e) {
-            console.warn("Falha ao obter endereço pelo GPS:", e);
+          },
+          (err) => {
+            alert("Não foi possível obter sua localização.");
+            console.error(err);
           }
-        },
-        (err) => {
-          alert("Não foi possível obter sua localização.");
-          console.error(err);
+        );
+      });
+
+      // ====== Envio do formulário ======
+      form.addEventListener("submit", async (e) => {
+        e.preventDefault();
+        okBox.style.display  = 'none';
+        errBox.style.display = 'none';
+
+        const nome      = solNome.value.trim();
+        const email     = solEmail.value.trim();
+        const tel       = solTel.value.trim();
+        const desc      = descricao.value.trim();
+        const prioridade = document.getElementById("prioridade").value;
+        const endereco   = document.getElementById("endereco").value.trim();
+
+        if (!nome || !email || !desc) {
+          alert("Preencha Nome, E-mail e Descrição.");
+          return;
         }
-      );
+
+        // tenta achar localId pela datalist
+        let localId = 0;
+        const localTexto = localNomeTxt.value;
+        for (const opt of dlLocais.options) {
+          if (opt.value === localTexto) {
+            localId = parseInt(opt.dataset.id || "0", 10);
+            break;
+          }
+        }
+
+        const payload = {
+          clienteId: localId || 0,
+          tecnicoId: 0,  // será atribuído depois
+          descricao: desc,
+          prioridade,
+          status: "Aberta",
+          observacoes: `Solicitante: ${nome} | Email: ${email} | Telefone: ${tel} | Endereço: ${endereco}`
+        };
+
+        try {
+          await api('/api/OrdensServico/publico', {
+            method: 'POST',
+            data: payload
+          });
+          okBox.style.display = 'block';
+          form.reset();
+        } catch (err) {
+          console.warn(err);
+          errBox.style.display = 'block';
+        }
+      });
     });
-
-    // ====== Envio do formulário ======
-    document.getElementById("formAbrirOS").addEventListener("submit", async (e) => {
-      e.preventDefault();
-      okBox.style.display  = 'none';
-      errBox.style.display = 'none';
-
-      const nome  = solNome.value.trim();
-      const email = solEmail.value.trim();
-      const tel   = solTel.value.trim();
-      const desc  = descricao.value.trim();
-      const prioridade = document.getElementById("prioridade").value;
-      const endereco = document.getElementById("endereco").value.trim();
-
-      if (!nome || !email || !desc) {
-        alert("Preencha Nome, E-mail e Descrição.");
-        return;
-      }
-
-      // tenta achar localId pela datalist
-      let localId = 0;
-      const localTexto = localNomeTxt.value;
-      for (const opt of dlLocais.options) {
-        if (opt.value === localTexto) {
-          localId = parseInt(opt.dataset.id || "0", 10);
-          break;
-        }
-      }
-
-      const payload = {
-        clienteId: localId || 0,
-        tecnicoId: 0,  // será atribuído depois
-        descricao: desc,
-        prioridade,
-        status: "Aberta",
-        observacoes: `Solicitante: ${nome} | Email: ${email} | Telefone: ${tel} | Endereço: ${endereco}`
-      };
-
-      try {
-      await api('/api/OrdensServico/publico', { method: 'POST', data: payload });
-      okBox.style.display = 'block';
-      formAbrirOS.reset();
-      } catch (err) {
-      console.warn(err);
-      errBox.style.display = 'block';
-   }
-  });
   </script>
 </body>
 </html>
+
