@@ -5,27 +5,27 @@
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <title>Histórico PMOC - AirControl OS</title>
 
-  <!-- CSS principal do seu projeto -->
   <link rel="stylesheet" href="css/style.css">
 
   <!-- PWA -->
   <link rel="manifest" href="./manifest.webmanifest" />
   <meta name="theme-color" content="#1e90ff" />
 
-  <!-- iOS -->
   <link rel="apple-touch-icon" href="icons/icon-192.png" />
   <meta name="mobile-web-app-capable" content="yes">
   <meta name="apple-mobile-web-app-status-bar-style" content="default" />
 </head>
+
 <body>
 
-  <!-- TOPO IGUAL DAS OUTRAS TELAS -->
+  <!-- TOPO COM VOLTAR -->
   <header class="topbar">
-    <h1>AirControl OS</h1>
+    <button onclick="window.location.href='dashboard.html'" class="btn-voltar">←</button>
+    <h1>Histórico PMOC</h1>
     <button onclick="logout()">Sair</button>
   </header>
 
-  <!-- MENU LATERAL (COPIADO DO tecnico.html E ATUALIZADO) -->
+  <!-- MENU LATERAL -->
   <nav class="sidebar">
     <ul>
       <li><a href="dashboard.html">🏠 Dashboard</a></li>
@@ -36,16 +36,15 @@
       <li><a href="usuarios.html">👤 Usuários</a></li>
       <li><a href="aparelhos-por-unidade.html">📑 Aparelhos por unidade</a></li>
       <li><a href="pmoc.html">✅ Checklist PMOC</a></li>
-      <!-- esta é a página atual -->
       <li><a href="pmoc-historico.html" class="active">📂 Histórico PMOC</a></li>
     </ul>
   </nav>
 
-  <!-- CONTEÚDO PRINCIPAL -->
+  <!-- CONTEÚDO -->
   <main class="main-content">
     <h2>Histórico de Checklist PMOC</h2>
 
-    <!-- FILTRO / SELEÇÃO DO APARELHO -->
+    <!-- FILTRO -->
     <section class="form-os" style="margin-bottom: 16px;">
       <label for="aparelhoIdInput">ID do aparelho (AparelhoHdvId):</label>
       <input type="number" id="aparelhoIdInput" placeholder="Ex: 10">
@@ -55,22 +54,18 @@
       </button>
 
       <p id="msgInfo" style="font-size: 13px; color: #555; margin-top: 8px;">
-        Você pode acessar esta página com <code>?aparelhoId=10</code> na URL
-        para já carregar o histórico do aparelho 10 automaticamente.
+        Dica: você pode acessar com <code>?aparelhoId=10</code> para carregar automaticamente.
       </p>
     </section>
 
-    <!-- LISTA DE REGISTROS -->
-    <section id="listaPmoc">
-      <!-- os cards serão criados aqui via JavaScript -->
-    </section>
+    <!-- LISTA -->
+    <section id="listaPmoc"></section>
 
   </main>
 
-  <!-- script principal geral do projeto -->
   <script src="js/script.js"></script>
 
-  <!-- BLOQUEIO: somente Admin -->
+  <!-- PERMISSÃO ADMIN -->
   <script>
     if (typeof ensureAdmin === "function") {
       ensureAdmin();
@@ -86,125 +81,84 @@
     }
   </script>
 
-  <!-- LÓGICA ESPECÍFICA DO HISTÓRICO PMOC -->
+  <!-- LÓGICA DE HISTÓRICO PMOC -->
   <script>
     const API_PMOC_BASE = "https://aircontrolos-api.onrender.com/api/PmocRegistros";
 
-    const inputAparelhoId = document.getElementById("aparelhoIdInput");
+    const inputAparelho = document.getElementById("aparelhoIdInput");
     const btnBuscar = document.getElementById("btnBuscar");
     const listaPmoc = document.getElementById("listaPmoc");
     const msgInfo = document.getElementById("msgInfo");
 
-    // Buscar pelo botão
     btnBuscar.addEventListener("click", () => {
-      const id = parseInt(inputAparelhoId.value, 10);
+      const id = parseInt(inputAparelho.value, 10);
       if (!id) {
-        alert("Informe um ID de aparelho válido.");
+        alert("Informe um ID válido.");
         return;
       }
       carregarHistorico(id);
     });
 
-    // Se vier aparelhoId na URL, carrega automaticamente
-    (function initFromQueryString() {
+    (function init() {
       const params = new URLSearchParams(window.location.search);
-      const idStr = params.get("aparelhoId");
-      if (idStr) {
-        const id = parseInt(idStr, 10);
-        if (!isNaN(id)) {
-          inputAparelhoId.value = id;
-          carregarHistorico(id);
-        }
+      const id = params.get("aparelhoId");
+      if (id) {
+        inputAparelho.value = id;
+        carregarHistorico(id);
       }
     })();
 
-    async function carregarHistorico(aparelhoId) {
+    async function carregarHistorico(id) {
       listaPmoc.innerHTML = "";
-      msgInfo.textContent = "Carregando histórico do aparelho " + aparelhoId + "...";
+      msgInfo.textContent = `Carregando histórico do aparelho ${id}...`;
 
       try {
-        const resp = await fetch(`${API_PMOC_BASE}/por-aparelho/${aparelhoId}`);
-        if (!resp.ok) {
-          throw new Error("Resposta não OK da API: " + resp.status);
-        }
+        const resp = await fetch(`${API_PMOC_BASE}/por-aparelho/${id}`);
+        if (!resp.ok) throw new Error(resp.status);
 
         const registros = await resp.json();
 
-        if (!registros || registros.length === 0) {
-          msgInfo.textContent = "Nenhum checklist PMOC encontrado para esse aparelho.";
+        if (!registros.length) {
+          msgInfo.textContent = "Nenhum registro encontrado.";
           return;
         }
 
-        msgInfo.textContent = `${registros.length} registro(s) encontrado(s) para o aparelho ${aparelhoId}.`;
+        msgInfo.textContent = `${registros.length} registro(s) encontrado(s).`;
 
         registros.forEach(reg => {
           const card = document.createElement("div");
-          card.className = "card-os"; // usa estilo parecido ao das OS; se não existir, pode usar form-os
+          card.className = "card-os";
 
-          const data = reg.data ? new Date(reg.data) : null;
-          const dataFormatada = data ? data.toLocaleString("pt-BR") : "-";
-
-          let itensFormatadoHtml = "";
-
-          // Tenta interpretar o ItensJson
-          if (reg.itensJson) {
-            try {
-              const itens = JSON.parse(reg.itensJson);
-
-              if (Array.isArray(itens)) {
-                const linhas = itens.map((item, idx) => {
-                  const nome = item.nome || item.item || `Item ${idx + 1}`;
-                  const status = item.status || (item.ok === true ? "OK" :
-                                item.problema === true ? "Problema" : "-");
-                  const obs = item.obs || item.observacao || "";
-                  return `
-                    <li>
-                      <strong>${nome}</strong> – Status: <em>${status}</em>
-                      ${obs ? `<br><span style="font-size:12px;color:#555;">Obs: ${obs}</span>` : ""}
-                    </li>
-                  `;
-                });
-                itensFormatadoHtml = `<ul>${linhas.join("")}</ul>`;
-              } else {
-                // se não for array, mostra o JSON bruto
-                itensFormatadoHtml = `<pre>${reg.itensJson}</pre>`;
-              }
-            } catch (e) {
-              // se der erro de parse, mostra o JSON bruto
-              itensFormatadoHtml = `<pre>${reg.itensJson}</pre>`;
-            }
-          } else {
-            itensFormatadoHtml = "<p>Nenhum item salvo (IténsJson vazio).</p>";
-          }
+          const data = new Date(reg.data).toLocaleString("pt-BR");
 
           card.innerHTML = `
             <h3>Registro #${reg.id}</h3>
-            <p><strong>Data:</strong> ${dataFormatada}</p>
-            <p><strong>Técnico:</strong> ${reg.tecnicoEmail || "-"}</p>
-            <p><strong>AparelhoHdvId:</strong> ${reg.aparelhoHdvId}</p>
+            <p><strong>Data:</strong> ${data}</p>
+            <p><strong>Técnico:</strong> ${reg.tecnicoEmail}</p>
+            <p><strong>Aparelho ID:</strong> ${reg.aparelhoHdvId}</p>
             <hr>
-            <h4>Itens do checklist</h4>
-            ${itensFormatadoHtml}
+            <h4>Itens</h4>
+            <pre>${reg.itensJson}</pre>
           `;
 
           listaPmoc.appendChild(card);
         });
 
-      } catch (erro) {
-        console.error("Erro ao carregar histórico PMOC:", erro);
-        msgInfo.textContent = "Erro ao carregar histórico. Verifique se a API está online.";
-        alert("Erro ao buscar histórico no servidor.");
+      } catch (e) {
+        msgInfo.textContent = "Erro ao buscar dados.";
+        alert("Erro ao comunicar com o servidor.");
       }
     }
   </script>
 
-  <!-- Service Worker -->
+  <!-- SW -->
   <script>
     if ('serviceWorker' in navigator) {
       navigator.serviceWorker.register('./service-worker.js', { scope: './' })
-        .catch(err => console.error('SW erro:', err));
+        .catch(console.error);
     }
   </script>
 
 </body>
 </html>
+
