@@ -92,34 +92,34 @@
   }
 
   /* ====== SWITCH ====== */
-.switch {
+  .switch {
     position: relative;
     display: inline-block;
     width: 44px;
     height: 24px;
-}
+  }
 
-.switch input {
+  .switch input {
     opacity: 0;
     width: 0;
     height: 0;
-}
+  }
 
-/* FUNDO DO SWITCH */
-.slider {
+  /* FUNDO DO SWITCH */
+  .slider {
     position: absolute;
     cursor: pointer;
     top: 0;
     left: 0;
     right: 0;
     bottom: 0;
-    background-color: #37d67a; /* VERDE POR PADRÃO */
+    background-color: #37d67a; /* VERDE POR PADRÃO (OK) */
     transition: 0.2s;
     border-radius: 999px;
-}
+  }
 
-/* BOLINHA */
-.slider:before {
+  /* BOLINHA */
+  .slider:before {
     position: absolute;
     content: "";
     height: 20px;
@@ -129,18 +129,18 @@
     background-color: white;
     transition: 0.2s;
     border-radius: 50%;
-}
+  }
 
-/* --- ESTILO PARA QUANDO ESTIVER "PROBLEMA" (VERMELHO) --- */
-.switch input.problem + .slider {
+  /* --- ESTILO PARA QUANDO ESTIVER "PROBLEMA" (VERMELHO) --- */
+  .switch input.problem + .slider {
     background-color: #ff4d4d !important;
-}
+  }
 
-.switch input.problem + .slider:before {
+  .switch input.problem + .slider:before {
     transform: translateX(20px);
-}
+  }
 
-textarea {
+  textarea {
     width: 100%;
     margin-top: 8px;
     padding: 8px;
@@ -240,7 +240,7 @@ textarea {
   <div class="card">
     <h2>Checklist</h2>
 
-    <!-- Item -->
+    <!-- Item 1 -->
     <div class="item">
       <div class="linha-item">
         <span class="nome-item">Funcionamento geral</span>
@@ -252,6 +252,7 @@ textarea {
       <textarea placeholder="Observações (opcional)"></textarea>
     </div>
 
+    <!-- Item 2 -->
     <div class="item">
       <div class="linha-item">
         <span class="nome-item">Filtro de ar</span>
@@ -263,6 +264,7 @@ textarea {
       <textarea placeholder="Observações (opcional)"></textarea>
     </div>
 
+    <!-- Item 3 -->
     <div class="item">
       <div class="linha-item">
         <span class="nome-item">Evaporadora</span>
@@ -274,6 +276,7 @@ textarea {
       <textarea placeholder="Observações (opcional)"></textarea>
     </div>
 
+    <!-- Item 4 -->
     <div class="item">
       <div class="linha-item">
         <span class="nome-item">Condensadora</span>
@@ -288,27 +291,132 @@ textarea {
     <button class="btn-obs" onclick="toggleObs()">+ Adicionar observações técnicas</button>
 
     <div id="obsTecnicaBox">
-      <textarea placeholder="Escreva observações técnicas detalhadas..."></textarea>
+      <textarea id="obsTecnicaGeral" placeholder="Escreva observações técnicas detalhadas..."></textarea>
     </div>
 
-    <button class="btn-salvar">Salvar checklist</button>
+    <button class="btn-salvar" id="btnSalvarChecklist">Salvar checklist</button>
 
   </div>
 
 </div>
 
 <script>
-function toggleObs() {
-  const box = document.getElementById("obsTecnicaBox");
-  box.style.display = box.style.display === "none" ? "block" : "none";
-}
+  const API_PMOC_URL = "https://aircontrolos-api.onrender.com/api/PmocRegistros";
 
-/* alterna entre verde (OK) e vermelho (Problema) */
-function toggleColor(el) {
-  el.classList.toggle("problem");
-}
+  function toggleObs() {
+    const box = document.getElementById("obsTecnicaBox");
+    box.style.display = box.style.display === "none" ? "block" : "none";
+  }
+
+  /* alterna entre verde (OK) e vermelho (Problema) */
+  function toggleColor(el) {
+    el.classList.toggle("problem");
+  }
+
+  // Quando clicar no botão SALVAR
+  document.getElementById("btnSalvarChecklist").addEventListener("click", async () => {
+    try {
+      // Dados básicos do aparelho
+      const patrimonio = document.getElementById("patrimonio").value.trim();
+      const unidade    = document.getElementById("unidade").value.trim();
+      const local      = document.getElementById("local").value.trim();
+      const marca      = document.getElementById("marca").value.trim();
+      const btu        = document.getElementById("btu").value.trim();
+      const modelo     = document.getElementById("modelo").value.trim();
+      const dataCampo  = document.getElementById("data").value; // yyyy-mm-dd
+
+      if (!patrimonio || !unidade || !local) {
+        alert("Preencha pelo menos Patrimônio, Unidade e Local.");
+        return;
+      }
+
+      // Monta a lista de itens do checklist
+      const nomesItens = [
+        "Funcionamento geral",
+        "Filtro de ar",
+        "Evaporadora",
+        "Condensadora"
+      ];
+
+      const itens = [];
+      const itensDOM = document.querySelectorAll(".item");
+
+      itensDOM.forEach((divItem, idx) => {
+        const checkbox = divItem.querySelector("input[type='checkbox']");
+        const texto    = divItem.querySelector("textarea").value.trim();
+
+        const status = checkbox.classList.contains("problem") ? "Problema" : "OK";
+
+        itens.push({
+          item: nomesItens[idx] || `Item ${idx + 1}`,
+          status: status,
+          observacao: texto
+        });
+      });
+
+      // Observação técnica geral (se tiver)
+      const obsTecnicaGeral = document.getElementById("obsTecnicaGeral")
+        ? document.getElementById("obsTecnicaGeral").value.trim()
+        : "";
+
+      if (obsTecnicaGeral) {
+        itens.push({
+          item: "Observação técnica geral",
+          status: "",
+          observacao: obsTecnicaGeral
+        });
+      }
+
+      // Email do técnico (vem do login; tenta achar em sessionStorage)
+      const tecnicoEmail =
+        sessionStorage.getItem("email") ||
+        sessionStorage.getItem("usuarioEmail") ||
+        sessionStorage.getItem("emailUsuarioLogado") ||
+        "";
+
+      // Monta o objeto para a API
+      const payload = {
+        aparelhoHdvId: null, // se você quiser depois pode enviar o ID real do aparelho
+        tecnicoEmail: tecnicoEmail,
+        data: dataCampo ? new Date(dataCampo).toISOString() : new Date().toISOString(),
+        itensJson: JSON.stringify({
+          patrimonio,
+          unidade,
+          local,
+          marca,
+          btu,
+          modelo,
+          itens
+        })
+      };
+
+      console.log("Enviando payload PMOC:", payload);
+
+      const resp = await fetch(API_PMOC_URL, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json"
+        },
+        body: JSON.stringify(payload)
+      });
+
+      if (!resp.ok) {
+        const txt = await resp.text();
+        console.error("Erro da API:", txt);
+        alert("Erro ao salvar checklist no servidor.");
+        return;
+      }
+
+      alert("Checklist salvo com sucesso!");
+      // se quiser, depois de salvar pode voltar para o dashboard:
+      // window.location.href = "dashboard.html";
+
+    } catch (err) {
+      console.error(err);
+      alert("Erro inesperado ao salvar o checklist.");
+    }
+  });
 </script>
 
 </body>
 </html>
-
