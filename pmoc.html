@@ -131,7 +131,7 @@
     border-radius: 50%;
   }
 
-  /* --- ESTILO PARA QUANDO ESTIVER "PROBLEMA" (VERMELHO) --- */
+  /* QUANDO MARCAR COMO "PROBLEMA" (VERMELHO) */
   .switch input.problem + .slider {
     background-color: #ff4d4d !important;
   }
@@ -198,6 +198,12 @@
 
     <div class="grid">
 
+      <!-- NOVO: ID DO APARELHO (HDV) OBRIGATÓRIO PARA SALVAR -->
+      <div class="campo">
+        <label>ID do aparelho (HDV)</label>
+        <input id="aparelhoHdvId" type="number" placeholder="Ex.: 2, 3, 10, 90" />
+      </div>
+
       <div class="campo">
         <label>Patrimônio</label>
         <input id="patrimonio" type="text">
@@ -245,11 +251,11 @@
       <div class="linha-item">
         <span class="nome-item">Funcionamento geral</span>
         <label class="switch">
-          <input type="checkbox" onclick="toggleColor(this)">
+          <input type="checkbox" class="chk-item" data-nome="Funcionamento geral" onclick="toggleColor(this)">
           <span class="slider"></span>
         </label>
       </div>
-      <textarea placeholder="Observações (opcional)"></textarea>
+      <textarea class="obs-item" placeholder="Observações (opcional)"></textarea>
     </div>
 
     <!-- Item 2 -->
@@ -257,11 +263,11 @@
       <div class="linha-item">
         <span class="nome-item">Filtro de ar</span>
         <label class="switch">
-          <input type="checkbox" onclick="toggleColor(this)">
+          <input type="checkbox" class="chk-item" data-nome="Filtro de ar" onclick="toggleColor(this)">
           <span class="slider"></span>
         </label>
       </div>
-      <textarea placeholder="Observações (opcional)"></textarea>
+      <textarea class="obs-item" placeholder="Observações (opcional)"></textarea>
     </div>
 
     <!-- Item 3 -->
@@ -269,11 +275,11 @@
       <div class="linha-item">
         <span class="nome-item">Evaporadora</span>
         <label class="switch">
-          <input type="checkbox" onclick="toggleColor(this)">
+          <input type="checkbox" class="chk-item" data-nome="Evaporadora" onclick="toggleColor(this)">
           <span class="slider"></span>
         </label>
       </div>
-      <textarea placeholder="Observações (opcional)"></textarea>
+      <textarea class="obs-item" placeholder="Observações (opcional)"></textarea>
     </div>
 
     <!-- Item 4 -->
@@ -281,31 +287,29 @@
       <div class="linha-item">
         <span class="nome-item">Condensadora</span>
         <label class="switch">
-          <input type="checkbox" onclick="toggleColor(this)">
+          <input type="checkbox" class="chk-item" data-nome="Condensadora" onclick="toggleColor(this)">
           <span class="slider"></span>
         </label>
       </div>
-      <textarea placeholder="Observações (opcional)"></textarea>
+      <textarea class="obs-item" placeholder="Observações (opcional)"></textarea>
     </div>
 
     <button class="btn-obs" onclick="toggleObs()">+ Adicionar observações técnicas</button>
 
     <div id="obsTecnicaBox">
-      <textarea id="obsTecnicaGeral" placeholder="Escreva observações técnicas detalhadas..."></textarea>
+      <textarea id="obsTecnicasGerais" placeholder="Escreva observações técnicas detalhadas..."></textarea>
     </div>
 
-    <button class="btn-salvar" id="btnSalvarChecklist">Salvar checklist</button>
+    <button class="btn-salvar" id="btnSalvarPmoc">Salvar checklist</button>
 
   </div>
 
 </div>
 
 <script>
-  const API_PMOC_URL = "https://aircontrolos-api.onrender.com/api/PmocRegistros";
-
   function toggleObs() {
     const box = document.getElementById("obsTecnicaBox");
-    box.style.display = box.style.display === "none" ? "block" : "none";
+    box.style.display = (box.style.display === "none" || box.style.display === "") ? "block" : "none";
   }
 
   /* alterna entre verde (OK) e vermelho (Problema) */
@@ -313,85 +317,58 @@
     el.classList.toggle("problem");
   }
 
-  // Quando clicar no botão SALVAR
-  document.getElementById("btnSalvarChecklist").addEventListener("click", async () => {
-    try {
-      // Dados básicos do aparelho
-      const patrimonio = document.getElementById("patrimonio").value.trim();
-      const unidade    = document.getElementById("unidade").value.trim();
-      const local      = document.getElementById("local").value.trim();
-      const marca      = document.getElementById("marca").value.trim();
-      const btu        = document.getElementById("btu").value.trim();
-      const modelo     = document.getElementById("modelo").value.trim();
-      const dataCampo  = document.getElementById("data").value; // yyyy-mm-dd
+  // ========= SALVAR NO BACKEND =========
+  const API_PMOC_URL = "https://aircontrolos-api.onrender.com/api/PmocRegistros";
 
-      if (!patrimonio || !unidade || !local) {
-        alert("Preencha pelo menos Patrimônio, Unidade e Local.");
-        return;
-      }
+  document.getElementById("btnSalvarPmoc").addEventListener("click", async function () {
+    // 1) Validar ID do aparelho
+    const aparelhoHdvIdStr = document.getElementById("aparelhoHdvId").value.trim();
+    if (!aparelhoHdvIdStr) {
+      alert("Informe o ID do aparelho (HDV).");
+      return;
+    }
 
-      // Monta a lista de itens do checklist
-      const nomesItens = [
-        "Funcionamento geral",
-        "Filtro de ar",
-        "Evaporadora",
-        "Condensadora"
-      ];
+    const aparelhoHdvId = parseInt(aparelhoHdvIdStr, 10);
+    if (Number.isNaN(aparelhoHdvId)) {
+      alert("O ID do aparelho (HDV) deve ser um número inteiro.");
+      return;
+    }
 
-      const itens = [];
-      const itensDOM = document.querySelectorAll(".item");
+    // 2) Montar o checklist (array de itens)
+    const checkboxes = document.querySelectorAll(".chk-item");
+    const observacoes = document.querySelectorAll(".obs-item");
 
-      itensDOM.forEach((divItem, idx) => {
-        const checkbox = divItem.querySelector("input[type='checkbox']");
-        const texto    = divItem.querySelector("textarea").value.trim();
+    const itens = [];
+    checkboxes.forEach((chk, index) => {
+      const nome = chk.dataset.nome || `Item ${index + 1}`;
+      const problema = chk.classList.contains("problem");  // true = problema (vermelho)
+      const obs = observacoes[index].value.trim();
 
-        const status = checkbox.classList.contains("problem") ? "Problema" : "OK";
-
-        itens.push({
-          item: nomesItens[idx] || `Item ${idx + 1}`,
-          status: status,
-          observacao: texto
-        });
+      itens.push({
+        nome: nome,
+        ok: !problema,              // ok = true quando NÃO marcado como problema
+        problema: problema,
+        observacao: obs
       });
+    });
 
-      // Observação técnica geral (se tiver)
-      const obsTecnicaGeral = document.getElementById("obsTecnicaGeral")
-        ? document.getElementById("obsTecnicaGeral").value.trim()
-        : "";
+    // 3) Campos adicionais
+    const data = document.getElementById("data").value; // yyyy-MM-dd
+    const obsTecnicasGerais = document.getElementById("obsTecnicasGerais")?.value || "";
 
-      if (obsTecnicaGeral) {
-        itens.push({
-          item: "Observação técnica geral",
-          status: "",
-          observacao: obsTecnicaGeral
-        });
-      }
+    // 4) Montar payload exatamente como a API espera
+    const payload = {
+      aparelhoHdvId: aparelhoHdvId,           // INT (importantíssimo!)
+      data: data || new Date().toISOString().substring(0, 10),
+      checklistJson: JSON.stringify(itens),
+      observacoesTecnicas: obsTecnicasGerais
+      // se no backend existir mais campos (responsavelNome, etc.),
+      // dá pra adicionar aqui depois.
+    };
 
-      // Email do técnico (vem do login; tenta achar em sessionStorage)
-      const tecnicoEmail =
-        sessionStorage.getItem("email") ||
-        sessionStorage.getItem("usuarioEmail") ||
-        sessionStorage.getItem("emailUsuarioLogado") ||
-        "";
+    console.log("Enviando payload PMOC:", payload);
 
-      // Monta o objeto para a API
-      const payload = {
-        aparelhoHdvId: null, // se você quiser depois pode enviar o ID real do aparelho
-        tecnicoEmail: tecnicoEmail,
-        data: dataCampo ? new Date(dataCampo).toISOString() : new Date().toISOString(),
-        itensJson: JSON.stringify({
-          patrimonio,
-          unidade,
-          local,
-          marca,
-          btu,
-          modelo,
-          itens
-        })
-      };
-
-      console.log("Enviando payload PMOC:", payload);
-
+    try {
       const resp = await fetch(API_PMOC_URL, {
         method: "POST",
         headers: {
@@ -401,19 +378,19 @@
       });
 
       if (!resp.ok) {
-        const txt = await resp.text();
-        console.error("Erro da API:", txt);
+        const erroTxt = await resp.text();
+        console.error("Erro da API:", erroTxt);
         alert("Erro ao salvar checklist no servidor.");
         return;
       }
 
       alert("Checklist salvo com sucesso!");
-      // se quiser, depois de salvar pode voltar para o dashboard:
+      // se quiser, voltar pro dashboard depois de salvar:
       // window.location.href = "dashboard.html";
 
-    } catch (err) {
-      console.error(err);
-      alert("Erro inesperado ao salvar o checklist.");
+    } catch (e) {
+      console.error("Erro de rede ao salvar PMOC:", e);
+      alert("Erro de comunicação com o servidor.");
     }
   });
 </script>
