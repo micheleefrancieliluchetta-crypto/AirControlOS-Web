@@ -3,10 +3,28 @@
  *************************************************/
 
 // Base da API: local (dev) x produção (Render)
-const API_BASE =
-  (location.hostname === "localhost" || location.hostname === "127.0.0.1")
-    ? "http://localhost:5151"                  // quando testar na sua máquina
-    : "https://aircontrolos-api.onrender.com"; // produção (Render)
+const API_BASE = 'https://aircontrolos-api.onrender.com';
+
+async function api(path, options = {}) {
+    const url = path.startsWith('http') ? path : `${API_BASE}${path}`;
+
+    const res = await fetch(url, {
+        method: options.method || 'GET',
+        headers: {
+            'Content-Type': 'application/json',
+            ...(options.headers || {})
+        },
+        body: options.data ? JSON.stringify(options.data) : undefined,
+        mode: 'cors'
+    });
+
+    if (!res.ok) {
+        const text = await res.text().catch(() => '');
+        throw new Error(`HTTP ${res.status} - ${text}`);
+    }
+
+    return res.json().catch(() => ({}));
+}
 
 // CARGOS padronizados (iguais ao backend)
 const CARGOS = ["Admin", "Tecnico", "Ajudante", "MeioOficial", "Mecanico"];
