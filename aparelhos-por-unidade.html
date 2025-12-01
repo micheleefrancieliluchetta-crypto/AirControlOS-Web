@@ -65,7 +65,7 @@
       border-radius: 8px;
       border: 1px solid #ccc;
       font-size: 14px;
-      min-width: 120px;
+      min-width: 160px;
     }
 
     .tabela-card {
@@ -149,11 +149,12 @@
           <label for="unidadeSelect">Unidade externa:</label><br />
           <select id="unidadeSelect">
             <option value="">Selecione...</option>
+            <!-- "Todas as unidades" será adicionada via JS -->
           </select>
         </div>
       </div>
       <p class="msg" id="msgFiltro">
-        Selecione a unidade externa para listar os aparelhos.
+        Selecione a unidade externa ou escolha "Todas as unidades" para listar todos os aparelhos.
       </p>
     </section>
 
@@ -203,7 +204,15 @@
             .filter(v => v !== null && v !== undefined)
         )].sort((a, b) => a - b);
 
-        // preenche o select
+        // adiciona opção "Todas as unidades"
+        if (unidades.length > 0) {
+          const optTodas = document.createElement("option");
+          optTodas.value = "todas";
+          optTodas.textContent = "Todas as unidades";
+          unidadeSelect.appendChild(optTodas);
+        }
+
+        // preenche o select com cada unidade
         unidades.forEach(u => {
           const opt = document.createElement("option");
           opt.value = u;
@@ -214,7 +223,8 @@
         if (unidades.length === 0) {
           msgFiltro.textContent = "Nenhuma unidade externa encontrada na base de aparelhos.";
         } else {
-          msgFiltro.textContent = "Selecione a unidade externa para listar os aparelhos.";
+          msgFiltro.textContent =
+            'Selecione a unidade externa ou escolha "Todas as unidades" para listar todos os aparelhos.';
         }
 
       } catch (e) {
@@ -223,65 +233,82 @@
       }
     }
 
-    // 2) Quando trocar o select, buscar aparelhos da unidade
+    // Função para desenhar a tabela
+    function preencherTabela(lista, descricao) {
+      tabelaCorpo.innerHTML = "";
+      msgTabela.textContent = "";
+
+      if (!lista || lista.length === 0) {
+        msgTabela.textContent = "Nenhum aparelho encontrado " + descricao;
+        return;
+      }
+
+      lista.forEach(item => {
+        const tr = document.createElement("tr");
+
+        const tdUnidade = document.createElement("td");
+        tdUnidade.textContent = item.unidadeExterna ?? "-";
+        tdUnidade.setAttribute("data-label", "Unidade externa");
+
+        const tdLocal = document.createElement("td");
+        tdLocal.textContent = item.local ?? "-";
+        tdLocal.setAttribute("data-label", "Local");
+
+        const tdMarca = document.createElement("td");
+        tdMarca.textContent = item.marca ?? "-";
+        tdMarca.setAttribute("data-label", "Marca");
+
+        const tdBtu = document.createElement("td");
+        tdBtu.textContent = item.btu ?? "-";
+        tdBtu.setAttribute("data-label", "BTU");
+
+        const tdModelo = document.createElement("td");
+        tdModelo.textContent = item.modelo ?? "-";
+        tdModelo.setAttribute("data-label", "Modelo");
+
+        tr.appendChild(tdUnidade);
+        tr.appendChild(tdLocal);
+        tr.appendChild(tdMarca);
+        tr.appendChild(tdBtu);
+        tr.appendChild(tdModelo);
+
+        tabelaCorpo.appendChild(tr);
+      });
+
+      msgTabela.textContent = `${lista.length} aparelho(s) encontrado(s) ${descricao}.`;
+    }
+
+    // 2) Quando trocar o select, buscar aparelhos da unidade ou todos
     unidadeSelect.addEventListener("change", async () => {
       const valor = unidadeSelect.value;
       tabelaCorpo.innerHTML = "";
       msgTabela.textContent = "";
 
       if (!valor) {
-        msgTabela.textContent = "Escolha uma unidade externa para ver os aparelhos.";
+        msgTabela.textContent = "Escolha uma unidade externa ou 'Todas as unidades' para ver os aparelhos.";
         return;
       }
 
       try {
-        const resp = await fetch(`${API_BASE_URL}/por-unidade/${valor}`);
-        if (!resp.ok) throw new Error("Erro ao buscar aparelhos por unidade.");
+        let resp;
+        let lista;
 
-        const lista = await resp.json();
-
-        if (!lista || lista.length === 0) {
-          msgTabela.textContent = "Nenhum aparelho encontrado para essa unidade externa.";
-          return;
+        if (valor === "todas") {
+          // busca TODOS
+          resp = await fetch(API_BASE_URL);
+          if (!resp.ok) throw new Error("Erro ao buscar todos os aparelhos.");
+          lista = await resp.json();
+          preencherTabela(lista, "no total");
+        } else {
+          // busca somente da unidade
+          resp = await fetch(`${API_BASE_URL}/por-unidade/${valor}`);
+          if (!resp.ok) throw new Error("Erro ao buscar aparelhos por unidade.");
+          lista = await resp.json();
+          preencherTabela(lista, `para a unidade externa ${valor}`);
         }
-
-        lista.forEach(item => {
-          const tr = document.createElement("tr");
-
-          const tdUnidade = document.createElement("td");
-          tdUnidade.textContent = item.unidadeExterna ?? "-";
-          tdUnidade.setAttribute("data-label", "Unidade externa");
-
-          const tdLocal = document.createElement("td");
-          tdLocal.textContent = item.local ?? "-";
-          tdLocal.setAttribute("data-label", "Local");
-
-          const tdMarca = document.createElement("td");
-          tdMarca.textContent = item.marca ?? "-";
-          tdMarca.setAttribute("data-label", "Marca");
-
-          const tdBtu = document.createElement("td");
-          tdBtu.textContent = item.btu ?? "-";
-          tdBtu.setAttribute("data-label", "BTU");
-
-          const tdModelo = document.createElement("td");
-          tdModelo.textContent = item.modelo ?? "-";
-          tdModelo.setAttribute("data-label", "Modelo");
-
-          tr.appendChild(tdUnidade);
-          tr.appendChild(tdLocal);
-          tr.appendChild(tdMarca);
-          tr.appendChild(tdBtu);
-          tr.appendChild(tdModelo);
-
-          tabelaCorpo.appendChild(tr);
-        });
-
-        msgTabela.textContent = `${lista.length} aparelho(s) encontrado(s) para a unidade externa ${valor}.`;
-
       } catch (e) {
         console.error(e);
-        msgTabela.textContent = "Erro ao carregar aparelhos desta unidade.";
+        msgTabela.textContent = "Erro ao carregar aparelhos.";
       }
     });
 
@@ -291,3 +318,4 @@
 
 </body>
 </html>
+
