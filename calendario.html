@@ -1,0 +1,157 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Calendário de OS - AirControl OS</title>
+
+  <link rel="stylesheet" href="css/style.css" />
+
+  <!-- FullCalendar -->
+  <link rel="stylesheet"
+        href="https://cdn.jsdelivr.net/npm/fullcalendar@6.1.11/index.global.min.css">
+  
+  <style>
+    .page-calendario .wrap {
+      max-width: 1100px;
+      margin: 0 auto;
+      padding: 20px 16px;
+    }
+    #calendar {
+      background: #fff;
+      border-radius: 14px;
+      padding: 10px;
+      box-shadow: 0 10px 25px rgba(15,23,42,.08);
+    }
+    .filtros-calendario {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      margin-bottom: 16px;
+      flex-wrap: wrap;
+    }
+    .filtros-calendario label {
+      font-weight: 600;
+    }
+    .filtros-calendario input[type="month"] {
+      padding: 6px 10px;
+      border-radius: 8px;
+      border: 1px solid #dbe2ea;
+    }
+    #btnPdf {
+      margin-top: 16px;
+      padding: 8px 16px;
+      border-radius: 999px;
+      border: 0;
+      background: #1e90ff;
+      color: #fff;
+      font-weight: 600;
+      cursor: pointer;
+    }
+  </style>
+</head>
+<body class="page-calendario">
+  <!-- script principal com API_BASE, api(), requireLogin, etc. -->
+  <script src="js/script.js"></script>
+
+  <header class="topbar-lite"
+          style="border-radius:0 0 18px 18px; background:linear-gradient(90deg,#1e90ff,#0ea5e9); color:#fff; padding:16px 0;">
+    <div class="wrap">
+      <h1 style="margin:0; font-size:1.4rem;">📅 Calendário de OS – AirControl OS</h1>
+      <p class="muted" style="color:#e2f3ff;">Visualize as ordens de serviço por dia.</p>
+    </div>
+  </header>
+
+  <main class="wrap">
+    <div class="filtros-calendario">
+      <label for="mesRef">Mês:</label>
+      <input type="month" id="mesRef">
+      <span class="muted">Mostrando OS pela data de abertura.</span>
+    </div>
+
+    <div id="calendar"></div>
+
+    <button id="btnPdf">Exportar calendário em PDF</button>
+  </main>
+
+  <!-- Scripts das libs -->
+  <script src="https://cdn.jsdelivr.net/npm/fullcalendar@6.1.11/index.global.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
+
+  <script>
+    document.addEventListener("DOMContentLoaded", async () => {
+      // se quiser só logado:
+      // requireLogin();
+
+      const calendarEl = document.getElementById("calendar");
+
+      const calendar = new FullCalendar.Calendar(calendarEl, {
+        initialView: "dayGridMonth",
+        locale: "pt-br",
+        height: "auto",
+        headerToolbar: {
+          left: "prev,next today",
+          center: "title",
+          right: ""  // sem trocar de visão
+        }
+      });
+      calendar.render();
+
+      async function carregarEventosDoMes(ano, mes) {
+        // Busca muitas OS de uma vez (ajusta pageSize se precisar)
+        const resp = await api(`/api/OrdensServico?page=1&pageSize=500`);
+        const itens = toItems(resp);
+
+        const eventos = itens
+          .map(os => {
+            const data = os.dataAbertura || os.dataAberturaUtc || os.dataAberturaISO;
+            if (!data) return null;
+
+            const tituloBase =
+              (os.cliente?.nome || os.local || "OS") +
+              " - " +
+              (os.descricao || "");
+
+            return {
+              title: tituloBase.slice(0, 40),
+              start: data,
+              allDay: true
+            };
+          })
+          .filter(Boolean);
+
+        calendar.removeAllEvents();
+        calendar.addEventSource(eventos);
+
+        // move o calendário pro mês escolhido
+        calendar.gotoDate(new Date(ano, mes - 1, 1));
+      }
+
+      // Mês atual
+      const hoje = new Date();
+      const mesInput = document.getElementById("mesRef");
+      mesInput.value =
+        `${hoje.getFullYear()}-${String(hoje.getMonth() + 1).padStart(2,"0")}`;
+
+      await carregarEventosDoMes(hoje.getFullYear(), hoje.getMonth() + 1);
+
+      mesInput.addEventListener("change", async (e) => {
+        const [ano, mes] = e.target.value.split("-").map(Number);
+        if (!ano || !mes) return;
+        await carregarEventosDoMes(ano, mes);
+      });
+
+      // Exportar área do calendário em PDF
+      document.getElementById("btnPdf").addEventListener("click", () => {
+        const opt = {
+          margin:       10,
+          filename:     "calendario-os.pdf",
+          html2canvas:  { scale: 2 },
+          jsPDF:        { unit: "mm", format: "a4", orientation: "landscape" }
+        };
+        html2pdf().set(opt).from(calendarEl).save();
+      });
+    });
+  </script>
+</body>
+</html>
