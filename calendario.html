@@ -56,15 +56,25 @@
       padding: 14px 16px;
       box-shadow: 0 10px 25px rgba(15,23,42,.08);
       min-height: 200px;
+      display: flex;
+      flex-direction: column;
     }
 
     .painel-dia h2 {
       font-size: 1.1rem;
-      margin: 0 0 8px;
+      margin: 0 0 4px;
     }
 
     .painel-dia small {
       color: #64748b;
+    }
+
+    #listaDia {
+      margin-top: 8px;
+      flex: 1;
+      /* rolagem quando tiver muitas OS */
+      max-height: 400px;
+      overflow-y: auto;
     }
 
     .os-card {
@@ -91,9 +101,10 @@
     .badge-prio-Alta   { background:#fee2e2; color:#b91c1c; }
     .badge-prio-Média  { background:#fef3c7; color:#92400e; }
     .badge-prio-Baixa  { background:#dcfce7; color:#166534; }
-    .badge-status-Aberta { background:#dbeafe; color:#1d4ed8; }
+
+    .badge-status-Aberta        { background:#dbeafe; color:#1d4ed8; }
     .badge-status-Em\ Andamento { background:#fef9c3; color:#92400e; }
-    .badge-status-Concluída { background:#bbf7d0; color:#166534; }
+    .badge-status-Concluída     { background:#bbf7d0; color:#166534; }
 
     #btnPdfDia {
       margin-top: 12px;
@@ -104,6 +115,7 @@
       color: #fff;
       font-weight: 600;
       cursor: pointer;
+      align-self: flex-start;
     }
 
     .loader {
@@ -148,9 +160,9 @@
       <div id="calendar"></div>
 
       <aside id="painelDia" class="painel-dia">
-        <h2>Detalhes do dia</h2>
+        <h2>OS do dia</h2>
         <small>Selecione um dia no calendário para ver as OS.</small>
-        <div id="listaDia" style="margin-top:8px;"></div>
+        <div id="listaDia"></div>
         <button id="btnPdfDia" style="display:none;">Exportar dia em PDF</button>
       </aside>
     </div>
@@ -162,7 +174,7 @@
 
   <script>
     document.addEventListener("DOMContentLoaded", async () => {
-      // Se quiser exigir login, descomenta:
+      // Se quiser exigir login:
       // requireLogin();
 
       const calendarEl = document.getElementById("calendar");
@@ -174,10 +186,16 @@
 
       let osDoMes = []; // guarda as OS carregadas
 
+      // >>> AJUSTE IMPORTANTE: usa só os 10 primeiros caracteres da string da data
+      // para não confundir com fuso horário (ex.: 2025-12-02T23:40-03 vai continuar dia 02/12).
       function normalizarDataDia(valor) {
         if (!valor) return null;
+        if (typeof valor === "string" && valor.length >= 10) {
+          return valor.slice(0, 10); // "yyyy-mm-dd"
+        }
         try {
-          return new Date(valor).toISOString().slice(0, 10); // "yyyy-mm-dd"
+          const d = valor instanceof Date ? valor : new Date(valor);
+          return d.toISOString().slice(0, 10);
         } catch {
           return null;
         }
@@ -187,7 +205,9 @@
         const dataBonita = new Date(dateStr + "T00:00:00");
         painelDia.querySelector("h2").textContent =
           "OS do dia " + dataBonita.toLocaleDateString("pt-BR");
-        
+        painelDia.querySelector("small").textContent =
+          "Selecione um dia no calendário para ver as OS.";
+
         const osDoDia = osDoMes.filter(os =>
           normalizarDataDia(os.dataAbertura) === dateStr
         );
@@ -203,7 +223,7 @@
         osDoDia.forEach(os => {
           const prio = os.prioridade || "Baixa";
           const status = os.status || "Aberta";
-          const cliente = os.cliente?.nome || os.local || "-";
+          const cliente = (os.cliente && os.cliente.nome) || os.local || "-";
           const desc = os.descricao || "-";
 
           const card = document.createElement("div");
@@ -245,7 +265,7 @@
       async function carregarEventosDoMes(ano, mes) {
         loaderMes.style.display = "inline";
         try {
-          // Por enquanto buscamos tudo (se crescer muito a gente pagina)
+          // Busca até 500 OS (pode ajustar se precisar)
           const resp = await api(`/api/OrdensServico?page=1&pageSize=500`);
           osDoMes = toItems(resp) || [];
 
@@ -255,7 +275,7 @@
               if (!data) return null;
 
               const tituloBase =
-                (os.cliente?.nome || os.local || "OS") +
+                ((os.cliente && os.cliente.nome) || os.local || "OS") +
                 " - " +
                 (os.descricao || "");
 
