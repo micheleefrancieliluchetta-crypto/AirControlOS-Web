@@ -7,7 +7,6 @@ const PRECACHE = [
   './ordem-servico.html',
   './local.html',
   './tecnico.html',
-  './abrir-os.html',    // incluir
   './cliente.html',
   './css/style.css',
   './js/script.js',
