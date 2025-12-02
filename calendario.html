@@ -7,22 +7,31 @@
 
   <link rel="stylesheet" href="css/style.css" />
 
-  <!-- FullCalendar -->
+  <!-- FullCalendar CSS -->
   <link rel="stylesheet"
         href="https://cdn.jsdelivr.net/npm/fullcalendar@6.1.11/index.global.min.css">
-  
+
   <style>
     .page-calendario .wrap {
       max-width: 1100px;
       margin: 0 auto;
       padding: 20px 16px;
     }
+
+    .layout-calendario {
+      display: grid;
+      grid-template-columns: 2fr 1fr;
+      gap: 16px;
+      align-items: flex-start;
+    }
+
     #calendar {
       background: #fff;
       border-radius: 14px;
       padding: 10px;
       box-shadow: 0 10px 25px rgba(15,23,42,.08);
     }
+
     .filtros-calendario {
       display: flex;
       align-items: center;
@@ -30,16 +39,64 @@
       margin-bottom: 16px;
       flex-wrap: wrap;
     }
+
     .filtros-calendario label {
       font-weight: 600;
     }
+
     .filtros-calendario input[type="month"] {
       padding: 6px 10px;
       border-radius: 8px;
       border: 1px solid #dbe2ea;
     }
-    #btnPdf {
-      margin-top: 16px;
+
+    .painel-dia {
+      background: #fff;
+      border-radius: 14px;
+      padding: 14px 16px;
+      box-shadow: 0 10px 25px rgba(15,23,42,.08);
+      min-height: 200px;
+    }
+
+    .painel-dia h2 {
+      font-size: 1.1rem;
+      margin: 0 0 8px;
+    }
+
+    .painel-dia small {
+      color: #64748b;
+    }
+
+    .os-card {
+      border-radius: 10px;
+      border: 1px solid #e2e8f0;
+      padding: 8px 10px;
+      margin-top: 8px;
+      font-size: .9rem;
+    }
+
+    .os-card strong {
+      display: block;
+      margin-bottom: 4px;
+    }
+
+    .os-card span.badge {
+      display: inline-block;
+      padding: 2px 8px;
+      border-radius: 999px;
+      font-size: .75rem;
+      margin-right: 4px;
+    }
+
+    .badge-prio-Alta   { background:#fee2e2; color:#b91c1c; }
+    .badge-prio-Média  { background:#fef3c7; color:#92400e; }
+    .badge-prio-Baixa  { background:#dcfce7; color:#166534; }
+    .badge-status-Aberta { background:#dbeafe; color:#1d4ed8; }
+    .badge-status-Em\ Andamento { background:#fef9c3; color:#92400e; }
+    .badge-status-Concluída { background:#bbf7d0; color:#166534; }
+
+    #btnPdfDia {
+      margin-top: 12px;
       padding: 8px 16px;
       border-radius: 999px;
       border: 0;
@@ -48,10 +105,27 @@
       font-weight: 600;
       cursor: pointer;
     }
+
+    .loader {
+      font-size: .9rem;
+      color: #64748b;
+      margin-top: 4px;
+    }
+
+    /* deixa os dias "clicáveis" */
+    .fc-daygrid-day-frame {
+      cursor: pointer;
+    }
+
+    @media (max-width: 900px) {
+      .layout-calendario {
+        grid-template-columns: 1fr;
+      }
+    }
   </style>
 </head>
 <body class="page-calendario">
-  <!-- script principal com API_BASE, api(), requireLogin, etc. -->
+  <!-- script principal com API_BASE, api(), toItems() etc. -->
   <script src="js/script.js"></script>
 
   <header class="topbar-lite"
@@ -67,11 +141,19 @@
       <label for="mesRef">Mês:</label>
       <input type="month" id="mesRef">
       <span class="muted">Mostrando OS pela data de abertura.</span>
+      <span id="loaderMes" class="loader" style="display:none;">Carregando OS...</span>
     </div>
 
-    <div id="calendar"></div>
+    <div class="layout-calendario">
+      <div id="calendar"></div>
 
-    <button id="btnPdf">Exportar calendário em PDF</button>
+      <aside id="painelDia" class="painel-dia">
+        <h2>Detalhes do dia</h2>
+        <small>Selecione um dia no calendário para ver as OS.</small>
+        <div id="listaDia" style="margin-top:8px;"></div>
+        <button id="btnPdfDia" style="display:none;">Exportar dia em PDF</button>
+      </aside>
+    </div>
   </main>
 
   <!-- Scripts das libs -->
@@ -80,10 +162,69 @@
 
   <script>
     document.addEventListener("DOMContentLoaded", async () => {
-      // se quiser só logado:
+      // Se quiser exigir login, descomenta:
       // requireLogin();
 
       const calendarEl = document.getElementById("calendar");
+      const mesInput   = document.getElementById("mesRef");
+      const loaderMes  = document.getElementById("loaderMes");
+      const painelDia  = document.getElementById("painelDia");
+      const listaDia   = document.getElementById("listaDia");
+      const btnPdfDia  = document.getElementById("btnPdfDia");
+
+      let osDoMes = []; // guarda as OS carregadas
+
+      function normalizarDataDia(valor) {
+        if (!valor) return null;
+        try {
+          return new Date(valor).toISOString().slice(0, 10); // "yyyy-mm-dd"
+        } catch {
+          return null;
+        }
+      }
+
+      function atualizarPainelDia(dateStr) {
+        const dataBonita = new Date(dateStr + "T00:00:00");
+        painelDia.querySelector("h2").textContent =
+          "OS do dia " + dataBonita.toLocaleDateString("pt-BR");
+        
+        const osDoDia = osDoMes.filter(os =>
+          normalizarDataDia(os.dataAbertura) === dateStr
+        );
+
+        listaDia.innerHTML = "";
+
+        if (!osDoDia.length) {
+          listaDia.innerHTML = "<p class='muted'>Nenhuma OS registrada neste dia.</p>";
+          btnPdfDia.style.display = "none";
+          return;
+        }
+
+        osDoDia.forEach(os => {
+          const prio = os.prioridade || "Baixa";
+          const status = os.status || "Aberta";
+          const cliente = os.cliente?.nome || os.local || "-";
+          const desc = os.descricao || "-";
+
+          const card = document.createElement("div");
+          card.className = "os-card";
+          card.innerHTML = `
+            <strong>${cliente}</strong>
+            <div style="margin-bottom:4px;">
+              <span class="badge badge-prio-${prio}">
+                Prioridade: ${prio}
+              </span>
+              <span class="badge badge-status-${status.replace(" ", "\\ ")}">
+                Status: ${status}
+              </span>
+            </div>
+            <div>${desc}</div>
+          `;
+          listaDia.appendChild(card);
+        });
+
+        btnPdfDia.style.display = "inline-block";
+      }
 
       const calendar = new FullCalendar.Calendar(calendarEl, {
         initialView: "dayGridMonth",
@@ -92,44 +233,54 @@
         headerToolbar: {
           left: "prev,next today",
           center: "title",
-          right: ""  // sem trocar de visão
+          right: ""
+        },
+        dateClick: info => {
+          // quando clicar em um dia
+          atualizarPainelDia(info.dateStr);
         }
       });
       calendar.render();
 
       async function carregarEventosDoMes(ano, mes) {
-        // Busca muitas OS de uma vez (ajusta pageSize se precisar)
-        const resp = await api(`/api/OrdensServico?page=1&pageSize=500`);
-        const itens = toItems(resp);
+        loaderMes.style.display = "inline";
+        try {
+          // Por enquanto buscamos tudo (se crescer muito a gente pagina)
+          const resp = await api(`/api/OrdensServico?page=1&pageSize=500`);
+          osDoMes = toItems(resp) || [];
 
-        const eventos = itens
-          .map(os => {
-            const data = os.dataAbertura || os.dataAberturaUtc || os.dataAberturaISO;
-            if (!data) return null;
+          const eventos = osDoMes
+            .map(os => {
+              const data = os.dataAbertura;
+              if (!data) return null;
 
-            const tituloBase =
-              (os.cliente?.nome || os.local || "OS") +
-              " - " +
-              (os.descricao || "");
+              const tituloBase =
+                (os.cliente?.nome || os.local || "OS") +
+                " - " +
+                (os.descricao || "");
 
-            return {
-              title: tituloBase.slice(0, 40),
-              start: data,
-              allDay: true
-            };
-          })
-          .filter(Boolean);
+              return {
+                title: tituloBase.slice(0, 40),
+                start: data,
+                allDay: true
+              };
+            })
+            .filter(Boolean);
 
-        calendar.removeAllEvents();
-        calendar.addEventSource(eventos);
+          calendar.removeAllEvents();
+          calendar.addEventSource(eventos);
 
-        // move o calendário pro mês escolhido
-        calendar.gotoDate(new Date(ano, mes - 1, 1));
+          calendar.gotoDate(new Date(ano, mes - 1, 1));
+        } catch (e) {
+          console.warn("Falha ao carregar OS para o calendário:", e);
+          alert("Não foi possível carregar as OS para o calendário.");
+        } finally {
+          loaderMes.style.display = "none";
+        }
       }
 
       // Mês atual
       const hoje = new Date();
-      const mesInput = document.getElementById("mesRef");
       mesInput.value =
         `${hoje.getFullYear()}-${String(hoje.getMonth() + 1).padStart(2,"0")}`;
 
@@ -141,15 +292,15 @@
         await carregarEventosDoMes(ano, mes);
       });
 
-      // Exportar área do calendário em PDF
-      document.getElementById("btnPdf").addEventListener("click", () => {
+      // Exporta o painel do dia em PDF
+      btnPdfDia.addEventListener("click", () => {
         const opt = {
           margin:       10,
-          filename:     "calendario-os.pdf",
+          filename:     "os-do-dia.pdf",
           html2canvas:  { scale: 2 },
-          jsPDF:        { unit: "mm", format: "a4", orientation: "landscape" }
+          jsPDF:        { unit: "mm", format: "a4", orientation: "portrait" }
         };
-        html2pdf().set(opt).from(calendarEl).save();
+        html2pdf().set(opt).from(painelDia).save();
       });
     });
   </script>
