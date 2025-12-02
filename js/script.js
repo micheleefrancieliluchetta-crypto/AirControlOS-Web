@@ -5,27 +5,6 @@
 // Base da API: local (dev) x produção (Render)
 const API_BASE = 'https://aircontrolos-api.onrender.com';
 
-async function api(path, options = {}) {
-    const url = path.startsWith('http') ? path : `${API_BASE}${path}`;
-
-    const res = await fetch(url, {
-        method: options.method || 'GET',
-        headers: {
-            'Content-Type': 'application/json',
-            ...(options.headers || {})
-        },
-        body: options.data ? JSON.stringify(options.data) : undefined,
-        mode: 'cors'
-    });
-
-    if (!res.ok) {
-        const text = await res.text().catch(() => '');
-        throw new Error(`HTTP ${res.status} - ${text}`);
-    }
-
-    return res.json().catch(() => ({}));
-}
-
 // CARGOS padronizados (iguais ao backend)
 const CARGOS = ["Admin", "Tecnico", "Ajudante", "MeioOficial", "Mecanico"];
 
@@ -71,8 +50,8 @@ if (loginForm) {
 
       // se vier "administrador", padroniza pra "admin"
       if (cargoNorm === "administrador") {
-      cargoNorm = "admin";
-     }
+        cargoNorm = "admin";
+      }
 
       user.cargo = cargoNorm; // garante que o objeto também fique padronizado
 
@@ -168,21 +147,37 @@ async function getJson(url, options) {
   return r.json();
 }
 
+// 🔹 ÚNICA função api() (global, usada por tudo)
 async function api(path, { method = "GET", data, headers } = {}) {
+  const url = path.startsWith("http") ? path : `${API_BASE}${path}`;
+
   const opts = {
     method,
-    headers: Object.assign({ "Content-Type": "application/json" }, headers || {})
+    headers: {
+      "Content-Type": "application/json",
+      ...(headers || {})
+    },
+    mode: "cors"
   };
-  if (data !== undefined) opts.body = JSON.stringify(data);
 
-  const res = await fetch(`${API_BASE}${path}`, opts);
+  if (data !== undefined && method !== "GET" && method !== "HEAD") {
+    opts.body = JSON.stringify(data);
+  }
+
+  const res = await fetch(url, opts);
+
   if (!res.ok) {
     const text = await res.text().catch(() => "");
-    throw new Error(`${res.status} - ${res.statusText}\n${text}`);
+    throw new Error(`HTTP ${res.status} - ${text || res.statusText}`);
   }
+
   if (res.status === 204) return null;
+
   const ct = res.headers.get("content-type") || "";
-  return ct.includes("application/json") ? res.json() : res.text();
+  if (ct.includes("application/json")) {
+    return res.json().catch(() => ({}));
+  }
+  return res.text();
 }
 
 function toItems(resp) {
@@ -238,7 +233,7 @@ function openIDB() {
 async function idbPut(store, value) {
   const db = await openIDB();
   return new Promise((resolve, reject) => {
-    const tx = db.transaction(store, "readonly" === "readwrite" ? "readwrite" : "readwrite");
+    const tx = db.transaction(store, "readwrite");
     tx.oncomplete = () => resolve(true);
     tx.onerror = () => reject(tx.error);
     tx.objectStore(store).put(value);
@@ -582,7 +577,6 @@ if (formOrdem) {
             modelo:     tr.querySelector(".eq-modelo")?.value     || "",
             tipo:       tr.querySelector(".eq-tipo")?.value       || "Normal",
 
-            // aqui usamos a variável "gas" (não gasTipo!)
             gasTipo: gas,
             gasOutro: gas === "Outro" ? outro : "",
             serie: ""
