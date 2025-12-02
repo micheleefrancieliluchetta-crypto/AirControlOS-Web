@@ -7,7 +7,7 @@
 
   <link rel="stylesheet" href="css/style.css" />
 
-  <!-- FullCalendar CSS -->
+  <!-- FullCalendar CSS (usa estilo padrão do bundle global) -->
   <link rel="stylesheet"
         href="https://cdn.jsdelivr.net/npm/fullcalendar@6.1.11/index.global.min.css">
 
@@ -55,7 +55,7 @@
       border-radius: 14px;
       padding: 14px 16px;
       box-shadow: 0 10px 25px rgba(15,23,42,.08);
-      min-height: 200px;
+      min-height: 260px;
       display: flex;
       flex-direction: column;
     }
@@ -72,6 +72,7 @@
     #listaDia {
       margin-top: 8px;
       flex: 1;
+
       /* rolagem quando tiver muitas OS */
       max-height: 400px;
       overflow-y: auto;
@@ -116,6 +117,7 @@
       font-weight: 600;
       cursor: pointer;
       align-self: flex-start;
+      display: none; /* só mostra quando tiver OS */
     }
 
     .loader {
@@ -137,7 +139,7 @@
   </style>
 </head>
 <body class="page-calendario">
-  <!-- script principal com API_BASE, api(), toItems() etc. -->
+  <!-- script principal com API_BASE, api(), getOS(), toItems() etc. -->
   <script src="js/script.js"></script>
 
   <header class="topbar-lite"
@@ -152,7 +154,7 @@
     <div class="filtros-calendario">
       <label for="mesRef">Mês:</label>
       <input type="month" id="mesRef">
-      <span class="muted">Mostrando OS pela data de abertura.</span>
+      <span class="muted">Mostrando OS pela data de abertura/criação.</span>
       <span id="loaderMes" class="loader" style="display:none;">Carregando OS...</span>
     </div>
 
@@ -163,7 +165,7 @@
         <h2>OS do dia</h2>
         <small>Selecione um dia no calendário para ver as OS.</small>
         <div id="listaDia"></div>
-        <button id="btnPdfDia" style="display:none;">Exportar dia em PDF</button>
+        <button id="btnPdfDia">Exportar dia em PDF</button>
       </aside>
     </div>
   </main>
@@ -174,7 +176,7 @@
 
   <script>
     document.addEventListener("DOMContentLoaded", async () => {
-      // Se quiser exigir login:
+      // Se quiser, pode exigir login aqui:
       // requireLogin();
 
       const calendarEl = document.getElementById("calendar");
@@ -184,10 +186,11 @@
       const listaDia   = document.getElementById("listaDia");
       const btnPdfDia  = document.getElementById("btnPdfDia");
 
-      let osDoMes = []; // guarda as OS carregadas
+      // Lista "normalizada" de OS (online ou offline)
+      // Cada item: { dataRef: 'yyyy-mm-dd', cliente, descricao, prioridade, status }
+      let osDoMes = [];
 
-      // >>> AJUSTE IMPORTANTE: usa só os 10 primeiros caracteres da string da data
-      // para não confundir com fuso horário (ex.: 2025-12-02T23:40-03 vai continuar dia 02/12).
+      // Normaliza qualquer data para só o dia (sem problema de fuso)
       function normalizarDataDia(valor) {
         if (!valor) return null;
         if (typeof valor === "string" && valor.length >= 10) {
@@ -205,12 +208,8 @@
         const dataBonita = new Date(dateStr + "T00:00:00");
         painelDia.querySelector("h2").textContent =
           "OS do dia " + dataBonita.toLocaleDateString("pt-BR");
-        painelDia.querySelector("small").textContent =
-          "Selecione um dia no calendário para ver as OS.";
 
-        const osDoDia = osDoMes.filter(os =>
-          normalizarDataDia(os.dataAbertura) === dateStr
-        );
+        const osDoDia = osDoMes.filter(os => os.dataRef === dateStr);
 
         listaDia.innerHTML = "";
 
@@ -223,7 +222,7 @@
         osDoDia.forEach(os => {
           const prio = os.prioridade || "Baixa";
           const status = os.status || "Aberta";
-          const cliente = (os.cliente && os.cliente.nome) || os.local || "-";
+          const cliente = os.cliente || "-";
           const desc = os.descricao || "-";
 
           const card = document.createElement("div");
@@ -256,7 +255,6 @@
           right: ""
         },
         dateClick: info => {
-          // quando clicar em um dia
           atualizarPainelDia(info.dateStr);
         }
       });
@@ -264,33 +262,63 @@
 
       async function carregarEventosDoMes(ano, mes) {
         loaderMes.style.display = "inline";
+        osDoMes = [];
+
         try {
-          // Busca até 500 OS (pode ajustar se precisar)
-          const resp = await api(`/api/OrdensServico?page=1&pageSize=500`);
-          osDoMes = toItems(resp) || [];
+          // 1) Tenta usar OS OFFLINE (se existirem)
+          const offline = getOS();
+          if (offline && offline.length) {
+            offline.forEach(os => {
+              const dataRef = normalizarDataDia(os.criadoEm || os.dataAbertura);
+              if (!dataRef) return;
 
+              osDoMes.push({
+                dataRef,
+                cliente: os.localNome || (os.local && os.local.endereco) || "-",
+                descricao: os.descricao || "-",
+                prioridade: os.prioridade || "Baixa",
+                status: os.status || "Aberta"
+              });
+            });
+
+            console.log("[Calendário] usando OS OFFLINE:", osDoMes.length);
+          } else {
+            // 2) Se não tiver offline, busca na API ONLINE
+            const resp = await api(`/api/OrdensServico?page=1&pageSize=500`);
+            const itens = toItems(resp) || [];
+
+            itens.forEach(os => {
+              const dataRef = normalizarDataDia(os.dataAbertura);
+              if (!dataRef) return;
+
+              osDoMes.push({
+                dataRef,
+                cliente: (os.cliente && os.cliente.nome) || os.local || "-",
+                descricao: os.descricao || "-",
+                prioridade: os.prioridade || "Baixa",
+                status: os.status || "Aberta"
+              });
+            });
+
+            console.log("[Calendário] usando OS ONLINE:", osDoMes.length);
+          }
+
+          // Filtra por mês selecionado (ano/mes)
           const eventos = osDoMes
-            .map(os => {
-              const data = os.dataAbertura;
-              if (!data) return null;
-
-              const tituloBase =
-                ((os.cliente && os.cliente.nome) || os.local || "OS") +
-                " - " +
-                (os.descricao || "");
-
-              return {
-                title: tituloBase.slice(0, 40),
-                start: data,
-                allDay: true
-              };
+            .filter(os => {
+              const [y, m] = os.dataRef.split("-").map(Number);
+              return y === ano && m === mes;
             })
-            .filter(Boolean);
+            .map(os => ({
+              title: `${os.cliente} - ${os.descricao}`.slice(0, 40),
+              start: os.dataRef,
+              allDay: true
+            }));
 
           calendar.removeAllEvents();
           calendar.addEventSource(eventos);
-
           calendar.gotoDate(new Date(ano, mes - 1, 1));
+
         } catch (e) {
           console.warn("Falha ao carregar OS para o calendário:", e);
           alert("Não foi possível carregar as OS para o calendário.");
