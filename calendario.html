@@ -12,22 +12,21 @@
         href="https://cdn.jsdelivr.net/npm/fullcalendar@6.1.11/index.global.min.css">
 
   <style>
-    /* ==========================================
-       GARANTE ROLAGEM NORMAL DA PÁGINA
-    ========================================== */
+    /* Garante que esta página possa rolar normalmente */
     html, body {
-      height: 100%;
-      overflow-y: auto !important;
+      height: auto;
+      min-height: 100%;
+      overflow-y: auto;
+    }
+
+    body.page-calendario {
       background: #0ea5e9;
     }
 
-    /* ==========================================
-       LAYOUT GERAL
-    ========================================== */
     .page-calendario .wrap {
       max-width: 1100px;
       margin: 0 auto;
-      padding: 20px 16px;
+      padding: 20px 16px 40px;
     }
 
     .layout-calendario {
@@ -37,11 +36,22 @@
       align-items: flex-start;
     }
 
+    /* Calendário mais compacto, com rolagem própria se ficar muito alto */
     #calendar {
       background: #fff;
       border-radius: 14px;
       padding: 10px;
       box-shadow: 0 10px 25px rgba(15,23,42,.08);
+      max-height: 65vh;           /* limite de altura */
+      overflow-y: auto;           /* aparece barra de rolagem se precisar */
+    }
+
+    /* Deixa as células um pouco menores */
+    .fc .fc-daygrid-day-frame {
+      min-height: 70px;
+    }
+    .fc .fc-daygrid-day-number {
+      font-size: 0.85rem;
     }
 
     .filtros-calendario {
@@ -62,9 +72,6 @@
       border: 1px solid #dbe2ea;
     }
 
-    /* ==========================================
-       PAINEL DO DIA
-    ========================================== */
     .painel-dia {
       background: #fff;
       border-radius: 14px;
@@ -77,37 +84,36 @@
 
     .painel-dia h2 {
       font-size: 1.1rem;
-      margin: 0 0 6px;
+      margin: 0 0 4px;
+    }
+
+    .painel-dia small {
+      color: #64748b;
     }
 
     #listaDia {
       margin-top: 8px;
       flex: 1;
-
-      /* rolagem interna quando tiver muitas OS */
-      max-height: 420px;
-      overflow-y: auto;
-      padding-right: 6px;
+      max-height: 380px;
+      overflow-y: auto;   /* rolagem interna da lista de OS do dia */
+      padding-right: 4px;
     }
 
-    /* ==========================================
-       OS CARD
-    ========================================== */
     .os-card {
       border-radius: 10px;
       border: 1px solid #e2e8f0;
       padding: 8px 10px;
-      margin-top: 10px;
+      margin-top: 8px;
       font-size: .9rem;
+      background: #fff;
     }
 
     .os-card strong {
       display: block;
       margin-bottom: 4px;
-      font-size: 1rem;
     }
 
-    .badge {
+    .os-card span.badge {
       display: inline-block;
       padding: 2px 8px;
       border-radius: 999px;
@@ -115,54 +121,70 @@
       margin-right: 4px;
     }
 
-    .badge-prio-Baixa  { background:#dcfce7; color:#166534; }
-    .badge-prio-Média  { background:#fef3c7; color:#92400e; }
     .badge-prio-Alta   { background:#fee2e2; color:#b91c1c; }
+    .badge-prio-Média  { background:#fef3c7; color:#92400e; }
+    .badge-prio-Baixa  { background:#dcfce7; color:#166534; }
 
     .badge-status-Aberta        { background:#dbeafe; color:#1d4ed8; }
-    .badge-status-Em-Andamento  { background:#fef9c3; color:#92400e; }
+    .badge-status-Em\ Andamento { background:#fef9c3; color:#92400e; }
     .badge-status-Concluída     { background:#bbf7d0; color:#166534; }
 
-    /* Botão PDF */
     #btnExportPDF {
       margin-top: 12px;
-      padding: 10px 18px;
+      padding: 8px 16px;
       border-radius: 999px;
       border: 0;
       background: #1e90ff;
       color: #fff;
       font-weight: 600;
       cursor: pointer;
-      display: none;
+      align-self: flex-start;
+      display: none; /* só mostra quando tiver OS */
+    }
+
+    #btnExportPDF:hover {
+      filter: brightness(1.05);
+    }
+
+    .loader {
+      font-size: .9rem;
+      color: #64748b;
+      margin-top: 4px;
+    }
+
+    /* Deixa os dias “clicáveis” */
+    .fc-daygrid-day-frame {
+      cursor: pointer;
     }
 
     @media (max-width: 900px) {
       .layout-calendario {
         grid-template-columns: 1fr;
       }
+      #calendar {
+        max-height: none;   /* em celular, deixa o calendário usar a altura que precisar */
+      }
     }
   </style>
 </head>
-
 <body class="page-calendario">
+  <!-- script principal com API_BASE, api(), getOS(), toItems() etc. -->
   <script src="js/script.js"></script>
 
-  <!-- ===================== HEADER ===================== -->
   <header class="topbar-lite"
           style="border-radius:0 0 18px 18px; background:linear-gradient(90deg,#1e90ff,#0ea5e9); color:#fff; padding:16px 0;">
     <div class="wrap">
       <h1 style="margin:0; font-size:1.4rem;">📅 Calendário de OS – AirControl OS</h1>
-      <p style="color:#e2f3ff;">Visualize as ordens de serviço por dia.</p>
+      <p class="muted" style="color:#e2f3ff;">Visualize as ordens de serviço por dia.</p>
     </div>
   </header>
 
-  <!-- ===================== CONTEÚDO ===================== -->
   <main class="wrap">
     <div class="filtros-calendario">
       <label for="mesRef">Mês:</label>
       <input type="month" id="mesRef">
       <span class="muted">Mostrando OS pela data de abertura/criação.</span>
-      <span id="loaderMes" style="display:none;color:#64748b;">Carregando...</span>
+      <span id="loaderMes" class="loader" style="display:none;">Carregando OS...</span>
     </div>
 
     <div class="layout-calendario">
@@ -171,15 +193,13 @@
       <aside id="painelDia" class="painel-dia">
         <h2>OS do dia</h2>
         <small>Selecione um dia no calendário para ver as OS.</small>
-
         <div id="listaDia"></div>
-
         <button id="btnExportPDF">Baixar relatório do dia</button>
       </aside>
     </div>
   </main>
 
-  <!-- SCRIPTS -->
+  <!-- Scripts das libs -->
   <script src="https://cdn.jsdelivr.net/npm/fullcalendar@6.1.11/index.global.min.js"></script>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
 
@@ -190,60 +210,69 @@
       const loaderMes  = document.getElementById("loaderMes");
       const painelDia  = document.getElementById("painelDia");
       const listaDia   = document.getElementById("listaDia");
-      const btnPDF     = document.getElementById("btnExportPDF");
+      const btnPdfDia  = document.getElementById("btnExportPDF");
 
+      // Lista "normalizada" de OS (online ou offline)
+      // Cada item: { dataRef: 'yyyy-mm-dd', codigo, cliente, tecnico, descricao, prioridade, status,
+      //              dataAbertura, dataConclusao }
       let osDoMes = [];
 
-      function normalizarDataDia(v) {
-        if (!v) return null;
-        if (typeof v === "string") return v.slice(0, 10);
-        return new Date(v).toISOString().slice(0, 10);
+      function normalizarDataDia(valor) {
+        if (!valor) return null;
+        if (typeof valor === "string" && valor.length >= 10) {
+          return valor.slice(0, 10); // "yyyy-mm-dd"
+        }
+        try {
+          const d = valor instanceof Date ? valor : new Date(valor);
+          return d.toISOString().slice(0, 10);
+        } catch {
+          return null;
+        }
       }
 
       function atualizarPainelDia(dateStr) {
-        const dataBonita = new Date(dateStr + "T00:00:00")
-          .toLocaleDateString("pt-BR");
-
+        const dataBonita = new Date(dateStr + "T00:00:00");
         painelDia.querySelector("h2").textContent =
-          "OS do dia " + dataBonita;
+          "OS do dia " + dataBonita.toLocaleDateString("pt-BR");
 
-        const osDoDia = osDoMes.filter(o => o.dataRef === dateStr);
+        const osDoDia = osDoMes.filter(os => os.dataRef === dateStr);
 
         listaDia.innerHTML = "";
 
-        if (osDoDia.length === 0) {
-          listaDia.innerHTML =
-            "<p style='color:#64748b;'>Nenhuma OS registrada neste dia.</p>";
-          btnPDF.style.display = "none";
+        if (!osDoDia.length) {
+          listaDia.innerHTML = "<p class='muted'>Nenhuma OS registrada neste dia.</p>";
+          btnPdfDia.style.display = "none";
           return;
         }
 
         osDoDia.forEach(os => {
+          const prio = os.prioridade || "Baixa";
+          const status = os.status || "Aberta";
+          const cliente = os.cliente || "-";
+          const desc = os.descricao || "-";
+          const tecnico = os.tecnico || "-";
+
           const card = document.createElement("div");
           card.className = "os-card";
-
           card.innerHTML = `
-            <strong>OS: ${os.numero} – ${os.cliente}</strong>
+            <strong>OS: ${os.codigo || "—"} – ${cliente}</strong>
             <div style="margin-bottom:4px;">
-              <span class="badge badge-prio-${os.prioridade}">
-                Prioridade: ${os.prioridade}
+              <span class="badge badge-prio-${prio}">
+                Prioridade: ${prio}
               </span>
-              <span class="badge badge-status-${os.status.replace(" ", "-")}">
-                Status: ${os.status}
+              <span class="badge badge-status-${status.replace(" ", "\\ ")}">
+                Status: ${status}
               </span>
             </div>
-
-            Técnico: ${os.tecnico || "-"} <br>
-            <span style="color:#475569;">${os.descricao || "-"}</span>
+            <div><strong>Técnico:</strong> ${tecnico}</div>
+            <div>${desc}</div>
           `;
-
           listaDia.appendChild(card);
         });
 
-        btnPDF.style.display = "inline-block";
+        btnPdfDia.style.display = "inline-block";
       }
 
-      /* ===================== CALENDÁRIO ===================== */
       const calendar = new FullCalendar.Calendar(calendarEl, {
         initialView: "dayGridMonth",
         locale: "pt-br",
@@ -253,46 +282,65 @@
           center: "title",
           right: ""
         },
-        dateClick(info) {
+        dateClick: info => {
           atualizarPainelDia(info.dateStr);
         }
       });
-
       calendar.render();
 
-      /* ===================== CARREGAR MÊS ===================== */
-      async function carregarMes(ano, mes) {
+      async function carregarEventosDoMes(ano, mes) {
         loaderMes.style.display = "inline";
-
         osDoMes = [];
 
         try {
-          const resp = await api("/api/OrdensServico?page=1&pageSize=500");
-          const itens = toItems(resp) || [];
+          const offline = getOS();
+          if (offline && offline.length) {
+            offline.forEach(os => {
+              const dataRef = normalizarDataDia(os.criadoEm || os.dataAbertura);
+              if (!dataRef) return;
 
-          itens.forEach(os => {
-            const dataRef = normalizarDataDia(os.dataAbertura);
-            if (!dataRef) return;
-
-            osDoMes.push({
-              dataRef,
-              numero: os.numero || `OS-${new Date(os.dataAbertura).getFullYear()}-${String(os.id).padStart(3, "0")}`,
-              cliente: os.cliente?.nome || "-",
-              prioridade: os.prioridade || "Baixa",
-              status: os.status || "Aberta",
-              descricao: os.descricao || "-",
-              tecnico: os.tecnico?.nome || "-"
+              osDoMes.push({
+                dataRef,
+                codigo: os.codigo || "",
+                cliente: os.localNome || (os.local && os.local.endereco) || "-",
+                tecnico: os.tecnico || "-",
+                descricao: os.descricao || "-",
+                prioridade: os.prioridade || "Baixa",
+                status: os.status || "Aberta",
+                dataAbertura: os.criadoEm || os.dataAbertura || null,
+                dataConclusao: os.concluidaEm || null
+              });
             });
-          });
+          } else {
+            const resp = await api(`/api/OrdensServico?page=1&pageSize=500`);
+            const itens = toItems(resp) || [];
+
+            itens.forEach(os => {
+              const dataRef = normalizarDataDia(os.dataAbertura);
+              if (!dataRef) return;
+
+              osDoMes.push({
+                dataRef,
+                codigo: `OS-${new Date(os.dataAbertura).getFullYear()}-${String(os.id).padStart(3,"0")}`,
+                cliente: (os.cliente && os.cliente.nome) || os.local || "-",
+                tecnico: (os.tecnico && os.tecnico.nome) || "-",
+                descricao: os.descricao || "-",
+                prioridade: os.prioridade || "Baixa",
+                status: os.status || "Aberta",
+                dataAbertura: os.dataAbertura || null,
+                dataConclusao: os.dataConclusao || null
+              });
+            });
+          }
 
           const eventos = osDoMes
-            .filter(o => {
-              const [y, m] = o.dataRef.split("-").map(Number);
+            .filter(os => {
+              const [y, m] = os.dataRef.split("-").map(Number);
               return y === ano && m === mes;
             })
-            .map(o => ({
-              title: o.numero,
-              start: o.dataRef,
+            .map(os => ({
+              title: `${os.codigo} – ${os.cliente}`.slice(0, 40),
+              start: os.dataRef,
               allDay: true
             }));
 
@@ -300,38 +348,101 @@
           calendar.addEventSource(eventos);
           calendar.gotoDate(new Date(ano, mes - 1, 1));
 
+        } catch (e) {
+          console.warn("Falha ao carregar OS para o calendário:", e);
+          alert("Não foi possível carregar as OS para o calendário.");
         } finally {
           loaderMes.style.display = "none";
         }
       }
 
-      /* ===================== MÊS ATUAL ===================== */
       const hoje = new Date();
       mesInput.value =
-        `${hoje.getFullYear()}-${String(hoje.getMonth() + 1).padStart(2, "0")}`;
+        `${hoje.getFullYear()}-${String(hoje.getMonth() + 1).padStart(2,"0")}`;
 
-      carregarMes(hoje.getFullYear(), hoje.getMonth() + 1);
+      await carregarEventosDoMes(hoje.getFullYear(), hoje.getMonth() + 1);
 
-      mesInput.addEventListener("change", (e) => {
+      mesInput.addEventListener("change", async (e) => {
         const [ano, mes] = e.target.value.split("-").map(Number);
-        carregarMes(ano, mes);
+        if (!ano || !mes) return;
+        await carregarEventosDoMes(ano, mes);
       });
 
-      /* ===================== EXPORTAR PDF ===================== */
-      btnPDF.addEventListener("click", () => {
-        html2pdf()
-          .set({
-            margin: 10,
-            filename: `os-do-dia-${listaDia.innerHTML.slice(0,10)}.pdf`,
-            html2canvas: { scale: 2 },
-            jsPDF: { format: "a4", orientation: "portrait" }
-          })
-          .from(painelDia)
-          .save();
-      });
+      // Exporta o relatório do dia em PDF (formato mais “ABNTzinho”)
+      btnPdfDia.addEventListener("click", () => {
+        const textoTitulo = painelDia.querySelector("h2").textContent || "";
+        const dataRel = textoTitulo.replace("OS do dia ", "").trim();
 
+        const conteudo = document.createElement("div");
+        conteudo.style.fontFamily = "Times New Roman, serif";
+        conteudo.style.fontSize = "12pt";
+        conteudo.style.padding = "20px 25mm 20mm 25mm";
+        conteudo.style.lineHeight = "1.5";
+
+        const hojeStr = new Date().toLocaleDateString("pt-BR");
+
+        let html = `
+          <h1 style="text-align:center; font-size:14pt; margin-bottom:4mm;">
+            AirControl OS - Sistema de Ordens de Serviço
+          </h1>
+          <h2 style="text-align:center; font-size:13pt; margin-bottom:8mm;">
+            Relatório diário de ordens de serviço
+          </h2>
+
+          <p style="text-align:right; margin-bottom:6mm;">
+            Data de emissão: ${hojeStr}
+          </p>
+
+          <h3 style="text-align:center; font-size:12pt; margin-bottom:6mm;">
+            OS do dia ${dataRel}
+          </h3>
+        `;
+
+        const osDoDia = osDoMes.filter(os => os.dataRef ===
+          `${dataRel.split("/").reverse().join("-")}`);
+
+        osDoDia.forEach((os, idx) => {
+          const dataAb = os.dataAbertura
+            ? new Date(os.dataAbertura).toLocaleString("pt-BR")
+            : "—";
+          const dataConc = os.dataConclusao
+            ? new Date(os.dataConclusao).toLocaleString("pt-BR")
+            : "—";
+
+          html += `
+            <p><strong>${idx + 1}. Cliente:</strong> ${os.cliente}</p>
+            <p><strong>Número da OS:</strong> ${os.codigo || "—"}</p>
+            <p><strong>Técnico responsável:</strong> ${os.tecnico || "—"}</p>
+            <p><strong>Prioridade:</strong> ${os.prioridade}</p>
+            <p><strong>Status:</strong> ${os.status}</p>
+            <p><strong>Data de abertura:</strong> ${dataAb}</p>
+            <p><strong>Data de conclusão:</strong> ${dataConc}</p>
+            <p><strong>Tempo de serviço (estimado):</strong> —</p>
+            <p><strong>Descrição do serviço:</strong> ${os.descricao}</p>
+            <p style="margin-top:10mm; margin-bottom:12mm;">
+              Assinatura do técnico: ___________________________________________
+            </p>
+            <hr style="border:0; border-top:1px solid #000; margin:10mm 0 8mm 0;" />
+          `;
+        });
+
+        html += `
+          <p style="font-size:10pt; text-align:right; margin-top:10mm;">
+            AirControl OS - Relatório diário de ordens de serviço
+          </p>
+        `;
+
+        conteudo.innerHTML = html;
+
+        const opt = {
+          margin:       10,
+          filename:     `os-do-dia-${dataRel.replace(/\//g,"")}.pdf`,
+          html2canvas:  { scale: 2 },
+          jsPDF:        { unit: "mm", format: "a4", orientation: "portrait" }
+        };
+        html2pdf().set(opt).from(conteudo).save();
+      });
     });
   </script>
-
 </body>
 </html>
