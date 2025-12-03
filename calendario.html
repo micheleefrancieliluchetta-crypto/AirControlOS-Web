@@ -7,24 +7,20 @@
 
   <link rel="stylesheet" href="css/style.css" />
 
-  <!-- FullCalendar CSS -->
+  <!-- FullCalendar CSS (bundle global) -->
   <link rel="stylesheet"
-        href="https://cdn.jsdelivr.net/npm/fullcalendar@6.1.11/index.global.min.css">
+        href="https://cdn.jsdelivr.net/npm/fullcalendar@6.1.11/index.global.min.css" />
 
   <style>
-    /* Garante que esta página possa rolar normalmente */
-    html, body {
-      height: auto;
-      min-height: 100%;
-      overflow-y: auto;
-    }
-
+    /* garante que esta página possa rolar normalmente */
     body.page-calendario {
+      min-height: 100vh;
+      overflow-y: auto !important;
       background: #0ea5e9;
     }
 
-    .page-calendario .wrap {
-      max-width: 1100px;
+    .wrap-calendario {
+      max-width: 1120px;
       margin: 0 auto;
       padding: 20px 16px 40px;
     }
@@ -36,21 +32,18 @@
       align-items: flex-start;
     }
 
-    /* Calendário mais compacto, com rolagem própria se ficar muito alto */
-    #calendar {
+    /* Caixa que contém o calendário com rolagem própria */
+    #calendarWrapper {
       background: #fff;
       border-radius: 14px;
       padding: 10px;
       box-shadow: 0 10px 25px rgba(15,23,42,.08);
-      max-height: 65vh;           /* limite de altura */
-      overflow-y: auto;           /* aparece barra de rolagem se precisar */
+      max-height: 520px;          /* altura máxima da caixa */
+      overflow-y: auto;           /* rolagem interna */
     }
 
-    /* Deixa as células um pouco menores */
-    .fc .fc-daygrid-day-frame {
-      min-height: 70px;
-    }
-    .fc .fc-daygrid-day-number {
+    /* deixa o calendário visualmente um pouco menor */
+    #calendar {
       font-size: 0.85rem;
     }
 
@@ -78,8 +71,10 @@
       padding: 14px 16px;
       box-shadow: 0 10px 25px rgba(15,23,42,.08);
       min-height: 260px;
+      max-height: 520px;          /* painel também com rolagem própria */
       display: flex;
       flex-direction: column;
+      overflow-y: auto;
     }
 
     .painel-dia h2 {
@@ -94,9 +89,6 @@
     #listaDia {
       margin-top: 8px;
       flex: 1;
-      max-height: 380px;
-      overflow-y: auto;   /* rolagem interna da lista de OS do dia */
-      padding-right: 4px;
     }
 
     .os-card {
@@ -105,7 +97,7 @@
       padding: 8px 10px;
       margin-top: 8px;
       font-size: .9rem;
-      background: #fff;
+      background: #f8fafc;
     }
 
     .os-card strong {
@@ -129,7 +121,7 @@
     .badge-status-Em\ Andamento { background:#fef9c3; color:#92400e; }
     .badge-status-Concluída     { background:#bbf7d0; color:#166534; }
 
-    #btnExportPDF {
+    #btnRelatorioDia {
       margin-top: 12px;
       padding: 8px 16px;
       border-radius: 999px;
@@ -139,11 +131,7 @@
       font-weight: 600;
       cursor: pointer;
       align-self: flex-start;
-      display: none; /* só mostra quando tiver OS */
-    }
-
-    #btnExportPDF:hover {
-      filter: brightness(1.05);
+      display: none; /* só aparece quando tiver OS no dia */
     }
 
     .loader {
@@ -152,49 +140,74 @@
       margin-top: 4px;
     }
 
-    /* Deixa os dias “clicáveis” */
+    /* dias clicáveis */
     .fc-daygrid-day-frame {
       cursor: pointer;
+    }
+
+    /* barras de rolagem mais visíveis (calendário + painel do dia) */
+    #calendarWrapper,
+    .painel-dia {
+      scrollbar-width: thin;
+      scrollbar-color: #94a3b8 #e2e8f0;
+    }
+    #calendarWrapper::-webkit-scrollbar,
+    .painel-dia::-webkit-scrollbar {
+      width: 8px;
+    }
+    #calendarWrapper::-webkit-scrollbar-track,
+    .painel-dia::-webkit-scrollbar-track {
+      background: #e2e8f0;
+      border-radius: 999px;
+    }
+    #calendarWrapper::-webkit-scrollbar-thumb,
+    .painel-dia::-webkit-scrollbar-thumb {
+      background: #94a3b8;
+      border-radius: 999px;
     }
 
     @media (max-width: 900px) {
       .layout-calendario {
         grid-template-columns: 1fr;
       }
-      #calendar {
-        max-height: none;   /* em celular, deixa o calendário usar a altura que precisar */
+
+      #calendarWrapper,
+      .painel-dia {
+        max-height: none;
       }
     }
   </style>
 </head>
 <body class="page-calendario">
-  <!-- script principal com API_BASE, api(), getOS(), toItems() etc. -->
+  <!-- script principal (API_BASE, api(), getOS(), toItems(), codigoOSApi etc.) -->
   <script src="js/script.js"></script>
 
   <header class="topbar-lite"
           style="border-radius:0 0 18px 18px; background:linear-gradient(90deg,#1e90ff,#0ea5e9); color:#fff; padding:16px 0;">
-    <div class="wrap">
+    <div class="wrap-calendario">
       <h1 style="margin:0; font-size:1.4rem;">📅 Calendário de OS – AirControl OS</h1>
       <p class="muted" style="color:#e2f3ff;">Visualize as ordens de serviço por dia.</p>
     </div>
   </header>
 
-  <main class="wrap">
+  <main class="wrap-calendario">
     <div class="filtros-calendario">
       <label for="mesRef">Mês:</label>
-      <input type="month" id="mesRef">
+      <input type="month" id="mesRef" />
       <span class="muted">Mostrando OS pela data de abertura/criação.</span>
       <span id="loaderMes" class="loader" style="display:none;">Carregando OS...</span>
     </div>
 
     <div class="layout-calendario">
-      <div id="calendar"></div>
+      <div id="calendarWrapper">
+        <div id="calendar"></div>
+      </div>
 
       <aside id="painelDia" class="painel-dia">
         <h2>OS do dia</h2>
         <small>Selecione um dia no calendário para ver as OS.</small>
         <div id="listaDia"></div>
-        <button id="btnExportPDF">Baixar relatório do dia</button>
+        <button id="btnRelatorioDia">Baixar relatório do dia</button>
       </aside>
     </div>
   </main>
@@ -210,17 +223,18 @@
       const loaderMes  = document.getElementById("loaderMes");
       const painelDia  = document.getElementById("painelDia");
       const listaDia   = document.getElementById("listaDia");
-      const btnPdfDia  = document.getElementById("btnExportPDF");
+      const btnPDF     = document.getElementById("btnRelatorioDia");
 
-      // Lista "normalizada" de OS (online ou offline)
-      // Cada item: { dataRef: 'yyyy-mm-dd', codigo, cliente, tecnico, descricao, prioridade, status,
-      //              dataAbertura, dataConclusao }
+      // lista normalizada de OS do mês
+      // { dataRef, clienteNome, tecnicoNome, numeroOS, prioridade, status,
+      //   dtAbertura, dtConclusao, descricao }
       let osDoMes = [];
+      let dataSelecionada = null; // yyyy-mm-dd
 
       function normalizarDataDia(valor) {
         if (!valor) return null;
         if (typeof valor === "string" && valor.length >= 10) {
-          return valor.slice(0, 10); // "yyyy-mm-dd"
+          return valor.slice(0, 10);
         }
         try {
           const d = valor instanceof Date ? valor : new Date(valor);
@@ -230,47 +244,58 @@
         }
       }
 
+      function dataHoraBR(valor) {
+        if (!valor) return "";
+        try {
+          const d = new Date(valor);
+          return d.toLocaleString("pt-BR");
+        } catch {
+          return "";
+        }
+      }
+
       function atualizarPainelDia(dateStr) {
+        dataSelecionada = dateStr;
+
         const dataBonita = new Date(dateStr + "T00:00:00");
         painelDia.querySelector("h2").textContent =
           "OS do dia " + dataBonita.toLocaleDateString("pt-BR");
 
         const osDoDia = osDoMes.filter(os => os.dataRef === dateStr);
-
         listaDia.innerHTML = "";
 
         if (!osDoDia.length) {
           listaDia.innerHTML = "<p class='muted'>Nenhuma OS registrada neste dia.</p>";
-          btnPdfDia.style.display = "none";
+          btnPDF.style.display = "none";
           return;
         }
 
         osDoDia.forEach(os => {
-          const prio = os.prioridade || "Baixa";
-          const status = os.status || "Aberta";
-          const cliente = os.cliente || "-";
-          const desc = os.descricao || "-";
-          const tecnico = os.tecnico || "-";
-
           const card = document.createElement("div");
           card.className = "os-card";
+
+          const prioridade = os.prioridade || "Baixa";
+          const status     = os.status || "Aberta";
+
           card.innerHTML = `
-            <strong>OS: ${os.codigo || "—"} – ${cliente}</strong>
+            <strong>OS: ${os.numeroOS || "—"} – ${os.clienteNome || "-"}</strong>
             <div style="margin-bottom:4px;">
-              <span class="badge badge-prio-${prio}">
-                Prioridade: ${prio}
+              <span class="badge badge-prio-${prioridade}">
+                Prioridade: ${prioridade}
               </span>
               <span class="badge badge-status-${status.replace(" ", "\\ ")}">
                 Status: ${status}
               </span>
             </div>
-            <div><strong>Técnico:</strong> ${tecnico}</div>
-            <div>${desc}</div>
+            <div style="margin-bottom:4px;"><strong>Técnico:</strong> ${os.tecnicoNome || "—"}</div>
+            <div style="margin-bottom:4px;"><strong>Data de abertura:</strong> ${os.dtAbertura || "—"}</div>
+            <div style="margin-bottom:4px;"><strong>Data de conclusão:</strong> ${os.dtConclusao || "—"}</div>
+            <div><strong>Descrição:</strong> ${os.descricao || "-"}</div>
           `;
           listaDia.appendChild(card);
         });
 
-        btnPdfDia.style.display = "inline-block";
+        btnPDF.style.display = "inline-block";
       }
 
       const calendar = new FullCalendar.Calendar(calendarEl, {
@@ -295,24 +320,26 @@
         try {
           const offline = getOS();
           if (offline && offline.length) {
+            // dados OFFLINE
             offline.forEach(os => {
               const dataRef = normalizarDataDia(os.criadoEm || os.dataAbertura);
               if (!dataRef) return;
 
               osDoMes.push({
                 dataRef,
-                codigo: os.codigo || "",
-                cliente: os.localNome || (os.local && os.local.endereco) || "-",
-                tecnico: os.tecnico || "-",
-                descricao: os.descricao || "-",
-                prioridade: os.prioridade || "Baixa",
-                status: os.status || "Aberta",
-                dataAbertura: os.criadoEm || os.dataAbertura || null,
-                dataConclusao: os.concluidaEm || null
+                clienteNome: os.localNome || (os.local && os.local.endereco) || "-",
+                tecnicoNome: os.tecnico || "-",
+                numeroOS:    os.codigo || "—",
+                prioridade:  os.prioridade || "Baixa",
+                status:      os.status || "Aberta",
+                dtAbertura:  dataHoraBR(os.criadoEm || os.dataAbertura),
+                dtConclusao: os.concluidaEm ? dataHoraBR(os.concluidaEm) : "",
+                descricao:   os.descricao || "-"
               });
             });
           } else {
-            const resp = await api(`/api/OrdensServico?page=1&pageSize=500`);
+            // dados ONLINE (API)
+            const resp  = await api(`/api/OrdensServico?page=1&pageSize=500`);
             const itens = toItems(resp) || [];
 
             itens.forEach(os => {
@@ -321,25 +348,26 @@
 
               osDoMes.push({
                 dataRef,
-                codigo: `OS-${new Date(os.dataAbertura).getFullYear()}-${String(os.id).padStart(3,"0")}`,
-                cliente: (os.cliente && os.cliente.nome) || os.local || "-",
-                tecnico: (os.tecnico && os.tecnico.nome) || "-",
-                descricao: os.descricao || "-",
-                prioridade: os.prioridade || "Baixa",
-                status: os.status || "Aberta",
-                dataAbertura: os.dataAbertura || null,
-                dataConclusao: os.dataConclusao || null
+                clienteNome: (os.cliente && os.cliente.nome) || os.local || "-",
+                tecnicoNome: (os.tecnico && os.tecnico.nome) || "-",
+                numeroOS:    typeof codigoOSApi === "function" ? codigoOSApi(os) : (os.codigo || "—"),
+                prioridade:  os.prioridade || "Baixa",
+                status:      os.status || "Aberta",
+                dtAbertura:  dataHoraBR(os.dataAbertura),
+                dtConclusao: os.dataConclusao ? dataHoraBR(os.dataConclusao) : "",
+                descricao:   os.descricao || "-"
               });
             });
           }
 
+          // filtra pelo mês/ano selecionados
           const eventos = osDoMes
             .filter(os => {
               const [y, m] = os.dataRef.split("-").map(Number);
               return y === ano && m === mes;
             })
             .map(os => ({
-              title: `${os.codigo} – ${os.cliente}`.slice(0, 40),
+              title: `${os.numeroOS || ""}`.trim(),
               start: os.dataRef,
               allDay: true
             }));
@@ -347,7 +375,6 @@
           calendar.removeAllEvents();
           calendar.addEventSource(eventos);
           calendar.gotoDate(new Date(ano, mes - 1, 1));
-
         } catch (e) {
           console.warn("Falha ao carregar OS para o calendário:", e);
           alert("Não foi possível carregar as OS para o calendário.");
@@ -356,6 +383,7 @@
         }
       }
 
+      // mês atual
       const hoje = new Date();
       mesInput.value =
         `${hoje.getFullYear()}-${String(hoje.getMonth() + 1).padStart(2,"0")}`;
@@ -368,79 +396,63 @@
         await carregarEventosDoMes(ano, mes);
       });
 
-      // Exporta o relatório do dia em PDF (formato mais “ABNTzinho”)
-      btnPdfDia.addEventListener("click", () => {
-        const textoTitulo = painelDia.querySelector("h2").textContent || "";
-        const dataRel = textoTitulo.replace("OS do dia ", "").trim();
+      // --------- PDF (estilo ABNT) ----------
+      btnPDF.addEventListener("click", () => {
+        if (!dataSelecionada) return;
 
-        const conteudo = document.createElement("div");
-        conteudo.style.fontFamily = "Times New Roman, serif";
-        conteudo.style.fontSize = "12pt";
-        conteudo.style.padding = "20px 25mm 20mm 25mm";
-        conteudo.style.lineHeight = "1.5";
+        const osDoDia = osDoMes.filter(os => os.dataRef === dataSelecionada);
+        if (!osDoDia.length) return;
 
-        const hojeStr = new Date().toLocaleDateString("pt-BR");
+        const dataHojeBR = new Date().toLocaleDateString("pt-BR");
+        const dataDiaBR  = new Date(dataSelecionada + "T00:00:00").toLocaleDateString("pt-BR");
 
-        let html = `
-          <h1 style="text-align:center; font-size:14pt; margin-bottom:4mm;">
-            AirControl OS - Sistema de Ordens de Serviço
-          </h1>
-          <h2 style="text-align:center; font-size:13pt; margin-bottom:8mm;">
-            Relatório diário de ordens de serviço
-          </h2>
-
-          <p style="text-align:right; margin-bottom:6mm;">
-            Data de emissão: ${hojeStr}
-          </p>
-
-          <h3 style="text-align:center; font-size:12pt; margin-bottom:6mm;">
-            OS do dia ${dataRel}
-          </h3>
-        `;
-
-        const osDoDia = osDoMes.filter(os => os.dataRef ===
-          `${dataRel.split("/").reverse().join("-")}`);
-
-        osDoDia.forEach((os, idx) => {
-          const dataAb = os.dataAbertura
-            ? new Date(os.dataAbertura).toLocaleString("pt-BR")
-            : "—";
-          const dataConc = os.dataConclusao
-            ? new Date(os.dataConclusao).toLocaleString("pt-BR")
-            : "—";
-
-          html += `
-            <p><strong>${idx + 1}. Cliente:</strong> ${os.cliente}</p>
-            <p><strong>Número da OS:</strong> ${os.codigo || "—"}</p>
-            <p><strong>Técnico responsável:</strong> ${os.tecnico || "—"}</p>
-            <p><strong>Prioridade:</strong> ${os.prioridade}</p>
-            <p><strong>Status:</strong> ${os.status}</p>
-            <p><strong>Data de abertura:</strong> ${dataAb}</p>
-            <p><strong>Data de conclusão:</strong> ${dataConc}</p>
-            <p><strong>Tempo de serviço (estimado):</strong> —</p>
-            <p><strong>Descrição do serviço:</strong> ${os.descricao}</p>
-            <p style="margin-top:10mm; margin-bottom:12mm;">
-              Assinatura do técnico: ___________________________________________
+        const container = document.createElement("div");
+        container.innerHTML = `
+          <div style="font-family:'Times New Roman',serif; font-size:12pt; line-height:1.5;">
+            <h1 style="text-align:center; font-size:14pt; margin:0 0 4pt;">
+              AirControl OS - Sistema de Ordens de Serviço
+            </h1>
+            <h2 style="text-align:center; font-size:13pt; margin:0 0 18pt;">
+              Relatório diário de ordens de serviço
+            </h2>
+            <p style="text-align:right; margin:0 0 12pt;">
+              Data de emissão: ${dataHojeBR}
             </p>
-            <hr style="border:0; border-top:1px solid #000; margin:10mm 0 8mm 0;" />
-          `;
-        });
+            <h3 style="text-align:center; font-size:13pt; margin:0 0 16pt;">
+              OS do dia ${dataDiaBR}
+            </h3>
 
-        html += `
-          <p style="font-size:10pt; text-align:right; margin-top:10mm;">
-            AirControl OS - Relatório diário de ordens de serviço
-          </p>
+            ${osDoDia.map((os, idx) => `
+              <div style="margin-bottom:22pt;">
+                <p style="margin:0 0 4pt;"><strong>${idx + 1}. Cliente:</strong> ${os.clienteNome}</p>
+                <p style="margin:0 0 4pt;"><strong>Número da OS:</strong> ${os.numeroOS || "—"}</p>
+                <p style="margin:0 0 4pt;"><strong>Técnico responsável:</strong> ${os.tecnicoNome || "—"}</p>
+                <p style="margin:0 0 4pt;"><strong>Prioridade:</strong> ${os.prioridade}</p>
+                <p style="margin:0 0 4pt;"><strong>Status:</strong> ${os.status}</p>
+                <p style="margin:0 0 4pt;"><strong>Data de abertura:</strong> ${os.dtAbertura || "—"}</p>
+                <p style="margin:0 0 4pt;"><strong>Data de conclusão:</strong> ${os.dtConclusao || "—"}</p>
+                <p style="margin:0 0 4pt;"><strong>Tempo de serviço (estimado):</strong> —</p>
+                <p style="margin:0 0 16pt;"><strong>Descrição do serviço:</strong> ${os.descricao}</p>
+                <p style="margin:0 0 28pt;">
+                  Assinatura do técnico: _____________________________________________
+                </p>
+              </div>
+            `).join('<hr style="border:none;border-top:1px solid #000; margin:4pt 0 18pt;">')}
+
+            <p style="margin-top:20pt; font-size:10pt;">
+              Relatório gerado automaticamente pelo sistema AirControl OS.
+            </p>
+          </div>
         `;
-
-        conteudo.innerHTML = html;
 
         const opt = {
-          margin:       10,
-          filename:     `os-do-dia-${dataRel.replace(/\//g,"")}.pdf`,
+          margin:       [20, 15, 20, 15],  // margem superior maior para não “cortar” o topo
+          filename:     `os-do-dia-${dataSelecionada.replace(/-/g,"")}.pdf`,
           html2canvas:  { scale: 2 },
           jsPDF:        { unit: "mm", format: "a4", orientation: "portrait" }
         };
-        html2pdf().set(opt).from(conteudo).save();
+
+        html2pdf().set(opt).from(container).save();
       });
     });
   </script>
