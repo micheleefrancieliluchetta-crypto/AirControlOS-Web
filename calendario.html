@@ -7,7 +7,7 @@
 
   <link rel="stylesheet" href="css/style.css" />
 
-  <!-- FullCalendar CSS (opcional, mas não atrapalha) -->
+  <!-- FullCalendar CSS -->
   <link rel="stylesheet"
         href="https://cdn.jsdelivr.net/npm/fullcalendar@6.1.11/index.global.min.css">
 
@@ -69,11 +69,30 @@
       color: #64748b;
     }
 
+    /* LISTA COM ROLAGEM */
     #listaDia {
       margin-top: 8px;
       flex: 1;
-      max-height: 400px;
-      overflow-y: auto; /* rolagem quando tiver muitas OS */
+      max-height: 400px;      /* altura máxima do painel */
+      overflow-y: auto;       /* ativa rolagem vertical quando precisar */
+      padding-right: 4px;
+    }
+
+    /* deixar a barra de rolagem mais visível */
+    #listaDia {
+      scrollbar-width: thin;  /* Firefox */
+      scrollbar-color: #94a3b8 #e2e8f0;
+    }
+    #listaDia::-webkit-scrollbar {
+      width: 8px;
+    }
+    #listaDia::-webkit-scrollbar-track {
+      background: #e2e8f0;
+      border-radius: 999px;
+    }
+    #listaDia::-webkit-scrollbar-thumb {
+      background: #94a3b8;
+      border-radius: 999px;
     }
 
     .os-card {
@@ -101,12 +120,11 @@
     .badge-prio-Média  { background:#fef3c7; color:#92400e; }
     .badge-prio-Baixa  { background:#dcfce7; color:#166534; }
 
-    .badge-status-Aberta         { background:#dbeafe; color:#1d4ed8; }
-    .badge-status-Em-Andamento   { background:#fef9c3; color:#92400e; }
-    .badge-status-Concluida      { background:#bbf7d0; color:#166534; }
+    .badge-status-Aberta        { background:#dbeafe; color:#1d4ed8; }
+    .badge-status-Em\ Andamento { background:#fef9c3; color:#92400e; }
+    .badge-status-Concluída     { background:#bbf7d0; color:#166534; }
 
-    /* botão PDF */
-    #btnExportPDF {
+    #btnPdfDia {
       margin-top: 12px;
       padding: 8px 16px;
       border-radius: 999px;
@@ -125,7 +143,7 @@
       margin-top: 4px;
     }
 
-    /* deixa os dias "clicáveis" */
+    /* deixa os dias "clicáveis" no calendário */
     .fc-daygrid-day-frame {
       cursor: pointer;
     }
@@ -138,7 +156,7 @@
   </style>
 </head>
 <body class="page-calendario">
-  <!-- script principal com API_BASE, api(), getOS(), toItems() etc. -->
+  <!-- script principal com API_BASE, api(), getOS(), toItems(), codigoOSApi() etc. -->
   <script src="js/script.js"></script>
 
   <header class="topbar-lite"
@@ -161,45 +179,42 @@
       <div id="calendar"></div>
 
       <aside id="painelDia" class="painel-dia">
-        <h2 id="tituloDia">OS do dia</h2>
+        <h2>OS do dia</h2>
         <small>Selecione um dia no calendário para ver as OS.</small>
         <div id="listaDia"></div>
-        <button id="btnExportPDF">
-          Baixar relatório do dia
-        </button>
+        <button id="btnPdfDia">Baixar relatório do dia</button>
       </aside>
     </div>
   </main>
 
   <!-- Scripts das libs -->
   <script src="https://cdn.jsdelivr.net/npm/fullcalendar@6.1.11/index.global.min.js"></script>
-  <script
-    src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"
-    crossorigin="anonymous"
-    referrerpolicy="no-referrer">
-  </script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
 
   <script>
     document.addEventListener("DOMContentLoaded", async () => {
-      const calendarEl   = document.getElementById("calendar");
-      const mesInput     = document.getElementById("mesRef");
-      const loaderMes    = document.getElementById("loaderMes");
-      const painelDia    = document.getElementById("painelDia");
-      const listaDia     = document.getElementById("listaDia");
-      const btnExportPDF = document.getElementById("btnExportPDF");
-      const tituloDiaEl  = document.getElementById("tituloDia");
+      // Se quiser travar só pra logado:
+      // requireLogin();
 
-      // Cada item:
-      // { dataRef, codigo, cliente, descricao, prioridade, status,
-      //   tecnico, dataAbertura, dataConclusao }
+      const calendarEl = document.getElementById("calendar");
+      const mesInput   = document.getElementById("mesRef");
+      const loaderMes  = document.getElementById("loaderMes");
+      const painelDia  = document.getElementById("painelDia");
+      const listaDia   = document.getElementById("listaDia");
+      const btnPdfDia  = document.getElementById("btnPdfDia");
+
+      // Lista "normalizada" de OS (online ou offline)
+      // Cada item: {
+      //   dataRef, cliente, numeroOS, tecnico,
+      //   descricao, prioridade, status,
+      //   dataAbertura, dataConclusao
+      // }
       let osDoMes = [];
-      let osSelecionadasDia = [];
 
-      // --------- Helpers de data/código ---------
       function normalizarDataDia(valor) {
         if (!valor) return null;
         if (typeof valor === "string" && valor.length >= 10) {
-          return valor.slice(0, 10); // "yyyy-mm-dd"
+          return valor.slice(0, 10);
         }
         try {
           const d = valor instanceof Date ? valor : new Date(valor);
@@ -209,113 +224,66 @@
         }
       }
 
-      function formatarDataHora(valor) {
-        if (!valor) return "-";
+      function formatarDataHoraBr(iso) {
+        if (!iso) return "—";
         try {
-          const d = new Date(valor);
+          const d = new Date(iso);
           return d.toLocaleString("pt-BR");
-        } catch {
-          return "-";
-        }
-      }
-
-      function calcularDuracao(ini, fim) {
-        if (!ini || !fim) return "Em aberto";
-        try {
-          const d1 = new Date(ini);
-          const d2 = new Date(fim);
-          const ms = d2.getTime() - d1.getTime();
-          if (ms <= 0) return "—";
-
-          let minutosTotais = Math.round(ms / 60000);
-          const dias = Math.floor(minutosTotais / (60 * 24));
-          minutosTotais -= dias * 60 * 24;
-          const horas = Math.floor(minutosTotais / 60);
-          const minutos = minutosTotais % 60;
-
-          const partes = [];
-          if (dias > 0) partes.push(`${dias} dia${dias > 1 ? "s" : ""}`);
-          if (horas > 0) partes.push(`${horas} h`);
-          if (minutos > 0) partes.push(`${minutos} min`);
-
-          return partes.join(" ") || "—";
         } catch {
           return "—";
         }
       }
 
-      // transforma status em chave pra classe CSS, sem acento / espaço
-      function statusToClass(status) {
-        if (!status) return "Aberta";
-        return status
-          .normalize("NFD").replace(/[\u0300-\u036f]/g, "") // remove acento
-          .replace(/\s+/g, "-"); // espaço -> hífen
-      }
-
-      function gerarCodigoOS(id, dataAbertura) {
-        try {
-          const ano = dataAbertura
-            ? new Date(dataAbertura).getFullYear()
-            : new Date().getFullYear();
-          const seq = String(id ?? 0).padStart(3, "0");
-          return `OS-${ano}-${seq}`;
-        } catch {
-          const seq = String(id ?? 0).padStart(3, "0");
-          return `OS-${seq}`;
-        }
-      }
-
-      // --------- Painel lateral ---------
       function atualizarPainelDia(dateStr) {
         const dataBonita = new Date(dateStr + "T00:00:00");
-        const textoTitulo = "OS do dia " + dataBonita.toLocaleDateString("pt-BR");
-
-        if (tituloDiaEl) {
-          tituloDiaEl.textContent = textoTitulo;
-        }
+        painelDia.querySelector("h2").textContent =
+          "OS do dia " + dataBonita.toLocaleDateString("pt-BR");
 
         const osDoDia = osDoMes.filter(os => os.dataRef === dateStr);
-        osSelecionadasDia = osDoDia;
 
         listaDia.innerHTML = "";
 
         if (!osDoDia.length) {
           listaDia.innerHTML = "<p class='muted'>Nenhuma OS registrada neste dia.</p>";
-          btnExportPDF.style.display = "none";
+          btnPdfDia.style.display = "none";
           return;
         }
 
         osDoDia.forEach(os => {
-          const prio    = os.prioridade || "Baixa";
-          const status  = os.status || "Aberta";
-          const statusClass = statusToClass(status); // ex: "Em-Andamento"
-          const cliente = os.cliente || "-";
-          const desc    = os.descricao || "-";
-          const tecnico = os.tecnico || "-";
-          const codigo  = os.codigo || "-";
+          const prio      = os.prioridade || "Baixa";
+          const status    = os.status || "Aberta";
+          const cliente   = os.cliente || "-";
+          const desc      = os.descricao || "-";
+          const tecnico   = os.tecnico || "—";
+          const numeroOS  = os.numeroOS || "—";
+          const abertura  = formatarDataHoraBr(os.dataAbertura);
+          const conclusao = formatarDataHoraBr(os.dataConclusao);
 
           const card = document.createElement("div");
           card.className = "os-card";
           card.innerHTML = `
-            <strong>OS: ${codigo} – ${cliente}</strong>
+            <strong>OS: ${numeroOS} – ${cliente}</strong>
             <div style="margin-bottom:4px;">
               <span class="badge badge-prio-${prio}">
                 Prioridade: ${prio}
               </span>
-              <span class="badge badge-status-${statusClass}">
+              <span class="badge badge-status-${status.replace(" ", "\\ ")}">
                 Status: ${status}
               </span>
             </div>
-            <div style="margin-bottom:4px;"><em>Técnico:</em> ${tecnico}</div>
+            <div style="margin-bottom:2px;"><em>Técnico:</em> ${tecnico}</div>
+            <div style="margin-bottom:2px;"><em>Data de abertura:</em> ${abertura}</div>
+            <div style="margin-bottom:4px;"><em>Data de conclusão:</em> ${conclusao}</div>
             <div>${desc}</div>
           `;
           listaDia.appendChild(card);
         });
 
-        btnExportPDF.style.display = "inline-block";
+        // guarda a data atual no botão para usar na geração do PDF
+        btnPdfDia.dataset.date = dateStr;
+        btnPdfDia.style.display = "inline-block";
       }
 
-      // --------- FullCalendar ---------
       const calendar = new FullCalendar.Calendar(calendarEl, {
         initialView: "dayGridMonth",
         locale: "pt-br",
@@ -331,13 +299,12 @@
       });
       calendar.render();
 
-      // --------- Carregar OS do mês ---------
       async function carregarEventosDoMes(ano, mes) {
         loaderMes.style.display = "inline";
         osDoMes = [];
 
         try {
-          // 1) OFFLINE
+          // 1) Tenta OS offline primeiro
           const offline = getOS();
           if (offline && offline.length) {
             offline.forEach(os => {
@@ -346,18 +313,18 @@
 
               osDoMes.push({
                 dataRef,
-                codigo: os.codigo || "-", // nº OS offline
                 cliente: os.localNome || (os.local && os.local.endereco) || "-",
+                numeroOS: os.codigo || "—",
+                tecnico: os.tecnico || "—",
                 descricao: os.descricao || "-",
                 prioridade: os.prioridade || "Baixa",
                 status: os.status || "Aberta",
-                tecnico: os.tecnico || "-",
                 dataAbertura: os.criadoEm || os.dataAbertura || null,
                 dataConclusao: os.concluidaEm || os.dataConclusao || null
               });
             });
           } else {
-            // 2) ONLINE
+            // 2) Se não houver offline, busca na API
             const resp = await api(`/api/OrdensServico?page=1&pageSize=500`);
             const itens = toItems(resp) || [];
 
@@ -365,28 +332,42 @@
               const dataRef = normalizarDataDia(os.dataAbertura);
               if (!dataRef) return;
 
+              let numeroOS = "—";
+              try {
+                if (typeof codigoOSApi === "function") {
+                  numeroOS = codigoOSApi(os);
+                } else if (os.codigo) {
+                  numeroOS = os.codigo;
+                } else {
+                  const anoOS = new Date(os.dataAbertura).getFullYear();
+                  numeroOS = `OS-${anoOS}-${String(os.id || 0).padStart(3,"0")}`;
+                }
+              } catch {
+                numeroOS = os.codigo || "—";
+              }
+
               osDoMes.push({
                 dataRef,
-                codigo: gerarCodigoOS(os.id, os.dataAbertura),
                 cliente: (os.cliente && os.cliente.nome) || os.local || "-",
+                numeroOS,
+                tecnico: (os.tecnico && os.tecnico.nome) || "—",
                 descricao: os.descricao || "-",
                 prioridade: os.prioridade || "Baixa",
                 status: os.status || "Aberta",
-                tecnico: (os.tecnico && os.tecnico.nome) || "-",
                 dataAbertura: os.dataAbertura || null,
                 dataConclusao: os.dataConclusao || null
               });
             });
           }
 
-          // Filtra por mês
+          // Filtra por mês selecionado
           const eventos = osDoMes
             .filter(os => {
               const [y, m] = os.dataRef.split("-").map(Number);
               return y === ano && m === mes;
             })
             .map(os => ({
-              title: `${os.codigo} - ${os.cliente}`.slice(0, 40),
+              title: `${os.numeroOS} - ${os.cliente}`.slice(0, 40),
               start: os.dataRef,
               allDay: true
             }));
@@ -416,145 +397,74 @@
         await carregarEventosDoMes(ano, mes);
       });
 
-      // ---------- Exportar dia em PDF ----------
-      btnExportPDF.addEventListener("click", () => {
-        if (!osSelecionadasDia || !osSelecionadasDia.length) {
-          alert("Não há OS para este dia.");
+      // Exportar o dia em PDF (formato tipo ABNT, com nome do app)
+      btnPdfDia.addEventListener("click", () => {
+        const dateStr = btnPdfDia.dataset.date;
+        if (!dateStr) return;
+
+        const osDoDia = osDoMes.filter(os => os.dataRef === dateStr);
+        if (!osDoDia.length) {
+          alert("Nenhuma OS para exportar neste dia.");
           return;
         }
-        if (!window.jspdf) {
-          alert("Biblioteca de PDF não carregada.");
-          return;
-        }
 
-        const { jsPDF } = window.jspdf;
-        const doc = new jsPDF({
-          orientation: "portrait",
-          unit: "mm",
-          format: "a4"
-        });
+        const dataBonita = new Date(dateStr + "T00:00:00")
+          .toLocaleDateString("pt-BR");
 
-        const marginLeft = 20;
-        const marginTop  = 20;
-        const lineHeight = 7;
-        const pageHeight = doc.internal.pageSize.getHeight();
-        const pageWidth  = doc.internal.pageSize.getWidth();
-        let y = marginTop;
-
-        doc.setFont("Times", "normal");
-        doc.setFontSize(12);
-
-        // Cabeçalho
-        doc.text("AirControl OS - Sistema de Ordens de Serviço", marginLeft, y);
-        y += lineHeight;
-        doc.text("Relatório diário de ordens de serviço", marginLeft, y);
-        y += lineHeight * 2;
-
-        const titulo = tituloDiaEl ? tituloDiaEl.textContent : "OS do dia";
-        doc.setFont("Times", "bold");
-        doc.setFontSize(14);
-        doc.text(
-          titulo,
-          pageWidth / 2,
-          y,
-          { align: "center" }
-        );
-        y += lineHeight * 2;
-
-        doc.setFont("Times", "normal");
-        doc.setFontSize(12);
         const hojeStr = new Date().toLocaleDateString("pt-BR");
-        doc.text(`Data de emissão: ${hojeStr}`, marginLeft, y);
-        y += lineHeight * 2;
 
-        const larguraUtil = pageWidth - marginLeft * 2;
+        let html = `
+          <div style="font-family: Arial, sans-serif; font-size: 12pt; padding: 16px;">
+            <div style="text-align:center; margin-bottom: 16px;">
+              <div style="font-weight:bold;">AirControl OS - Sistema de Ordens de Serviço</div>
+              <div>Relatório diário de ordens de serviço</div>
+            </div>
 
-        osSelecionadasDia.forEach((os, index) => {
-          if (y > pageHeight - 30) {
-            doc.addPage();
-            y = marginTop;
-          }
+            <div style="text-align:center; margin: 12px 0; font-weight:bold;">
+              OS do dia ${dataBonita}
+            </div>
 
-          const dataAberturaStr  = formatarDataHora(os.dataAbertura);
-          const dataConclusaoStr = formatarDataHora(os.dataConclusao);
-          const duracaoStr       = calcularDuracao(os.dataAbertura, os.dataConclusao);
+            <div style="margin-bottom: 20px;">
+              <strong>Data de emissão:</strong> ${hojeStr}
+            </div>
+        `;
 
-          doc.setFont("Times", "bold");
-          doc.text(`${index + 1}. Cliente: ${os.cliente}`, marginLeft, y);
-          y += lineHeight;
-
-          doc.setFont("Times", "normal");
-          doc.text(`Número da OS: ${os.codigo || "-"}`, marginLeft, y);
-          y += lineHeight;
-
-          doc.text(`Técnico responsável: ${os.tecnico}`, marginLeft, y);
-          y += lineHeight;
-
-          doc.text(`Prioridade: ${os.prioridade}`, marginLeft, y);
-          y += lineHeight;
-
-          doc.text(`Status: ${os.status}`, marginLeft, y);
-          y += lineHeight;
-
-          doc.text(`Data de abertura: ${dataAberturaStr}`, marginLeft, y);
-          y += lineHeight;
-
-          doc.text(`Data de conclusão: ${dataConclusaoStr}`, marginLeft, y);
-          y += lineHeight;
-
-          doc.text(`Tempo de serviço (estimado): ${duracaoStr}`, marginLeft, y);
-          y += lineHeight;
-
-          const textoDesc = `Descrição do serviço: ${os.descricao}`;
-          const linhasDesc = doc.splitTextToSize(textoDesc, larguraUtil);
-
-          linhasDesc.forEach(l => {
-            if (y > pageHeight - 30) {
-              doc.addPage();
-              y = marginTop;
-            }
-            doc.text(l, marginLeft, y);
-            y += lineHeight;
-          });
-
-          if (y > pageHeight - 30) {
-            doc.addPage();
-            y = marginTop;
-          }
-          y += lineHeight;
-          doc.text(
-            "Assinatura do técnico: ________________________________",
-            marginLeft,
-            y
-          );
-          y += lineHeight * 1.5;
-          doc.text(
-            "Assinatura do cliente: ________________________________",
-            marginLeft,
-            y
-          );
-          y += lineHeight * 2;
+        osDoDia.forEach((os, idx) => {
+          html += `
+            <div style="margin-bottom: 24px;">
+              <strong>${idx + 1}. Cliente: ${os.cliente || "-"}</strong><br>
+              <strong>Número da OS:</strong> ${os.numeroOS || "—"}<br>
+              <strong>Técnico responsável:</strong> ${os.tecnico || "—"}<br>
+              <strong>Prioridade:</strong> ${os.prioridade || "Baixa"}<br>
+              <strong>Status:</strong> ${os.status || "Aberta"}<br>
+              <strong>Data de abertura:</strong> ${formatarDataHoraBr(os.dataAbertura)}<br>
+              <strong>Data de conclusão:</strong> ${formatarDataHoraBr(os.dataConclusao)}<br>
+              <strong>Tempo de serviço (estimado):</strong> —<br>
+              <strong>Descrição do serviço:</strong> ${os.descricao || "-"}<br><br>
+              <strong>Assinatura do técnico:</strong> ______________________________________
+            </div>
+          `;
         });
 
-        const pageCount = doc.internal.getNumberOfPages();
-        for (let i = 1; i <= pageCount; i++) {
-          doc.setPage(i);
-          doc.setFontSize(10);
-          doc.text(
-            `AirControl OS - Relatório diário   |   Página ${i} de ${pageCount}`,
-            marginLeft,
-            pageHeight - 10
-          );
-        }
+        html += `
+            <div style="margin-top: 16px; font-size:10pt; text-align:right;">
+              AirControl OS - Página 1
+            </div>
+          </div>
+        `;
 
-        const nomeArquivo = titulo
-          .toLowerCase()
-          .replace(/\s+/g, "-")
-          .replace(/[^\w\-]/g, "");
+        const opt = {
+          margin:       10,
+          filename:     `os-do-dia-${dateStr.replace(/-/g,"")}.pdf`,
+          html2canvas:  { scale: 2 },
+          jsPDF:        { unit: "mm", format: "a4", orientation: "portrait" }
+        };
 
-        doc.save(`${nomeArquivo}.pdf`);
+        html2pdf().set(opt).from(html).save();
       });
     });
   </script>
 </body>
 </html>
+
+
