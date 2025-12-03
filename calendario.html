@@ -7,7 +7,7 @@
 
   <link rel="stylesheet" href="css/style.css" />
 
-  <!-- FullCalendar CSS (usa estilo padrão do bundle global) -->
+  <!-- FullCalendar CSS -->
   <link rel="stylesheet"
         href="https://cdn.jsdelivr.net/npm/fullcalendar@6.1.11/index.global.min.css">
 
@@ -72,10 +72,8 @@
     #listaDia {
       margin-top: 8px;
       flex: 1;
-
-      /* rolagem quando tiver muitas OS */
       max-height: 400px;
-      overflow-y: auto;
+      overflow-y: auto; /* rolagem quando tiver muitas OS */
     }
 
     .os-card {
@@ -107,7 +105,8 @@
     .badge-status-Em\ Andamento { background:#fef9c3; color:#92400e; }
     .badge-status-Concluída     { background:#bbf7d0; color:#166534; }
 
-    #btnPdfDia {
+    /* botão PDF */
+    #btnExportPDF {
       margin-top: 12px;
       padding: 8px 16px;
       border-radius: 999px;
@@ -126,7 +125,7 @@
       margin-top: 4px;
     }
 
-    /* deixa os dias "clicáveis" */
+    /* dias clicáveis */
     .fc-daygrid-day-frame {
       cursor: pointer;
     }
@@ -162,38 +161,47 @@
       <div id="calendar"></div>
 
       <aside id="painelDia" class="painel-dia">
-        <h2>OS do dia</h2>
+        <h2 id="tituloDia">OS do dia</h2>
         <small>Selecione um dia no calendário para ver as OS.</small>
         <div id="listaDia"></div>
-        <button id="btnExportPDF" class="btn-export">
-  Baixar relatório do dia
-</button>
-
+        <button id="btnExportPDF">
+          Baixar relatório do dia
+        </button>
       </aside>
     </div>
   </main>
 
   <!-- Scripts das libs -->
   <script src="https://cdn.jsdelivr.net/npm/fullcalendar@6.1.11/index.global.min.js"></script>
-  <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
+  <!-- jsPDF para gerar PDF -->
+  <script
+    src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"
+    crossorigin="anonymous"
+    referrerpolicy="no-referrer">
+  </script>
 
   <script>
     document.addEventListener("DOMContentLoaded", async () => {
       // Se quiser, pode exigir login aqui:
       // requireLogin();
 
-      const calendarEl = document.getElementById("calendar");
-      const mesInput   = document.getElementById("mesRef");
-      const loaderMes  = document.getElementById("loaderMes");
-      const painelDia  = document.getElementById("painelDia");
-      const listaDia   = document.getElementById("listaDia");
-      const btnPdfDia  = document.getElementById("btnPdfDia");
+      const calendarEl   = document.getElementById("calendar");
+      const mesInput     = document.getElementById("mesRef");
+      const loaderMes    = document.getElementById("loaderMes");
+      const painelDia    = document.getElementById("painelDia");
+      const listaDia     = document.getElementById("listaDia");
+      const btnExportPDF = document.getElementById("btnExportPDF");
+      const tituloDiaEl  = document.getElementById("tituloDia");
 
-      // Lista "normalizada" de OS (online ou offline)
-      // Cada item: { dataRef: 'yyyy-mm-dd', cliente, descricao, prioridade, status }
+      // Cada item:
+      // {
+      //   dataRef, codigo, cliente, descricao, prioridade, status,
+      //   tecnico, dataAbertura, dataConclusao
+      // }
       let osDoMes = [];
+      let osSelecionadasDia = [];
 
-      // Normaliza qualquer data para só o dia (sem problema de fuso)
+      // --------- Helpers de data/código ---------
       function normalizarDataDia(valor) {
         if (!valor) return null;
         if (typeof valor === "string" && valor.length >= 10) {
@@ -207,47 +215,105 @@
         }
       }
 
+      function formatarDataHora(valor) {
+        if (!valor) return "-";
+        try {
+          const d = new Date(valor);
+          return d.toLocaleString("pt-BR");
+        } catch {
+          return "-";
+        }
+      }
+
+      function calcularDuracao(ini, fim) {
+        if (!ini || !fim) return "Em aberto";
+        try {
+          const d1 = new Date(ini);
+          const d2 = new Date(fim);
+          const ms = d2.getTime() - d1.getTime();
+          if (ms <= 0) return "—";
+
+          let minutosTotais = Math.round(ms / 60000);
+          const dias = Math.floor(minutosTotais / (60 * 24));
+          minutosTotais -= dias * 60 * 24;
+          const horas = Math.floor(minutosTotais / 60);
+          const minutos = minutosTotais % 60;
+
+          const partes = [];
+          if (dias > 0) partes.push(`${dias} dia${dias > 1 ? "s" : ""}`);
+          if (horas > 0) partes.push(`${horas} h`);
+          if (minutos > 0) partes.push(`${minutos} min`);
+
+          return partes.join(" ") || "—";
+        } catch {
+          return "—";
+        }
+      }
+
+      // Gera código no formato OS-ANO-XXX (igual ao dashboard)
+      function gerarCodigoOS(id, dataAbertura) {
+        try {
+          const ano = dataAbertura
+            ? new Date(dataAbertura).getFullYear()
+            : new Date().getFullYear();
+          const seq = String(id ?? 0).padStart(3, "0");
+          return `OS-${ano}-${seq}`;
+        } catch {
+          const seq = String(id ?? 0).padStart(3, "0");
+          return `OS-${seq}`;
+        }
+      }
+
+      // --------- Painel lateral do dia ---------
       function atualizarPainelDia(dateStr) {
         const dataBonita = new Date(dateStr + "T00:00:00");
-        painelDia.querySelector("h2").textContent =
-          "OS do dia " + dataBonita.toLocaleDateString("pt-BR");
+        const textoTitulo = "OS do dia " + dataBonita.toLocaleDateString("pt-BR");
+
+        if (tituloDiaEl) {
+          tituloDiaEl.textContent = textoTitulo;
+        }
 
         const osDoDia = osDoMes.filter(os => os.dataRef === dateStr);
+        osSelecionadasDia = osDoDia;
 
         listaDia.innerHTML = "";
 
         if (!osDoDia.length) {
           listaDia.innerHTML = "<p class='muted'>Nenhuma OS registrada neste dia.</p>";
-          btnPdfDia.style.display = "none";
+          btnExportPDF.style.display = "none";
           return;
         }
 
         osDoDia.forEach(os => {
-          const prio = os.prioridade || "Baixa";
-          const status = os.status || "Aberta";
+          const prio    = os.prioridade || "Baixa";
+          const status  = os.status || "Aberta";
           const cliente = os.cliente || "-";
-          const desc = os.descricao || "-";
+          const desc    = os.descricao || "-";
+          const tecnico = os.tecnico || "-";
+          const codigo  = os.codigo || "-";
 
           const card = document.createElement("div");
           card.className = "os-card";
           card.innerHTML = `
-            <strong>${cliente}</strong>
+            <strong>OS: ${codigo} – ${cliente}</strong>
             <div style="margin-bottom:4px;">
               <span class="badge badge-prio-${prio}">
                 Prioridade: ${prio}
               </span>
-              <span class="badge badge-status-${status.replace(" ", "\\ ")}">
+              <span class="badge badge-status-${status.replace(" ", "\\ ")}`}>
                 Status: ${status}
               </span>
             </div>
+            <div style="margin-bottom:4px;"><em>Técnico:</em> ${tecnico}</div>
             <div>${desc}</div>
           `;
           listaDia.appendChild(card);
         });
 
-        btnPdfDia.style.display = "inline-block";
+        btnExportPDF.style.display = "inline-block";
       }
 
+      // --------- FullCalendar ---------
       const calendar = new FullCalendar.Calendar(calendarEl, {
         initialView: "dayGridMonth",
         locale: "pt-br",
@@ -263,6 +329,7 @@
       });
       calendar.render();
 
+      // --------- Carregar OS do mês ---------
       async function carregarEventosDoMes(ano, mes) {
         loaderMes.style.display = "inline";
         osDoMes = [];
@@ -277,10 +344,14 @@
 
               osDoMes.push({
                 dataRef,
+                codigo: os.codigo || "-",  // número da OS offline
                 cliente: os.localNome || (os.local && os.local.endereco) || "-",
                 descricao: os.descricao || "-",
                 prioridade: os.prioridade || "Baixa",
-                status: os.status || "Aberta"
+                status: os.status || "Aberta",
+                tecnico: os.tecnico || "-",
+                dataAbertura: os.criadoEm || os.dataAbertura || null,
+                dataConclusao: os.concluidaEm || os.dataConclusao || null
               });
             });
 
@@ -296,10 +367,14 @@
 
               osDoMes.push({
                 dataRef,
+                codigo: gerarCodigoOS(os.id, os.dataAbertura), // número da OS online
                 cliente: (os.cliente && os.cliente.nome) || os.local || "-",
                 descricao: os.descricao || "-",
                 prioridade: os.prioridade || "Baixa",
-                status: os.status || "Aberta"
+                status: os.status || "Aberta",
+                tecnico: (os.tecnico && os.tecnico.nome) || "-",
+                dataAbertura: os.dataAbertura || null,
+                dataConclusao: os.dataConclusao || null
               });
             });
 
@@ -313,7 +388,7 @@
               return y === ano && m === mes;
             })
             .map(os => ({
-              title: `${os.cliente} - ${os.descricao}`.slice(0, 40),
+              title: `${os.codigo} - ${os.cliente}`.slice(0, 40),
               start: os.dataRef,
               allDay: true
             }));
@@ -343,18 +418,149 @@
         await carregarEventosDoMes(ano, mes);
       });
 
-      // Exporta o painel do dia em PDF
-      btnPdfDia.addEventListener("click", () => {
-        const opt = {
-          margin:       10,
-          filename:     "os-do-dia.pdf",
-          html2canvas:  { scale: 2 },
-          jsPDF:        { unit: "mm", format: "a4", orientation: "portrait" }
-        };
-        html2pdf().set(opt).from(painelDia).save();
+      // ---------- Exportar dia em PDF ----------
+      btnExportPDF.addEventListener("click", () => {
+        if (!osSelecionadasDia || !osSelecionadasDia.length) {
+          alert("Não há OS para este dia.");
+          return;
+        }
+
+        const { jsPDF } = window.jspdf;
+        const doc = new jsPDF({
+          orientation: "portrait",
+          unit: "mm",
+          format: "a4"
+        });
+
+        // Margens aproximadas (ABNT)
+        const marginLeft = 20;
+        const marginTop  = 20;
+        const lineHeight = 7;
+        const pageHeight = doc.internal.pageSize.getHeight();
+        const pageWidth  = doc.internal.pageSize.getWidth();
+        let y = marginTop;
+
+        doc.setFont("Times", "normal");
+        doc.setFontSize(12);
+
+        // Cabeçalho
+        doc.text("AirControl OS - Sistema de Ordens de Serviço", marginLeft, y);
+        y += lineHeight;
+        doc.text("Relatório diário de ordens de serviço", marginLeft, y);
+        y += lineHeight * 2;
+
+        // Título centralizado
+        const titulo = tituloDiaEl
+          ? tituloDiaEl.textContent
+          : "OS do dia";
+        doc.setFont("Times", "bold");
+        doc.setFontSize(14);
+        doc.text(
+          titulo,
+          pageWidth / 2,
+          y,
+          { align: "center" }
+        );
+        y += lineHeight * 2;
+
+        // Data de emissão
+        doc.setFont("Times", "normal");
+        doc.setFontSize(12);
+        const hojeStr = new Date().toLocaleDateString("pt-BR");
+        doc.text(`Data de emissão: ${hojeStr}`, marginLeft, y);
+        y += lineHeight * 2;
+
+        const larguraUtil = pageWidth - marginLeft * 2;
+
+        // Corpo – lista de OS
+        osSelecionadasDia.forEach((os, index) => {
+          if (y > pageHeight - 30) {
+            doc.addPage();
+            y = marginTop;
+          }
+
+          const dataAberturaStr  = formatarDataHora(os.dataAbertura);
+          const dataConclusaoStr = formatarDataHora(os.dataConclusao);
+          const duracaoStr       = calcularDuracao(os.dataAbertura, os.dataConclusao);
+
+          doc.setFont("Times", "bold");
+          doc.text(`${index + 1}. Cliente: ${os.cliente}`, marginLeft, y);
+          y += lineHeight;
+
+          doc.setFont("Times", "normal");
+          doc.text(`Número da OS: ${os.codigo || "-"}`, marginLeft, y);
+          y += lineHeight;
+
+          doc.text(`Técnico responsável: ${os.tecnico}`, marginLeft, y);
+          y += lineHeight;
+
+          doc.text(`Prioridade: ${os.prioridade}`, marginLeft, y);
+          y += lineHeight;
+
+          doc.text(`Status: ${os.status}`, marginLeft, y);
+          y += lineHeight;
+
+          doc.text(`Data de abertura: ${dataAberturaStr}`, marginLeft, y);
+          y += lineHeight;
+
+          doc.text(`Data de conclusão: ${dataConclusaoStr}`, marginLeft, y);
+          y += lineHeight;
+
+          doc.text(`Tempo de serviço (estimado): ${duracaoStr}`, marginLeft, y);
+          y += lineHeight;
+
+          const textoDesc = `Descrição do serviço: ${os.descricao}`;
+          const linhasDesc = doc.splitTextToSize(textoDesc, larguraUtil);
+
+          linhasDesc.forEach(l => {
+            if (y > pageHeight - 30) {
+              doc.addPage();
+              y = marginTop;
+            }
+            doc.text(l, marginLeft, y);
+            y += lineHeight;
+          });
+
+          // Linhas de assinatura
+          if (y > pageHeight - 30) {
+            doc.addPage();
+            y = marginTop;
+          }
+          y += lineHeight;
+          doc.text(
+            "Assinatura do técnico: ________________________________",
+            marginLeft,
+            y
+          );
+          y += lineHeight * 1.5;
+          doc.text(
+            "Assinatura do cliente: ________________________________",
+            marginLeft,
+            y
+          );
+          y += lineHeight * 2;
+        });
+
+        // Rodapé com número da página
+        const pageCount = doc.internal.getNumberOfPages();
+        for (let i = 1; i <= pageCount; i++) {
+          doc.setPage(i);
+          doc.setFontSize(10);
+          doc.text(
+            `AirControl OS - Relatório diário   |   Página ${i} de ${pageCount}`,
+            marginLeft,
+            pageHeight - 10
+          );
+        }
+
+        const nomeArquivo = titulo
+          .toLowerCase()
+          .replace(/\s+/g, "-")
+          .replace(/[^\w\-]/g, "");
+
+        doc.save(`${nomeArquivo}.pdf`);
       });
     });
   </script>
 </body>
 </html>
-
