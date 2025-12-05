@@ -305,7 +305,7 @@ if (formOrdem) {
               const data = await res.json();
               if (endEl && data?.display_name) endEl.value = data.display_name;
             }
-          } catch {}
+          } catch { }
         },
         (err) => {
           alert("Não foi possível obter sua localização.");
@@ -350,10 +350,10 @@ if (formOrdem) {
       </td>
     `;
     tr.querySelector(".eq-patrimonio").value = data.patrimonio || "";
-    tr.querySelector(".eq-ambiente").value   = data.ambiente || "";
-    tr.querySelector(".eq-marca").value      = data.marca || "";
-    tr.querySelector(".eq-btus").value       = data.btus || "";
-    tr.querySelector(".eq-modelo").value     = data.modelo || "";
+    tr.querySelector(".eq-ambiente").value = data.ambiente || "";
+    tr.querySelector(".eq-marca").value = data.marca || "";
+    tr.querySelector(".eq-btus").value = data.btus || "";
+    tr.querySelector(".eq-modelo").value = data.modelo || "";
     if (data.tipo) tr.querySelector(".eq-tipo").value = data.tipo;
 
     const selGas = tr.querySelector(".eq-gas");
@@ -400,9 +400,9 @@ if (formOrdem) {
 
   // === Fotos (preview + buffers para IndexedDB) ===
   const beforeInput = document.getElementById("fotosAntes");
-  const afterInput  = document.getElementById("fotosDepois");
+  const afterInput = document.getElementById("fotosDepois");
   const beforePreview = document.getElementById("previewAntes");
-  const afterPreview  = document.getElementById("previewDepois");
+  const afterPreview = document.getElementById("previewDepois");
 
   let fotosAntesBlobs = [];
   let fotosDepoisBlobs = [];
@@ -426,7 +426,7 @@ if (formOrdem) {
     });
   }
   bindPreview(beforeInput, beforePreview, fotosAntesBlobs);
-  bindPreview(afterInput,  afterPreview,  fotosDepoisBlobs);
+  bindPreview(afterInput, afterPreview, fotosDepoisBlobs);
 
   // ===== DATALISTS: Local & Técnico =====
   async function carregarListasNovaOS() {
@@ -437,12 +437,12 @@ if (formOrdem) {
       const locais = toItems(cli);
       const tecnicos = toItems(tec);
 
-      const dlLocal    = document.getElementById("dlLocal");
+      const dlLocal = document.getElementById("dlLocal");
       const dlTecnicos = document.getElementById("dlTecnicos");
       const inLocalTxt = document.getElementById("osLocalTxt");
-      const inTecTxt   = document.getElementById("osTecnicoTxt");
-      const hidLocal   = document.getElementById("osLocal");
-      const hidTec     = document.getElementById("osTecnico");
+      const inTecTxt = document.getElementById("osTecnicoTxt");
+      const hidLocal = document.getElementById("osLocal");
+      const hidTec = document.getElementById("osTecnico");
 
       if (!dlLocal || !dlTecnicos) return;
 
@@ -531,14 +531,14 @@ if (formOrdem) {
   formOrdem.addEventListener("submit", async (e) => {
     e.preventDefault();
 
-    const localId   = parseInt(document.getElementById("osLocal")?.value || "0", 10);
+    const localId = parseInt(document.getElementById("osLocal")?.value || "0", 10);
     const tecnicoId = parseInt(document.getElementById("osTecnico")?.value || "0", 10);
     const localNome = (document.getElementById("osLocalTxt")?.value || "").trim();
     const tecnicoNomeTxt = (document.getElementById("osTecnicoTxt")?.value || "").trim();
 
-    const descricao  = (document.getElementById("descricao")?.value || "").trim();
+    const descricao = (document.getElementById("descricao")?.value || "").trim();
     const prioridade = document.getElementById("prioridade")?.value || "Baixa";
-    const status     = document.getElementById("status")?.value || "Aberta";
+    const status = document.getElementById("status")?.value || "Aberta";
     const observacoes = (document.getElementById("observacoes")?.value || "").trim();
 
     if (!descricao) {
@@ -561,7 +561,7 @@ if (formOrdem) {
         const lat = document.getElementById("lat")?.value || "";
         const lng = document.getElementById("lng")?.value || "";
 
-        const antesIds  = await savePhotosToIDB(fotosAntesBlobs, "antes");
+        const antesIds = await savePhotosToIDB(fotosAntesBlobs, "antes");
         const depoisIds = await savePhotosToIDB(fotosDepoisBlobs, "depois");
 
         const equipamentos = [];
@@ -571,11 +571,11 @@ if (formOrdem) {
 
           equipamentos.push({
             patrimonio: tr.querySelector(".eq-patrimonio")?.value || "",
-            ambiente:   tr.querySelector(".eq-ambiente")?.value   || "",
-            marca:      tr.querySelector(".eq-marca")?.value      || "",
-            btus:       tr.querySelector(".eq-btus")?.value       || "",
-            modelo:     tr.querySelector(".eq-modelo")?.value     || "",
-            tipo:       tr.querySelector(".eq-tipo")?.value       || "Normal",
+            ambiente: tr.querySelector(".eq-ambiente")?.value || "",
+            marca: tr.querySelector(".eq-marca")?.value || "",
+            btus: tr.querySelector(".eq-btus")?.value || "",
+            modelo: tr.querySelector(".eq-modelo")?.value || "",
+            tipo: tr.querySelector(".eq-tipo")?.value || "Normal",
 
             gasTipo: gas,
             gasOutro: gas === "Outro" ? outro : "",
@@ -587,7 +587,7 @@ if (formOrdem) {
         (pecasBody ? Array.from(pecasBody.querySelectorAll("tr")) : []).forEach((tr) => {
           pecas.push({
             item: tr.querySelector(".pc-item")?.value || "",
-            qtd:  tr.querySelector(".pc-qtd")?.value  || ""
+            qtd: tr.querySelector(".pc-qtd")?.value || ""
           });
         });
 
@@ -603,6 +603,7 @@ if (formOrdem) {
           descricao,
           prioridade,
           status,
+          observacoes,             // <- AGORA TAMBÉM SALVA OBSERVAÇÕES OFFLINE
           criadoEm: new Date().toISOString(),
           concluidaEm: /conclu/i.test(status) ? new Date().toISOString() : null,
           local: { endereco, lat, lng },
@@ -706,10 +707,6 @@ const tbody = document.getElementById("tbodyOS");
 const msgVazia = document.getElementById("msgVazia");
 const buscaOS = document.getElementById("buscaOS");
 
-// 🔹 NOVO: filtro de data (campo <input type="date" id="filtroDataOS">)
-const filtroDataOS = document.getElementById("filtroDataOS");
-let dataFiltroOS = null; // formato "YYYY-MM-DD"
-
 async function preencherContadores() {
   if (!elA || !elM || !elC) return;
 
@@ -759,21 +756,10 @@ function fmtData(iso) {
   }
 }
 
-// helper para comparar somente a data (YYYY-MM-DD)
-function dataISO(iso) {
-  try {
-    return iso ? iso.toString().slice(0, 10) : "";
-  } catch {
-    return "";
-  }
-}
-
 async function renderTabela(filtro = "Todas") {
   if (!tbody) return;
 
-  const dataFiltro = dataFiltroOS; // guarda numa const local
-
-  // 1º: se existir OS offline, usa SÓ elas (como antes, mas sempre)
+  // 1º: se existir OS offline, usa SÓ elas
   const listaOffline = getOS();
   if (listaOffline.length) {
     const termoBusca = (buscaOS?.value || "").trim();
@@ -783,12 +769,7 @@ async function renderTabela(filtro = "Todas") {
         (os.status || "").toLowerCase().includes(filtro.toLowerCase());
       const texto = `${os.codigo || ""} ${os.localNome || ""} ${os.local?.endereco || ""}`.toLowerCase();
       const byBusca = termoBusca ? texto.includes(termoBusca.toLowerCase()) : true;
-
-      // 🔹 filtro por data (criadoEm)
-      const osData = dataISO(os.criadoEm);
-      const byData = !dataFiltro || osData === dataFiltro;
-
-      return byStatus && byBusca && byData;
+      return byStatus && byBusca;
     });
 
     tbody.innerHTML = "";
@@ -839,12 +820,7 @@ async function renderTabela(filtro = "Todas") {
       params.set("pageSize", "100");
 
       const resp = await api(`/api/OrdensServico?${params.toString()}`);
-      let itens = toItems(resp);
-
-      // 🔹 filtro de data (dataAbertura) no lado do cliente
-      if (dataFiltro) {
-        itens = itens.filter(os => dataISO(os.dataAbertura) === dataFiltro);
-      }
+      const itens = toItems(resp);
 
       tbody.innerHTML = "";
       if (itens.length === 0) {
@@ -951,17 +927,6 @@ if (buscaOS) {
   });
 }
 
-// 🔹 NOVO: reação ao filtro de data
-if (filtroDataOS) {
-  filtroDataOS.addEventListener("change", () => {
-    dataFiltroOS = filtroDataOS.value || null; // "YYYY-MM-DD" ou null
-    const ativo =
-      document.querySelector(".chip.active")?.getAttribute("data-filter") ||
-      "Todas";
-    renderTabela(ativo);
-  });
-}
-
 (function initDashboard() {
   if (!elA || !elM || !elC || !tbody) return;
   preencherContadores();
@@ -1034,27 +999,27 @@ async function preencherModalComAPI(id) {
     if (el) el.textContent = v || "-";
   };
 
-  setTxt("detLocal",      os.cliente?.nome || os.local || "-");
-  setTxt("detTecnico",    os.tecnico?.nome || "-");
+  setTxt("detLocal", os.cliente?.nome || os.local || "-");
+  setTxt("detTecnico", os.tecnico?.nome || "-");
   setTxt("detPrioridade", os.prioridade || "-");
-  setTxt("detCriadaEm",   fmtData(os.dataAbertura));
-  setTxt("detConcluidaEm","-");
-  setTxt("detDescricao",  os.descricao || "-");
+  setTxt("detCriadaEm", fmtData(os.dataAbertura));
+  setTxt("detConcluidaEm", "-");
+  setTxt("detDescricao", os.descricao || "-");
 
-  setTxt("detTipo",   os.equipamento?.tipo   || "-");
-  setTxt("detBtus",   os.equipamento?.btus   || "-");
-  setTxt("detMarca",  os.equipamento?.marca  || "-");
+  setTxt("detTipo", os.equipamento?.tipo || "-");
+  setTxt("detBtus", os.equipamento?.btus || "-");
+  setTxt("detMarca", os.equipamento?.marca || "-");
   setTxt("detModelo", os.equipamento?.modelo || "-");
-  setTxt("detSerie",  os.equipamento?.serie  || "-");
+  setTxt("detSerie", os.equipamento?.serie || "-");
 
   setTxt("detEndereco", os.endereco || os.cliente?.endereco || "-");
 
   const sel = document.getElementById("detStatus");
   if (sel) {
     sel.innerHTML = `
-      <option value="Aberta" ${os.status==="Aberta"?"selected":""}>Aberta</option>
-      <option value="Em Andamento" ${os.status==="Em Andamento"?"selected":""}>Em Andamento</option>
-      <option value="Concluída" ${os.status==="Concluída"?"selected":""}>Concluída</option>
+      <option value="Aberta" ${os.status === "Aberta" ? "selected" : ""}>Aberta</option>
+      <option value="Em Andamento" ${os.status === "Em Andamento" ? "selected" : ""}>Em Andamento</option>
+      <option value="Concluída" ${os.status === "Concluída" ? "selected" : ""}>Concluída</option>
     `;
   }
 }
@@ -1075,19 +1040,19 @@ window.abrirModal = async function (id) {
         if (el) el.textContent = v || "-";
       };
 
-      setTxt("detLocal",      os.localNome || os.local?.endereco || "-");
-      setTxt("detTecnico",    os.tecnico || "-");
+      setTxt("detLocal", os.localNome || os.local?.endereco || "-");
+      setTxt("detTecnico", os.tecnico || "-");
       setTxt("detPrioridade", os.prioridade);
-      setTxt("detCriadaEm",   fmtData(os.criadoEm));
-      setTxt("detConcluidaEm",fmtData(os.concluidaEm));
-      setTxt("detDescricao",  os.descricao || "-");
+      setTxt("detCriadaEm", fmtData(os.criadoEm));
+      setTxt("detConcluidaEm", fmtData(os.concluidaEm));
+      setTxt("detDescricao", os.descricao || "-");
 
       const eq = (os.equipamento && os.equipamento[0]) || {};
-      setTxt("detTipo",   eq.tipo   || "-");
-      setTxt("detBtus",   eq.btus   || "-");
-      setTxt("detMarca",  eq.marca  || "-");
+      setTxt("detTipo", eq.tipo || "-");
+      setTxt("detBtus", eq.btus || "-");
+      setTxt("detMarca", eq.marca || "-");
       setTxt("detModelo", eq.modelo || "-");
-      setTxt("detSerie",  eq.serie  || "-");
+      setTxt("detSerie", eq.serie || "-");
 
       setTxt("detEndereco", os.local?.endereco || "-");
 
@@ -1127,7 +1092,7 @@ window.abrirModal = async function (id) {
           el.appendChild(img);
         });
       }
-      await renderFotos("detFotosAntes",  os.fotosAntesIds,  os.fotosAntes);
+      await renderFotos("detFotosAntes", os.fotosAntesIds, os.fotosAntes);
       await renderFotos("detFotosDepois", os.fotosDepoisIds, os.fotosDepois);
 
       const mapEl = document.getElementById("detMap");
@@ -1160,6 +1125,125 @@ window.salvarStatusModal = function () {
   const novo = document.getElementById("detStatus").value;
   alterarStatus(modalOSId, novo);
   fecharModal();
+};
+
+/*************************************************
+ * GERAÇÃO DE PDF DA ORDEM DE SERVIÇO (dashboard)
+ *************************************************/
+
+/** Carrega uma OS (online ou offline) pelo id */
+async function carregarOSPorId(id) {
+  let os = null;
+  await tryApi(
+    async () => {
+      os = await api(`/api/OrdensServico/${id}`);
+    },
+    () => {
+      os = getOS().find((o) => o.id === id);
+    }
+  );
+  return os;
+}
+
+/** Gera o PDF da OS atualmente aberta no modal */
+window.gerarPdfOrdem = async function () {
+  if (modalOSId == null) {
+    alert("Abra uma OS e depois clique em Gerar PDF.");
+    return;
+  }
+
+  if (!window.jspdf || !window.jspdf.jsPDF) {
+    alert("Biblioteca jsPDF não encontrada nesta página.");
+    return;
+  }
+
+  const os = await carregarOSPorId(modalOSId);
+  if (!os) {
+    alert("Não foi possível localizar os dados da OS.");
+    return;
+  }
+
+  const { jsPDF } = window.jspdf;
+  const doc = new jsPDF();
+
+  // Campos básicos
+  const codigo = os.codigo || codigoOSApi(os);
+  const dataAbertura = os.dataAbertura || os.criadoEm || new Date().toISOString();
+  const local =
+    os.cliente?.nome ||
+    os.localNome ||
+    os.local?.endereco ||
+    os.local ||
+    "-";
+  const tecnico = os.tecnico?.nome || os.tecnico || "-";
+  const prioridade = os.prioridade || "-";
+  const descricao = os.descricao || "-";
+  const observacoes = os.observacoes || os.observacao || "-";
+
+  // Equipamento principal
+  const eq = Array.isArray(os.equipamento)
+    ? (os.equipamento[0] || {})
+    : (os.equipamento || {});
+  const patrimonio = eq.patrimonio || "-";
+  const marca = eq.marca || "-";
+  const btus = eq.btus || "-";
+  const modelo = eq.modelo || "-";
+  const tipo = eq.tipo || "-";
+
+  let y = 15;
+
+  doc.setFontSize(14);
+  doc.text("FICHA DE MANUTENÇÃO CORRETIVA DE AR CONDICIONADO", 105, y, { align: "center" });
+  y += 8;
+  doc.setFontSize(11);
+  doc.text(`Ordem de Serviço: ${codigo}`, 14, y);
+  doc.text(`Data: ${fmtData(dataAbertura)}`, 120, y);
+  y += 8;
+
+  doc.text(`Local / Unidade: ${local}`, 14, y);
+  y += 6;
+  doc.text(`Técnico: ${tecnico}`, 14, y);
+  y += 6;
+  doc.text(`Prioridade: ${prioridade}`, 14, y);
+  y += 10;
+
+  doc.setFontSize(12);
+  doc.text("Dados do Equipamento", 14, y);
+  y += 6;
+  doc.setFontSize(11);
+  doc.text(`Patrimônio: ${patrimonio}`, 14, y);
+  y += 6;
+  doc.text(`Marca: ${marca}`, 14, y);
+  y += 6;
+  doc.text(`Modelo: ${modelo}`, 14, y);
+  y += 6;
+  doc.text(`BTU/h: ${btus}`, 14, y);
+  y += 6;
+  doc.text(`Tipo (Normal / Inverter): ${tipo}`, 14, y);
+  y += 10;
+
+  doc.setFontSize(12);
+  doc.text("Descrição do Serviço", 14, y);
+  y += 6;
+  doc.setFontSize(11);
+  const descricaoLines = doc.splitTextToSize(descricao || "-", 180);
+  doc.text(descricaoLines, 14, y);
+  y += descricaoLines.length * 6 + 4;
+
+  doc.setFontSize(12);
+  doc.text("Observações", 14, y);
+  y += 6;
+  doc.setFontSize(11);
+  const obsLines = doc.splitTextToSize(observacoes || "-", 180);
+  doc.text(obsLines, 14, y);
+  y += obsLines.length * 6 + 10;
+
+  doc.setFontSize(11);
+  doc.text("Responsável pela manutenção: ________________________________", 14, y);
+  y += 8;
+  doc.text("Assinatura da unidade / cliente: ______________________________", 14, y);
+
+  doc.save(`OS_${codigo}.pdf`);
 };
 
 /*************************************************
@@ -1259,3 +1343,4 @@ if (formUsuario) {
     }
   });
 }
+
