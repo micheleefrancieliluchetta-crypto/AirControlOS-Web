@@ -14,9 +14,15 @@
   <link rel="apple-touch-icon" href="icons/icon-192.png" />
   <meta name="mobile-web-app-capable" content="yes">
   <meta name="apple-mobile-web-app-status-bar-style" content="default" />
+
+  <!-- jsPDF para gerar o PDF do histórico PMOC -->
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
 </head>
 
 <body>
+
+  <!-- LOGO oculto para ser usado nos PDFs (OS, calendário, PMOC) -->
+  <img id="logoPdf" src="icons/empresa/icon-192.png" alt="Logo AirControl OS" style="display:none;" />
 
   <!-- TOPO COM VOLTAR -->
   <header class="topbar">
@@ -61,8 +67,16 @@
     <!-- LISTA -->
     <section id="listaPmoc"></section>
 
+    <!-- AÇÕES (PDF) -->
+    <section id="pmocActions" style="margin-top: 16px; display:none; text-align: right;">
+      <button type="button" id="btnPmocPdf" class="btn-primary">
+        Baixar relatório em PDF
+      </button>
+    </section>
+
   </main>
 
+  <!-- JS principal -->
   <script src="js/script.js"></script>
 
   <!-- PERMISSÃO ADMIN -->
@@ -89,6 +103,12 @@
     const btnBuscar = document.getElementById("btnBuscar");
     const listaPmoc = document.getElementById("listaPmoc");
     const msgInfo = document.getElementById("msgInfo");
+    const pmocActions = document.getElementById("pmocActions");
+    const btnPmocPdf = document.getElementById("btnPmocPdf");
+
+    // guardam o último resultado carregado para gerar o PDF
+    let ultimoPmocAparelhoId = null;
+    let ultimoPmocRegistros = [];
 
     btnBuscar.addEventListener("click", () => {
       const id = parseInt(inputAparelho.value, 10);
@@ -111,6 +131,9 @@
     async function carregarHistorico(id) {
       listaPmoc.innerHTML = "";
       msgInfo.textContent = `Carregando histórico do aparelho ${id}...`;
+      if (pmocActions) pmocActions.style.display = "none";
+      ultimoPmocAparelhoId = null;
+      ultimoPmocRegistros = [];
 
       try {
         const resp = await fetch(`${API_PMOC_BASE}/por-aparelho/${id}`);
@@ -124,6 +147,9 @@
         }
 
         msgInfo.textContent = `${registros.length} registro(s) encontrado(s).`;
+        ultimoPmocAparelhoId = id;
+        ultimoPmocRegistros = registros;
+        if (pmocActions) pmocActions.style.display = "block";
 
         registros.forEach(reg => {
           const card = document.createElement("div");
@@ -146,9 +172,23 @@
 
       } catch (e) {
         msgInfo.textContent = "Erro ao buscar dados.";
+        if (pmocActions) pmocActions.style.display = "none";
         alert("Erro ao comunicar com o servidor.");
       }
     }
+
+    // botão para gerar o PDF usando a função global do script.js
+    btnPmocPdf.addEventListener("click", () => {
+      if (!ultimoPmocAparelhoId || !ultimoPmocRegistros.length) {
+        alert("Nenhum histórico carregado.");
+        return;
+      }
+      if (typeof window.gerarPdfPmocHistorico === "function") {
+        window.gerarPdfPmocHistorico(ultimoPmocAparelhoId, ultimoPmocRegistros);
+      } else {
+        alert("Função de geração de PDF não encontrada.");
+      }
+    });
   </script>
 
   <!-- SW -->
@@ -161,6 +201,3 @@
 
 </body>
 </html>
-
-
-
