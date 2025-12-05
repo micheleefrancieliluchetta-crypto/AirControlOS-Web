@@ -1131,6 +1131,18 @@ window.salvarStatusModal = function () {
  * GERAÇÃO DE PDF DA ORDEM DE SERVIÇO
  *************************************************/
 
+/** Helper: adiciona o logo se existir um <img id="logoPdf"> na página */
+function addLogoIfAvailable(doc) {
+  const logoEl = document.getElementById("logoPdf");
+  if (!logoEl) return;
+  try {
+    // posições básicas; ajuste se quiser maior/menor
+    doc.addImage(logoEl, "PNG", 14, 8, 18, 18);
+  } catch (e) {
+    console.warn("Não foi possível adicionar o logo ao PDF:", e);
+  }
+}
+
 /** Carrega uma OS (online ou offline) pelo id */
 async function carregarOSPorId(id) {
   let os = null;
@@ -1165,6 +1177,7 @@ window.gerarPdfOrdem = async function () {
 
   const { jsPDF } = window.jspdf;
   const doc = new jsPDF();
+  addLogoIfAvailable(doc);
 
   const codigo = os.codigo || codigoOSApi(os);
   const dataAbertura = os.dataAbertura || os.criadoEm || new Date().toISOString();
@@ -1242,6 +1255,114 @@ window.gerarPdfOrdem = async function () {
   doc.text("Responsável pela unidade de saúde: ___________________________", 14, y);
 
   doc.save(`OS_${codigo}.pdf`);
+};
+
+/*************************************************
+ * GERAÇÃO DE PDF – HISTÓRICO PMOC (ficha preventiva)
+ *************************************************/
+
+/**
+ * Gera um PDF com o histórico de checklist PMOC de um aparelho
+ * chamado pela página pmoc-historico.html
+ */
+window.gerarPdfPmocHistorico = function (aparelhoId, registros) {
+  if (!window.jspdf || !window.jspdf.jsPDF) {
+    alert("Biblioteca jsPDF não encontrada nesta página.");
+    return;
+  }
+
+  if (!registros || !registros.length) {
+    alert("Nenhum registro para gerar o relatório.");
+    return;
+  }
+
+  const { jsPDF } = window.jspdf;
+  const doc = new jsPDF();
+  addLogoIfAvailable(doc);
+
+  let y = 20;
+
+  doc.setFontSize(14);
+  doc.text("FICHA DE MANUTENÇÃO PREVENTIVA - PMOC", 105, y, { align: "center" });
+  y += 8;
+  doc.setFontSize(11);
+
+  const emissao = new Date();
+  doc.text(`Aparelho ID (AparelhoHdvId): ${aparelhoId}`, 14, y);
+  doc.text(`Data de emissão: ${emissao.toLocaleDateString("pt-BR")}`, 120, y);
+  y += 10;
+
+  registros.forEach((reg, idx) => {
+    if (y > 260) {
+      doc.addPage();
+      addLogoIfAvailable(doc);
+      y = 20;
+    }
+
+    const dataStr = reg.data ? new Date(reg.data).toLocaleString("pt-BR") : "-";
+
+    doc.setFontSize(12);
+    doc.text(`Registro #${reg.id}`, 14, y);
+    y += 6;
+
+    doc.setFontSize(11);
+    doc.text(`Data: ${dataStr}`, 14, y);
+    y += 5;
+    doc.text(`Técnico: ${reg.tecnicoEmail || "-"}`, 14, y);
+    y += 5;
+    doc.text(`Aparelho ID: ${reg.aparelhoHdvId}`, 14, y);
+    y += 5;
+
+    doc.text("Itens:", 14, y);
+    y += 5;
+
+    let itensTexto = "";
+    if (reg.itensJson) {
+      try {
+        const parsed = JSON.parse(reg.itensJson);
+        if (Array.isArray(parsed)) {
+          itensTexto = parsed
+            .map((it, i) => {
+              if (typeof it === "string") return `${i + 1}. ${it}`;
+              if (typeof it === "object") {
+                const desc = it.descricao || it.item || JSON.stringify(it);
+                return `${i + 1}. ${desc}`;
+              }
+              return `${i + 1}. ${String(it)}`;
+            })
+            .join("\n");
+        } else if (typeof parsed === "object") {
+          itensTexto = Object.entries(parsed)
+            .map(([k, v]) => `${k}: ${v}`)
+            .join("\n");
+        } else {
+          itensTexto = String(parsed);
+        }
+      } catch {
+        itensTexto = reg.itensJson;
+      }
+    } else {
+      itensTexto = "-";
+    }
+
+    const linhasItens = doc.splitTextToSize(itensTexto || "-", 180);
+    doc.text(linhasItens, 14, y);
+    y += linhasItens.length * 5 + 6;
+  });
+
+  if (y > 240) {
+    doc.addPage();
+    addLogoIfAvailable(doc);
+    y = 20;
+  }
+
+  doc.setFontSize(11);
+  y += 10;
+  doc.text("Responsável técnico (assinatura): ____________________________", 14, y);
+  y += 8;
+  doc.text("Responsável da unidade / cliente: ____________________________", 14, y);
+
+  doc.save(`pmoc-aparelho-${aparelhoId}.pdf`);
 };
 
 /*************************************************
