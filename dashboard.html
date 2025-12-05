@@ -15,6 +15,9 @@
   />
   <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
 
+  <!-- jsPDF para geração de PDF -->
+  <script src="https://cdn.jsdelivr.net/npm/jspdf@2.5.1/dist/jspdf.umd.min.js"></script>
+
   <!-- BRAND TOGGLE -->
   <link id="app-manifest" rel="manifest" href="manifest.webmanifest" />
   <link id="apple-icon" rel="apple-touch-icon" href="icons/empresa/icon-192.png" />
@@ -41,18 +44,18 @@
 
   <!-- Sidebar -->
   <nav class="sidebar">
-  <ul>
-    <li><a href="dashboard.html" class="active">🏠 Dashboard</a></li>
-    <li><a href="ordem-servico.html">📝 Ordem de Serviço</a></li>
-    <li><a href="calendario.html">📝 Calendário</a></li>
-    <li><a href="local.html">📍 Locais</a></li>
-    <li><a href="tecnico.html">🧑‍🔧 Técnicos</a></li>
-    <li><a href="usuarios.html">👤 Usuários</a></li>
-    <li><a href="aparelhos-por-unidade.html">🏥 Aparelhos por unidade</a></li>
-    <li><a href="pmoc.html">✅ Checklist PMOC</a></li>
-    <li><a href="pmoc-historico.html">📂 Histórico PMOC</a></li>
-  </ul>
-</nav>
+    <ul>
+      <li><a href="dashboard.html" class="active">🏠 Dashboard</a></li>
+      <li><a href="ordem-servico.html">📝 Ordem de Serviço</a></li>
+      <li><a href="calendario.html">📝 Calendário</a></li>
+      <li><a href="local.html">📍 Locais</a></li>
+      <li><a href="tecnico.html">🧑‍🔧 Técnicos</a></li>
+      <li><a href="usuarios.html">👤 Usuários</a></li>
+      <li><a href="aparelhos-por-unidade.html">🏥 Aparelhos por unidade</a></li>
+      <li><a href="pmoc.html">✅ Checklist PMOC</a></li>
+      <li><a href="pmoc-historico.html">📂 Histórico PMOC</a></li>
+    </ul>
+  </nav>
 
   <!-- Conteúdo -->
   <main class="main-content">
@@ -174,6 +177,13 @@
             <div id="detFotosDepois" class="preview-grid"></div>
           </div>
         </div>
+
+        <!-- Botão para gerar PDF da OS -->
+        <div style="margin-top:18px; text-align:right;">
+          <button type="button" class="btn-primary" onclick="gerarPdfOrdem()">
+            📄 Gerar PDF da OS
+          </button>
+        </div>
       </div>
     </div>
   </div>
@@ -195,7 +205,7 @@
     }
 
     // Esconder menus que só o Admin pode ver
-    if (cargoAtual !== "Admin") {
+    if (cargoAtual.toLowerCase() !== "admin") {
       const linkTecnico = document.querySelector('a[href="tecnico.html"]');
       if (linkTecnico) linkTecnico.style.display = "none";
 
