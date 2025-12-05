@@ -706,6 +706,10 @@ const tbody = document.getElementById("tbodyOS");
 const msgVazia = document.getElementById("msgVazia");
 const buscaOS = document.getElementById("buscaOS");
 
+// 🔹 NOVO: filtro de data (campo <input type="date" id="filtroDataOS">)
+const filtroDataOS = document.getElementById("filtroDataOS");
+let dataFiltroOS = null; // formato "YYYY-MM-DD"
+
 async function preencherContadores() {
   if (!elA || !elM || !elC) return;
 
@@ -755,8 +759,19 @@ function fmtData(iso) {
   }
 }
 
+// helper para comparar somente a data (YYYY-MM-DD)
+function dataISO(iso) {
+  try {
+    return iso ? iso.toString().slice(0, 10) : "";
+  } catch {
+    return "";
+  }
+}
+
 async function renderTabela(filtro = "Todas") {
   if (!tbody) return;
+
+  const dataFiltro = dataFiltroOS; // guarda numa const local
 
   // 1º: se existir OS offline, usa SÓ elas (como antes, mas sempre)
   const listaOffline = getOS();
@@ -768,7 +783,12 @@ async function renderTabela(filtro = "Todas") {
         (os.status || "").toLowerCase().includes(filtro.toLowerCase());
       const texto = `${os.codigo || ""} ${os.localNome || ""} ${os.local?.endereco || ""}`.toLowerCase();
       const byBusca = termoBusca ? texto.includes(termoBusca.toLowerCase()) : true;
-      return byStatus && byBusca;
+
+      // 🔹 filtro por data (criadoEm)
+      const osData = dataISO(os.criadoEm);
+      const byData = !dataFiltro || osData === dataFiltro;
+
+      return byStatus && byBusca && byData;
     });
 
     tbody.innerHTML = "";
@@ -819,7 +839,12 @@ async function renderTabela(filtro = "Todas") {
       params.set("pageSize", "100");
 
       const resp = await api(`/api/OrdensServico?${params.toString()}`);
-      const itens = toItems(resp);
+      let itens = toItems(resp);
+
+      // 🔹 filtro de data (dataAbertura) no lado do cliente
+      if (dataFiltro) {
+        itens = itens.filter(os => dataISO(os.dataAbertura) === dataFiltro);
+      }
 
       tbody.innerHTML = "";
       if (itens.length === 0) {
@@ -923,6 +948,17 @@ if (buscaOS) {
         "Todas";
       renderTabela(ativo);
     }
+  });
+}
+
+// 🔹 NOVO: reação ao filtro de data
+if (filtroDataOS) {
+  filtroDataOS.addEventListener("change", () => {
+    dataFiltroOS = filtroDataOS.value || null; // "YYYY-MM-DD" ou null
+    const ativo =
+      document.querySelector(".chip.active")?.getAttribute("data-filter") ||
+      "Todas";
+    renderTabela(ativo);
   });
 }
 
