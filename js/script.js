@@ -350,10 +350,10 @@ if (formOrdem) {
       </td>
     `;
     tr.querySelector(".eq-patrimonio").value = data.patrimonio || "";
-    tr.querySelector(".eq-ambiente").value = data.ambiente || "";
-    tr.querySelector(".eq-marca").value = data.marca || "";
-    tr.querySelector(".eq-btus").value = data.btus || "";
-    tr.querySelector(".eq-modelo").value = data.modelo || "";
+    tr.querySelector(".eq-ambiente").value   = data.ambiente || "";
+    tr.querySelector(".eq-marca").value      = data.marca || "";
+    tr.querySelector(".eq-btus").value       = data.btus || "";
+    tr.querySelector(".eq-modelo").value     = data.modelo || "";
     if (data.tipo) tr.querySelector(".eq-tipo").value = data.tipo;
 
     const selGas = tr.querySelector(".eq-gas");
@@ -400,9 +400,9 @@ if (formOrdem) {
 
   // === Fotos (preview + buffers para IndexedDB) ===
   const beforeInput = document.getElementById("fotosAntes");
-  const afterInput = document.getElementById("fotosDepois");
+  const afterInput  = document.getElementById("fotosDepois");
   const beforePreview = document.getElementById("previewAntes");
-  const afterPreview = document.getElementById("previewDepois");
+  const afterPreview  = document.getElementById("previewDepois");
 
   let fotosAntesBlobs = [];
   let fotosDepoisBlobs = [];
@@ -426,7 +426,7 @@ if (formOrdem) {
     });
   }
   bindPreview(beforeInput, beforePreview, fotosAntesBlobs);
-  bindPreview(afterInput, afterPreview, fotosDepoisBlobs);
+  bindPreview(afterInput,  afterPreview,  fotosDepoisBlobs);
 
   // ===== DATALISTS: Local & Técnico =====
   async function carregarListasNovaOS() {
@@ -437,12 +437,12 @@ if (formOrdem) {
       const locais = toItems(cli);
       const tecnicos = toItems(tec);
 
-      const dlLocal = document.getElementById("dlLocal");
+      const dlLocal    = document.getElementById("dlLocal");
       const dlTecnicos = document.getElementById("dlTecnicos");
       const inLocalTxt = document.getElementById("osLocalTxt");
-      const inTecTxt = document.getElementById("osTecnicoTxt");
-      const hidLocal = document.getElementById("osLocal");
-      const hidTec = document.getElementById("osTecnico");
+      const inTecTxt   = document.getElementById("osTecnicoTxt");
+      const hidLocal   = document.getElementById("osLocal");
+      const hidTec     = document.getElementById("osTecnico");
 
       if (!dlLocal || !dlTecnicos) return;
 
@@ -531,14 +531,14 @@ if (formOrdem) {
   formOrdem.addEventListener("submit", async (e) => {
     e.preventDefault();
 
-    const localId = parseInt(document.getElementById("osLocal")?.value || "0", 10);
+    const localId   = parseInt(document.getElementById("osLocal")?.value || "0", 10);
     const tecnicoId = parseInt(document.getElementById("osTecnico")?.value || "0", 10);
     const localNome = (document.getElementById("osLocalTxt")?.value || "").trim();
     const tecnicoNomeTxt = (document.getElementById("osTecnicoTxt")?.value || "").trim();
 
-    const descricao = (document.getElementById("descricao")?.value || "").trim();
+    const descricao  = (document.getElementById("descricao")?.value || "").trim();
     const prioridade = document.getElementById("prioridade")?.value || "Baixa";
-    const status = document.getElementById("status")?.value || "Aberta";
+    const status     = document.getElementById("status")?.value || "Aberta";
     const observacoes = (document.getElementById("observacoes")?.value || "").trim();
 
     if (!descricao) {
@@ -561,7 +561,7 @@ if (formOrdem) {
         const lat = document.getElementById("lat")?.value || "";
         const lng = document.getElementById("lng")?.value || "";
 
-        const antesIds = await savePhotosToIDB(fotosAntesBlobs, "antes");
+        const antesIds  = await savePhotosToIDB(fotosAntesBlobs, "antes");
         const depoisIds = await savePhotosToIDB(fotosDepoisBlobs, "depois");
 
         const equipamentos = [];
@@ -571,11 +571,11 @@ if (formOrdem) {
 
           equipamentos.push({
             patrimonio: tr.querySelector(".eq-patrimonio")?.value || "",
-            ambiente: tr.querySelector(".eq-ambiente")?.value || "",
-            marca: tr.querySelector(".eq-marca")?.value || "",
-            btus: tr.querySelector(".eq-btus")?.value || "",
-            modelo: tr.querySelector(".eq-modelo")?.value || "",
-            tipo: tr.querySelector(".eq-tipo")?.value || "Normal",
+            ambiente:   tr.querySelector(".eq-ambiente")?.value   || "",
+            marca:      tr.querySelector(".eq-marca")?.value      || "",
+            btus:       tr.querySelector(".eq-btus")?.value       || "",
+            modelo:     tr.querySelector(".eq-modelo")?.value     || "",
+            tipo:       tr.querySelector(".eq-tipo")?.value       || "Normal",
 
             gasTipo: gas,
             gasOutro: gas === "Outro" ? outro : "",
@@ -587,7 +587,7 @@ if (formOrdem) {
         (pecasBody ? Array.from(pecasBody.querySelectorAll("tr")) : []).forEach((tr) => {
           pecas.push({
             item: tr.querySelector(".pc-item")?.value || "",
-            qtd: tr.querySelector(".pc-qtd")?.value || ""
+            qtd:  tr.querySelector(".pc-qtd")?.value  || ""
           });
         });
 
@@ -603,7 +603,7 @@ if (formOrdem) {
           descricao,
           prioridade,
           status,
-          observacoes,             // <- AGORA TAMBÉM SALVA OBSERVAÇÕES OFFLINE
+          observacoes,
           criadoEm: new Date().toISOString(),
           concluidaEm: /conclu/i.test(status) ? new Date().toISOString() : null,
           local: { endereco, lat, lng },
@@ -999,27 +999,27 @@ async function preencherModalComAPI(id) {
     if (el) el.textContent = v || "-";
   };
 
-  setTxt("detLocal", os.cliente?.nome || os.local || "-");
-  setTxt("detTecnico", os.tecnico?.nome || "-");
+  setTxt("detLocal",      os.cliente?.nome || os.local || "-");
+  setTxt("detTecnico",    os.tecnico?.nome || "-");
   setTxt("detPrioridade", os.prioridade || "-");
-  setTxt("detCriadaEm", fmtData(os.dataAbertura));
-  setTxt("detConcluidaEm", "-");
-  setTxt("detDescricao", os.descricao || "-");
+  setTxt("detCriadaEm",   fmtData(os.dataAbertura));
+  setTxt("detConcluidaEm","-");
+  setTxt("detDescricao",  os.descricao || "-");
 
-  setTxt("detTipo", os.equipamento?.tipo || "-");
-  setTxt("detBtus", os.equipamento?.btus || "-");
-  setTxt("detMarca", os.equipamento?.marca || "-");
+  setTxt("detTipo",   os.equipamento?.tipo   || "-");
+  setTxt("detBtus",   os.equipamento?.btus   || "-");
+  setTxt("detMarca",  os.equipamento?.marca  || "-");
   setTxt("detModelo", os.equipamento?.modelo || "-");
-  setTxt("detSerie", os.equipamento?.serie || "-");
+  setTxt("detSerie",  os.equipamento?.serie  || "-");
 
   setTxt("detEndereco", os.endereco || os.cliente?.endereco || "-");
 
   const sel = document.getElementById("detStatus");
   if (sel) {
     sel.innerHTML = `
-      <option value="Aberta" ${os.status === "Aberta" ? "selected" : ""}>Aberta</option>
-      <option value="Em Andamento" ${os.status === "Em Andamento" ? "selected" : ""}>Em Andamento</option>
-      <option value="Concluída" ${os.status === "Concluída" ? "selected" : ""}>Concluída</option>
+      <option value="Aberta" ${os.status==="Aberta"?"selected":""}>Aberta</option>
+      <option value="Em Andamento" ${os.status==="Em Andamento"?"selected":""}>Em Andamento</option>
+      <option value="Concluída" ${os.status==="Concluída"?"selected":""}>Concluída</option>
     `;
   }
 }
@@ -1040,19 +1040,19 @@ window.abrirModal = async function (id) {
         if (el) el.textContent = v || "-";
       };
 
-      setTxt("detLocal", os.localNome || os.local?.endereco || "-");
-      setTxt("detTecnico", os.tecnico || "-");
+      setTxt("detLocal",      os.localNome || os.local?.endereco || "-");
+      setTxt("detTecnico",    os.tecnico || "-");
       setTxt("detPrioridade", os.prioridade);
-      setTxt("detCriadaEm", fmtData(os.criadoEm));
-      setTxt("detConcluidaEm", fmtData(os.concluidaEm));
-      setTxt("detDescricao", os.descricao || "-");
+      setTxt("detCriadaEm",   fmtData(os.criadoEm));
+      setTxt("detConcluidaEm",fmtData(os.concluidaEm));
+      setTxt("detDescricao",  os.descricao || "-");
 
       const eq = (os.equipamento && os.equipamento[0]) || {};
-      setTxt("detTipo", eq.tipo || "-");
-      setTxt("detBtus", eq.btus || "-");
-      setTxt("detMarca", eq.marca || "-");
+      setTxt("detTipo",   eq.tipo   || "-");
+      setTxt("detBtus",   eq.btus   || "-");
+      setTxt("detMarca",  eq.marca  || "-");
       setTxt("detModelo", eq.modelo || "-");
-      setTxt("detSerie", eq.serie || "-");
+      setTxt("detSerie",  eq.serie  || "-");
 
       setTxt("detEndereco", os.local?.endereco || "-");
 
@@ -1092,7 +1092,7 @@ window.abrirModal = async function (id) {
           el.appendChild(img);
         });
       }
-      await renderFotos("detFotosAntes", os.fotosAntesIds, os.fotosAntes);
+      await renderFotos("detFotosAntes",  os.fotosAntesIds,  os.fotosAntes);
       await renderFotos("detFotosDepois", os.fotosDepoisIds, os.fotosDepois);
 
       const mapEl = document.getElementById("detMap");
@@ -1128,7 +1128,7 @@ window.salvarStatusModal = function () {
 };
 
 /*************************************************
- * GERAÇÃO DE PDF DA ORDEM DE SERVIÇO (dashboard)
+ * GERAÇÃO DE PDF DA ORDEM DE SERVIÇO
  *************************************************/
 
 /** Carrega uma OS (online ou offline) pelo id */
@@ -1166,7 +1166,6 @@ window.gerarPdfOrdem = async function () {
   const { jsPDF } = window.jspdf;
   const doc = new jsPDF();
 
-  // Campos básicos
   const codigo = os.codigo || codigoOSApi(os);
   const dataAbertura = os.dataAbertura || os.criadoEm || new Date().toISOString();
   const local =
@@ -1180,7 +1179,6 @@ window.gerarPdfOrdem = async function () {
   const descricao = os.descricao || "-";
   const observacoes = os.observacoes || os.observacao || "-";
 
-  // Equipamento principal
   const eq = Array.isArray(os.equipamento)
     ? (os.equipamento[0] || {})
     : (os.equipamento || {});
@@ -1193,7 +1191,7 @@ window.gerarPdfOrdem = async function () {
   let y = 15;
 
   doc.setFontSize(14);
-  doc.text("FICHA DE MANUTENÇÃO CORRETIVA DE AR CONDICIONADO", 105, y, { align: "center" });
+  doc.text("FICHA DE MANUTENÇÃO CORRETIVA DE APARELHOS DE AR CONDICIONADO", 105, y, { align: "center" });
   y += 8;
   doc.setFontSize(11);
   doc.text(`Ordem de Serviço: ${codigo}`, 14, y);
@@ -1241,10 +1239,88 @@ window.gerarPdfOrdem = async function () {
   doc.setFontSize(11);
   doc.text("Responsável pela manutenção: ________________________________", 14, y);
   y += 8;
-  doc.text("Assinatura da unidade / cliente: ______________________________", 14, y);
+  doc.text("Responsável pela unidade de saúde: ___________________________", 14, y);
 
   doc.save(`OS_${codigo}.pdf`);
 };
+
+/*************************************************
+ * CALENDÁRIO (calendario.html)
+ *************************************************/
+const calendarContainer = document.getElementById("calendar");
+
+if (calendarContainer && typeof FullCalendar !== "undefined") {
+  async function carregarEventosCalendario() {
+    const offline = getOS();
+    if (offline.length) {
+      return offline.map((os) => {
+        const data = os.criadoEm || os.dataAbertura || os.data;
+        if (!data) return null;
+        return {
+          id: String(os.id),
+          title: `${os.codigo || ""} - ${(os.localNome || os.local?.endereco || "").slice(0, 40)}`,
+          start: data,
+          allDay: true
+        };
+      }).filter(Boolean);
+    }
+
+    const eventos = [];
+    await tryApi(
+      async () => {
+        const resp = await api(`/api/OrdensServico?page=1&pageSize=1000`);
+        const itens = toItems(resp);
+        itens.forEach((os) => {
+          const data = os.dataAbertura || os.data;
+          if (!data) return;
+          eventos.push({
+            id: String(os.id),
+            title: `${codigoOSApi(os)} - ${(os.cliente?.nome || os.local || "").slice(0, 40)}`,
+            start: data,
+            allDay: true
+          });
+        });
+      },
+      () => {}
+    );
+    return eventos;
+  }
+
+  document.addEventListener("DOMContentLoaded", async () => {
+    const eventos = await carregarEventosCalendario();
+
+    const calendar = new FullCalendar.Calendar(calendarContainer, {
+      initialView: "dayGridMonth",
+      locale: "pt-br",
+      height: "auto",
+      events: eventos,
+      dateClick(info) {
+        const dataEscolhida = info.dateStr; // yyyy-mm-dd
+        const lista = eventos.filter((e) =>
+          (e.start || "").toString().slice(0, 10) === dataEscolhida
+        );
+
+        if (!lista.length) {
+          alert(`Nenhuma OS para o dia ${new Date(dataEscolhida).toLocaleDateString("pt-BR")}.`);
+          return;
+        }
+
+        const texto = lista
+          .map((e) => `• ${e.title}`)
+          .join("\n");
+        alert(`OS do dia ${new Date(dataEscolhida).toLocaleDateString("pt-BR")}:\n\n${texto}`);
+      },
+      eventClick(info) {
+        const id = parseInt(info.event.id, 10);
+        if (!isNaN(id) && typeof window.abrirModal === "function") {
+          window.abrirModal(id);
+        }
+      }
+    });
+
+    calendar.render();
+  });
+}
 
 /*************************************************
  * USUÁRIOS (usuarios.html) – SOMENTE ADMIN
@@ -1343,4 +1419,3 @@ if (formUsuario) {
     }
   });
 }
-
