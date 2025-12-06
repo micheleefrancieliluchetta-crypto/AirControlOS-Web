@@ -1128,20 +1128,71 @@ window.salvarStatusModal = function () {
 };
 
 /*************************************************
- * GERAÇÃO DE PDF DA ORDEM DE SERVIÇO
+ * HELPERS PARA PDFs (logos + cabeçalho padrão)
  *************************************************/
 
-/** Helper: adiciona o logo se existir um <img id="logoPdf"> na página */
-function addLogoIfAvailable(doc) {
-  const logoEl = document.getElementById("logoPdf");
-  if (!logoEl) return;
-  try {
-    // posições básicas; ajuste se quiser maior/menor
-    doc.addImage(logoEl, "PNG", 14, 8, 18, 18);
-  } catch (e) {
-    console.warn("Não foi possível adicionar o logo ao PDF:", e);
-  }
+// Ajuste os caminhos dos logos se necessário
+const LOGO_EMPRESA_PATH   = "imagem/logo-empresa.png";
+const LOGO_PREFEITURA_PATH = "imagem/logo-prefeitura.png";
+
+async function loadImageAsDataURL(path) {
+  const res = await fetch(path);
+  if (!res.ok) throw new Error(`Falha ao carregar imagem: ${path}`);
+  const blob = await res.blob();
+  return new Promise((resolve) => {
+    const reader = new FileReader();
+    reader.onloadend = () => resolve(reader.result);
+    reader.readAsDataURL(blob);
+  });
 }
+
+/**
+ * Adiciona o cabeçalho padrão (logos + título + data de emissão)
+ * Retorna o Y inicial para começar o conteúdo do PDF.
+ */
+async function addPdfHeader(doc, subtituloLinha2) {
+  let logoEmpresaDataUrl = null;
+  let logoPrefeituraDataUrl = null;
+
+  try {
+    logoEmpresaDataUrl = await loadImageAsDataURL(LOGO_EMPRESA_PATH);
+  } catch (e) {
+    console.warn("Não foi possível carregar logo da empresa:", e.message);
+  }
+  try {
+    logoPrefeituraDataUrl = await loadImageAsDataURL(LOGO_PREFEITURA_PATH);
+  } catch (e) {
+    console.warn("Não foi possível carregar logo da prefeitura:", e.message);
+  }
+
+  // Logos (tamanho aproximado, ajuste se quiser)
+  if (logoEmpresaDataUrl) {
+    doc.addImage(logoEmpresaDataUrl, "PNG", 14, 8, 28, 16);
+  }
+  if (logoPrefeituraDataUrl) {
+    doc.addImage(logoPrefeituraDataUrl, "PNG", 170, 8, 28, 16);
+  }
+
+  const emissao = new Date().toLocaleDateString("pt-BR");
+
+  doc.setFontSize(13);
+  doc.text("AirControl OS - Sistema de Ordens de Serviço", 105, 20, { align: "center" });
+
+  if (subtituloLinha2) {
+    doc.setFontSize(12);
+    doc.text(subtituloLinha2, 105, 27, { align: "center" });
+  }
+
+  doc.setFontSize(11);
+  doc.text(`Data de emissão: ${emissao}`, 195, 20, { align: "right" });
+
+  // Y inicial para o corpo do documento
+  return 36;
+}
+
+/*************************************************
+ * GERAÇÃO DE PDF DA ORDEM DE SERVIÇO
+ *************************************************/
 
 /** Carrega uma OS (online ou offline) pelo id */
 async function carregarOSPorId(id) {
@@ -1177,7 +1228,12 @@ window.gerarPdfOrdem = async function () {
 
   const { jsPDF } = window.jspdf;
   const doc = new jsPDF();
-  addLogoIfAvailable(doc);
+
+  // Cabeçalho padrão com logos
+  let y = await addPdfHeader(
+    doc,
+    "Ficha de manutenção corretiva de aparelhos de ar condicionado"
+  );
 
   const codigo = os.codigo || codigoOSApi(os);
   const dataAbertura = os.dataAbertura || os.criadoEm || new Date().toISOString();
@@ -1201,19 +1257,14 @@ window.gerarPdfOrdem = async function () {
   const modelo = eq.modelo || "-";
   const tipo = eq.tipo || "-";
 
-  let y = 15;
-
-  doc.setFontSize(14);
-  doc.text("FICHA DE MANUTENÇÃO CORRETIVA DE APARELHOS DE AR CONDICIONADO", 105, y, { align: "center" });
-  y += 8;
   doc.setFontSize(11);
   doc.text(`Ordem de Serviço: ${codigo}`, 14, y);
-  doc.text(`Data: ${fmtData(dataAbertura)}`, 120, y);
+  doc.text(`Data da abertura: ${fmtData(dataAbertura)}`, 120, y);
   y += 8;
 
   doc.text(`Local / Unidade: ${local}`, 14, y);
   y += 6;
-  doc.text(`Técnico: ${tecnico}`, 14, y);
+  doc.text(`Técnico responsável: ${tecnico}`, 14, y);
   y += 6;
   doc.text(`Prioridade: ${prioridade}`, 14, y);
   y += 10;
@@ -1258,115 +1309,93 @@ window.gerarPdfOrdem = async function () {
 };
 
 /*************************************************
- * GERAÇÃO DE PDF – HISTÓRICO PMOC (ficha preventiva)
+ * GERAÇÃO DE PDF DO PMOC (histórico PMOC)
  *************************************************/
 
-/**
- * Gera um PDF com o histórico de checklist PMOC de um aparelho
- * chamado pela página pmoc-historico.html
- */
-window.gerarPdfPmocHistorico = function (aparelhoId, registros) {
+window.gerarPdfPmoc = async function (registroId) {
   if (!window.jspdf || !window.jspdf.jsPDF) {
     alert("Biblioteca jsPDF não encontrada nesta página.");
     return;
   }
 
-  if (!registros || !registros.length) {
-    alert("Nenhum registro para gerar o relatório.");
-    return;
-  }
+  try {
+    const resp = await fetch(`${API_BASE}/api/PmocRegistros/${registroId}`);
+    if (!resp.ok) throw new Error(`HTTP ${resp.status}`);
+    const reg = await resp.json();
 
-  const { jsPDF } = window.jspdf;
-  const doc = new jsPDF();
-  addLogoIfAvailable(doc);
+    const { jsPDF } = window.jspdf;
+    const doc = new jsPDF();
 
-  let y = 20;
+    // Cabeçalho padrão com logos
+    let y = await addPdfHeader(
+      doc,
+      "Ficha de manutenção preventiva (PMOC)"
+    );
 
-  doc.setFontSize(14);
-  doc.text("FICHA DE MANUTENÇÃO PREVENTIVA - PMOC", 105, y, { align: "center" });
-  y += 8;
-  doc.setFontSize(11);
-
-  const emissao = new Date();
-  doc.text(`Aparelho ID (AparelhoHdvId): ${aparelhoId}`, 14, y);
-  doc.text(`Data de emissão: ${emissao.toLocaleDateString("pt-BR")}`, 120, y);
-  y += 10;
-
-  registros.forEach((reg, idx) => {
-    if (y > 260) {
-      doc.addPage();
-      addLogoIfAvailable(doc);
-      y = 20;
-    }
-
-    const dataStr = reg.data ? new Date(reg.data).toLocaleString("pt-BR") : "-";
-
-    doc.setFontSize(12);
-    doc.text(`Registro #${reg.id}`, 14, y);
-    y += 6;
+    const dataStr = reg.data
+      ? new Date(reg.data).toLocaleString("pt-BR")
+      : "-";
 
     doc.setFontSize(11);
-    doc.text(`Data: ${dataStr}`, 14, y);
-    y += 5;
-    doc.text(`Técnico: ${reg.tecnicoEmail || "-"}`, 14, y);
-    y += 5;
-    doc.text(`Aparelho ID: ${reg.aparelhoHdvId}`, 14, y);
-    y += 5;
+    doc.text(`Registro PMOC nº: ${reg.id}`, 14, y); y += 6;
+    doc.text(`Data da execução: ${dataStr}`, 14, y); y += 6;
+    doc.text(`Técnico responsável: ${reg.tecnicoEmail || "-"}`, 14, y); y += 6;
+    doc.text(`Aparelho ID: ${reg.aparelhoHdvId || "-"}`, 14, y); y += 10;
 
-    doc.text("Itens:", 14, y);
-    y += 5;
+    doc.setFontSize(12);
+    doc.text("Itens verificados", 14, y);
+    y += 6;
+    doc.setFontSize(11);
 
-    let itensTexto = "";
-    if (reg.itensJson) {
-      try {
-        const parsed = JSON.parse(reg.itensJson);
-        if (Array.isArray(parsed)) {
-          itensTexto = parsed
-            .map((it, i) => {
-              if (typeof it === "string") return `${i + 1}. ${it}`;
-              if (typeof it === "object") {
-                const desc = it.descricao || it.item || JSON.stringify(it);
-                return `${i + 1}. ${desc}`;
-              }
-              return `${i + 1}. ${String(it)}`;
-            })
-            .join("\n");
-        } else if (typeof parsed === "object") {
-          itensTexto = Object.entries(parsed)
-            .map(([k, v]) => `${k}: ${v}`)
-            .join("\n");
-        } else {
-          itensTexto = String(parsed);
-        }
-      } catch {
-        itensTexto = reg.itensJson;
+    let itensTexto = reg.itensJson || "";
+    try {
+      const parsed = JSON.parse(reg.itensJson);
+      if (Array.isArray(parsed)) {
+        itensTexto = parsed
+          .map((item, idx) => {
+            if (typeof item === "string") return `${idx + 1}. ${item}`;
+            if (item && typeof item === "object") {
+              const label = item.nome || item.item || `Item ${idx + 1}`;
+              const status = (item.ok ?? item.status ?? "").toString();
+              return `${idx + 1}. ${label} - ${status}`;
+            }
+            return `${idx + 1}. ${String(item)}`;
+          })
+          .join("\n");
+      } else if (parsed && typeof parsed === "object") {
+        let i = 1;
+        itensTexto = Object.entries(parsed)
+          .map(([chave, val]) => {
+            const status = val === true || val === "true" ? "OK" : String(val);
+            const linha = `${i}. ${chave}: ${status}`;
+            i += 1;
+            return linha;
+          })
+          .join("\n");
       }
-    } else {
-      itensTexto = "-";
+    } catch {
+      // se não for JSON, deixa como está
     }
 
     const linhasItens = doc.splitTextToSize(itensTexto || "-", 180);
     doc.text(linhasItens, 14, y);
-    y += linhasItens.length * 5 + 6;
-  });
+    y += linhasItens.length * 6 + 10;
 
-  if (y > 240) {
-    doc.addPage();
-    addLogoIfAvailable(doc);
-    y = 20;
+    doc.setFontSize(11);
+    doc.text("Responsável pela manutenção: ________________________________", 14, y); y += 8;
+    doc.text("Responsável pela unidade de saúde: ___________________________", 14, y);
+
+    doc.save(`PMOC_registro_${reg.id}.pdf`);
+  } catch (err) {
+    console.error(err);
+    alert("Erro ao gerar PDF do PMOC.");
   }
-
-  doc.setFontSize(11);
-  y += 10;
-  doc.text("Responsável técnico (assinatura): ____________________________", 14, y);
-  y += 8;
-  doc.text("Responsável da unidade / cliente: ____________________________", 14, y);
-
-  doc.save(`pmoc-aparelho-${aparelhoId}.pdf`);
 };
 
 /*************************************************
  * CALENDÁRIO (calendario.html)
+ * (aqui você já tem o relatório diário; se quiser,
+ *  pode reutilizar addPdfHeader para colocar os logos)
  *************************************************/
 const calendarContainer = document.getElementById("calendar");
 
