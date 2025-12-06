@@ -10,8 +10,8 @@
 
   <!-- CSS do FullCalendar (CDN nova) -->
   <link
-     rel="stylesheet"
-     href="https://cdn.jsdelivr.net/npm/fullcalendar@6.1.15/index.global.min.css"
+    rel="stylesheet"
+    href="https://cdn.jsdelivr.net/npm/fullcalendar@6.1.15/index.global.min.css"
   />
 
   <!-- JS do FullCalendar (CDN nova) -->
@@ -44,8 +44,8 @@
       border-radius: 14px;
       padding: 10px;
       box-shadow: 0 10px 25px rgba(15,23,42,.08);
-      max-height: 520px;          /* altura máxima da caixa */
-      overflow-y: auto;           /* rolagem interna */
+      max-height: 520px;        /* altura máxima da caixa */
+      overflow-y: auto;         /* rolagem interna */
     }
 
     /* deixa o calendário visualmente um pouco menor */
@@ -77,7 +77,7 @@
       padding: 14px 16px;
       box-shadow: 0 10px 25px rgba(15,23,42,.08);
       min-height: 260px;
-      max-height: 520px;          /* painel também com rolagem própria */
+      max-height: 520px;        /* painel também com rolagem própria */
       display: flex;
       flex-direction: column;
       overflow-y: auto;
@@ -218,8 +218,7 @@
     </div>
   </main>
 
-  <!-- Scripts das libs -->
-  <script src="https://cdn.jsdelivr.net/npm/fullcalendar@6.1.11/index.global.min.js"></script>
+  <!-- Somente html2pdf aqui embaixo -->
   <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
 
   <script>
@@ -402,7 +401,7 @@
         await carregarEventosDoMes(ano, mes);
       });
 
-      // --------- PDF (estilo ABNT) ----------
+      // --------- PDF (estilo ABNT, com logos) ----------
       btnPDF.addEventListener("click", () => {
         if (!dataSelecionada) return;
 
@@ -415,6 +414,13 @@
         const container = document.createElement("div");
         container.innerHTML = `
           <div style="font-family:'Times New Roman',serif; font-size:12pt; line-height:1.5;">
+
+            <!-- LINHA COM OS LOGOS -->
+            <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:12pt;">
+              <img src="imagem/logo-maxi.png" style="height:60px;" alt="Logo Maxi Serviços">
+              <img src="imagem/logo-prefeitura-sv.png" style="height:60px;" alt="Logo Prefeitura de São Vicente">
+            </div>
+
             <h1 style="text-align:center; font-size:14pt; margin:0 0 4pt;">
               AirControl OS - Sistema de Ordens de Serviço
             </h1>
@@ -464,4 +470,3 @@
   </script>
 </body>
 </html>
-
