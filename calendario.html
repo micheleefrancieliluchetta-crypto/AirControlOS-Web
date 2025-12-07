@@ -14,6 +14,9 @@
     href="https://cdn.jsdelivr.net/npm/fullcalendar@6.1.15/index.global.min.css"
   />
 
+  <!-- JS do FullCalendar -->
+  <script src="https://cdn.jsdelivr.net/npm/fullcalendar@6.1.15/index.global.min.js"></script>
+
   <style>
     /* garante que esta página possa rolar normalmente */
     body.page-calendario {
@@ -40,7 +43,7 @@
       background: #fff;
       border-radius: 14px;
       padding: 10px;
-      box-shadow: 0 10px 25px rgba(15,23,42,.08);
+      box-shadow: 0 10px 25px rgba(15, 23, 42, .08);
       max-height: 520px;          /* altura máxima da caixa */
       overflow-y: auto;           /* rolagem interna */
     }
@@ -72,7 +75,7 @@
       background: #fff;
       border-radius: 14px;
       padding: 14px 16px;
-      box-shadow: 0 10px 25px rgba(15,23,42,.08);
+      box-shadow: 0 10px 25px rgba(15, 23, 42, .08);
       min-height: 260px;
       max-height: 520px;          /* painel também com rolagem própria */
       display: flex;
@@ -215,8 +218,7 @@
     </div>
   </main>
 
-  <!-- Scripts das libs -->
-  <script src="https://cdn.jsdelivr.net/npm/fullcalendar@6.1.11/index.global.min.js"></script>
+  <!-- html2pdf -->
   <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
 
   <script>
@@ -399,7 +401,7 @@
         await carregarEventosDoMes(ano, mes);
       });
 
-      // --------- PDF (estilo ABNT + LOGOS) ----------
+      // --------- PDF (estilo com LOGOS) ----------
       btnPDF.addEventListener("click", () => {
         if (!dataSelecionada) return;
 
@@ -412,13 +414,14 @@
         const container = document.createElement("div");
         container.innerHTML = `
           <div style="font-family:'Times New Roman',serif; font-size:12pt; line-height:1.5;">
-
             <!-- LINHA DE LOGOS -->
-            <div style="display:flex; justify-content:space-between; align-items:center; margin:0 0 20pt;">
-              <img src="img/logo-prefeitura-sv.png"
-                   style="height:70px; object-fit:contain;" alt="Prefeitura de São Vicente">
-              <img src="img/logo-maxi.png"
-                   style="height:70px; object-fit:contain;" alt="Maxi Serviços">
+            <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:16pt;">
+              <img src="imagem/prefeitura de sao vicente.png"
+                   style="height:70px; object-fit:contain;"
+                   alt="Prefeitura de São Vicente" />
+              <img src="imagem/Maxi.png"
+                   style="height:70px; object-fit:contain;"
+                   alt="Maxi Serviços" />
             </div>
 
             <h1 style="text-align:center; font-size:14pt; margin:0 0 4pt;">
@@ -458,9 +461,9 @@
         `;
 
         const opt = {
-          margin:       [20, 15, 20, 15],  // margem superior maior para não “cortar” o topo
+          margin:       [20, 15, 20, 15],
           filename:     `os-do-dia-${dataSelecionada.replace(/-/g,"")}.pdf`,
-          html2canvas:  { scale: 2 },
+          html2canvas:  { scale: 2, useCORS: true },
           jsPDF:        { unit: "mm", format: "a4", orientation: "portrait" }
         };
 
@@ -470,5 +473,7 @@
   </script>
 </body>
 </html>
+
+
 
 
