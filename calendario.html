@@ -43,7 +43,7 @@
       background: #fff;
       border-radius: 14px;
       padding: 10px;
-      box-shadow: 0 10px 25px rgba(15, 23, 42, .08);
+      box-shadow: 0 10px 25px rgba(15,23,42,.08);
       max-height: 520px;          /* altura máxima da caixa */
       overflow-y: auto;           /* rolagem interna */
     }
@@ -75,7 +75,7 @@
       background: #fff;
       border-radius: 14px;
       padding: 14px 16px;
-      box-shadow: 0 10px 25px rgba(15, 23, 42, .08);
+      box-shadow: 0 10px 25px rgba(15,23,42,.08);
       min-height: 260px;
       max-height: 520px;          /* painel também com rolagem própria */
       display: flex;
@@ -401,7 +401,7 @@
         await carregarEventosDoMes(ano, mes);
       });
 
-      // --------- PDF (estilo com LOGOS) ----------
+      // --------- PDF (estilo ABNT + LOGOS) ----------
       btnPDF.addEventListener("click", () => {
         if (!dataSelecionada) return;
 
@@ -415,7 +415,7 @@
         container.innerHTML = `
           <div style="font-family:'Times New Roman',serif; font-size:12pt; line-height:1.5;">
             <!-- LINHA DE LOGOS -->
-            <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:16pt;">
+            <div style="display:flex; justify-content:space-between; align-items:center; margin:0 0 24pt;">
               <img src="imagem/prefeitura de sao vicente.png"
                    style="height:70px; object-fit:contain;"
                    alt="Prefeitura de São Vicente" />
@@ -461,9 +461,10 @@
         `;
 
         const opt = {
-          margin:       [20, 15, 20, 15],
+          // top, left, bottom, right – deixei todas em 20mm para não cortar nada
+          margin:       [20, 20, 20, 20],
           filename:     `os-do-dia-${dataSelecionada.replace(/-/g,"")}.pdf`,
-          html2canvas:  { scale: 2, useCORS: true },
+          html2canvas:  { scale: 2 },
           jsPDF:        { unit: "mm", format: "a4", orientation: "portrait" }
         };
 
@@ -473,7 +474,3 @@
   </script>
 </body>
 </html>
-
-
-
-
