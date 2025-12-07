@@ -17,7 +17,6 @@
 </head>
 
 <body>
-
   <!-- TOPO COM VOLTAR -->
   <header class="topbar">
     <button onclick="window.location.href='dashboard.html'" class="btn-voltar">←</button>
@@ -60,13 +59,9 @@
 
     <!-- LISTA -->
     <section id="listaPmoc"></section>
-
   </main>
 
-  <!-- jsPDF (para geração de PDF do PMOC) -->
-  <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
-
-  <!-- JS principal -->
+  <!-- SCRIPT PRINCIPAL -->
   <script src="js/script.js"></script>
 
   <!-- PERMISSÃO ADMIN -->
@@ -78,7 +73,7 @@
       if (!cargo) {
         alert("Faça login para continuar.");
         window.location.href = "index.html";
-      } else if (cargo !== "Admin") {
+      } else if (cargo.toLowerCase() !== "admin") {
         alert("Somente administradores podem acessar esta página.");
         window.location.href = "dashboard.html";
       }
@@ -87,8 +82,7 @@
 
   <!-- LÓGICA DE HISTÓRICO PMOC -->
   <script>
-    // Usa a mesma base da API definida no script.js
-    const API_PMOC_BASE = `${API_BASE}/api/PmocRegistros`;
+    const API_PMOC_BASE = "https://aircontrolos-api.onrender.com/api/PmocRegistros";
 
     const inputAparelho = document.getElementById("aparelhoIdInput");
     const btnBuscar = document.getElementById("btnBuscar");
@@ -104,7 +98,6 @@
       carregarHistorico(id);
     });
 
-    // Carrega automaticamente se vier ?aparelhoId=...
     (function init() {
       const params = new URLSearchParams(window.location.search);
       const id = params.get("aparelhoId");
@@ -135,9 +128,7 @@
           const card = document.createElement("div");
           card.className = "card-os";
 
-          const data = reg.data
-            ? new Date(reg.data).toLocaleString("pt-BR")
-            : "-";
+          const data = new Date(reg.data).toLocaleString("pt-BR");
 
           card.innerHTML = `
             <h3>Registro #${reg.id}</h3>
@@ -147,19 +138,12 @@
             <hr>
             <h4>Itens</h4>
             <pre>${reg.itensJson}</pre>
-            <button type="button"
-                    class="tecnico-btn"
-                    style="margin-top: 8px;"
-                    onclick="gerarPdfPmoc(${reg.id})">
-              Baixar ficha em PDF
-            </button>
           `;
 
           listaPmoc.appendChild(card);
         });
 
       } catch (e) {
-        console.error(e);
         msgInfo.textContent = "Erro ao buscar dados.";
         alert("Erro ao comunicar com o servidor.");
       }
@@ -173,6 +157,5 @@
         .catch(console.error);
     }
   </script>
-
 </body>
 </html>
