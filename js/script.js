@@ -1128,69 +1128,6 @@ window.salvarStatusModal = function () {
 };
 
 /*************************************************
- * HELPERS PARA PDFs (logos + cabeçalho padrão)
- *************************************************/
-
-// Ajuste os caminhos dos logos se necessário
-const LOGO_EMPRESA_PATH   = "imagem/logo-empresa.png";
-const LOGO_PREFEITURA_PATH = "imagem/logo-prefeitura.png";
-
-async function loadImageAsDataURL(path) {
-  const res = await fetch(path);
-  if (!res.ok) throw new Error(`Falha ao carregar imagem: ${path}`);
-  const blob = await res.blob();
-  return new Promise((resolve) => {
-    const reader = new FileReader();
-    reader.onloadend = () => resolve(reader.result);
-    reader.readAsDataURL(blob);
-  });
-}
-
-/**
- * Adiciona o cabeçalho padrão (logos + título + data de emissão)
- * Retorna o Y inicial para começar o conteúdo do PDF.
- */
-async function addPdfHeader(doc, subtituloLinha2) {
-  let logoEmpresaDataUrl = null;
-  let logoPrefeituraDataUrl = null;
-
-  try {
-    logoEmpresaDataUrl = await loadImageAsDataURL(LOGO_EMPRESA_PATH);
-  } catch (e) {
-    console.warn("Não foi possível carregar logo da empresa:", e.message);
-  }
-  try {
-    logoPrefeituraDataUrl = await loadImageAsDataURL(LOGO_PREFEITURA_PATH);
-  } catch (e) {
-    console.warn("Não foi possível carregar logo da prefeitura:", e.message);
-  }
-
-  // Logos (tamanho aproximado, ajuste se quiser)
-  if (logoEmpresaDataUrl) {
-    doc.addImage(logoEmpresaDataUrl, "PNG", 14, 8, 28, 16);
-  }
-  if (logoPrefeituraDataUrl) {
-    doc.addImage(logoPrefeituraDataUrl, "PNG", 170, 8, 28, 16);
-  }
-
-  const emissao = new Date().toLocaleDateString("pt-BR");
-
-  doc.setFontSize(13);
-  doc.text("AirControl OS - Sistema de Ordens de Serviço", 105, 20, { align: "center" });
-
-  if (subtituloLinha2) {
-    doc.setFontSize(12);
-    doc.text(subtituloLinha2, 105, 27, { align: "center" });
-  }
-
-  doc.setFontSize(11);
-  doc.text(`Data de emissão: ${emissao}`, 195, 20, { align: "right" });
-
-  // Y inicial para o corpo do documento
-  return 36;
-}
-
-/*************************************************
  * GERAÇÃO DE PDF DA ORDEM DE SERVIÇO
  *************************************************/
 
@@ -1229,12 +1166,6 @@ window.gerarPdfOrdem = async function () {
   const { jsPDF } = window.jspdf;
   const doc = new jsPDF();
 
-  // Cabeçalho padrão com logos
-  let y = await addPdfHeader(
-    doc,
-    "Ficha de manutenção corretiva de aparelhos de ar condicionado"
-  );
-
   const codigo = os.codigo || codigoOSApi(os);
   const dataAbertura = os.dataAbertura || os.criadoEm || new Date().toISOString();
   const local =
@@ -1257,14 +1188,19 @@ window.gerarPdfOrdem = async function () {
   const modelo = eq.modelo || "-";
   const tipo = eq.tipo || "-";
 
+  let y = 15;
+
+  doc.setFontSize(14);
+  doc.text("FICHA DE MANUTENÇÃO CORRETIVA DE APARELHOS DE AR CONDICIONADO", 105, y, { align: "center" });
+  y += 8;
   doc.setFontSize(11);
   doc.text(`Ordem de Serviço: ${codigo}`, 14, y);
-  doc.text(`Data da abertura: ${fmtData(dataAbertura)}`, 120, y);
+  doc.text(`Data: ${fmtData(dataAbertura)}`, 120, y);
   y += 8;
 
   doc.text(`Local / Unidade: ${local}`, 14, y);
   y += 6;
-  doc.text(`Técnico responsável: ${tecnico}`, 14, y);
+  doc.text(`Técnico: ${tecnico}`, 14, y);
   y += 6;
   doc.text(`Prioridade: ${prioridade}`, 14, y);
   y += 10;
@@ -1307,265 +1243,3 @@ window.gerarPdfOrdem = async function () {
 
   doc.save(`OS_${codigo}.pdf`);
 };
-
-/*************************************************
- * GERAÇÃO DE PDF DO PMOC (histórico PMOC)
- *************************************************/
-
-window.gerarPdfPmoc = async function (registroId) {
-  if (!window.jspdf || !window.jspdf.jsPDF) {
-    alert("Biblioteca jsPDF não encontrada nesta página.");
-    return;
-  }
-
-  try {
-    const resp = await fetch(`${API_BASE}/api/PmocRegistros/${registroId}`);
-    if (!resp.ok) throw new Error(`HTTP ${resp.status}`);
-    const reg = await resp.json();
-
-    const { jsPDF } = window.jspdf;
-    const doc = new jsPDF();
-
-    // Cabeçalho padrão com logos
-    let y = await addPdfHeader(
-      doc,
-      "Ficha de manutenção preventiva (PMOC)"
-    );
-
-    const dataStr = reg.data
-      ? new Date(reg.data).toLocaleString("pt-BR")
-      : "-";
-
-    doc.setFontSize(11);
-    doc.text(`Registro PMOC nº: ${reg.id}`, 14, y); y += 6;
-    doc.text(`Data da execução: ${dataStr}`, 14, y); y += 6;
-    doc.text(`Técnico responsável: ${reg.tecnicoEmail || "-"}`, 14, y); y += 6;
-    doc.text(`Aparelho ID: ${reg.aparelhoHdvId || "-"}`, 14, y); y += 10;
-
-    doc.setFontSize(12);
-    doc.text("Itens verificados", 14, y);
-    y += 6;
-    doc.setFontSize(11);
-
-    let itensTexto = reg.itensJson || "";
-    try {
-      const parsed = JSON.parse(reg.itensJson);
-      if (Array.isArray(parsed)) {
-        itensTexto = parsed
-          .map((item, idx) => {
-            if (typeof item === "string") return `${idx + 1}. ${item}`;
-            if (item && typeof item === "object") {
-              const label = item.nome || item.item || `Item ${idx + 1}`;
-              const status = (item.ok ?? item.status ?? "").toString();
-              return `${idx + 1}. ${label} - ${status}`;
-            }
-            return `${idx + 1}. ${String(item)}`;
-          })
-          .join("\n");
-      } else if (parsed && typeof parsed === "object") {
-        let i = 1;
-        itensTexto = Object.entries(parsed)
-          .map(([chave, val]) => {
-            const status = val === true || val === "true" ? "OK" : String(val);
-            const linha = `${i}. ${chave}: ${status}`;
-            i += 1;
-            return linha;
-          })
-          .join("\n");
-      }
-    } catch {
-      // se não for JSON, deixa como está
-    }
-
-    const linhasItens = doc.splitTextToSize(itensTexto || "-", 180);
-    doc.text(linhasItens, 14, y);
-    y += linhasItens.length * 6 + 10;
-
-    doc.setFontSize(11);
-    doc.text("Responsável pela manutenção: ________________________________", 14, y); y += 8;
-    doc.text("Responsável pela unidade de saúde: ___________________________", 14, y);
-
-    doc.save(`PMOC_registro_${reg.id}.pdf`);
-  } catch (err) {
-    console.error(err);
-    alert("Erro ao gerar PDF do PMOC.");
-  }
-};
-
-/*************************************************
- * CALENDÁRIO (calendario.html)
- * (aqui você já tem o relatório diário; se quiser,
- *  pode reutilizar addPdfHeader para colocar os logos)
- *************************************************/
-const calendarContainer = document.getElementById("calendar");
-
-if (calendarContainer && typeof FullCalendar !== "undefined") {
-  async function carregarEventosCalendario() {
-    const offline = getOS();
-    if (offline.length) {
-      return offline.map((os) => {
-        const data = os.criadoEm || os.dataAbertura || os.data;
-        if (!data) return null;
-        return {
-          id: String(os.id),
-          title: `${os.codigo || ""} - ${(os.localNome || os.local?.endereco || "").slice(0, 40)}`,
-          start: data,
-          allDay: true
-        };
-      }).filter(Boolean);
-    }
-
-    const eventos = [];
-    await tryApi(
-      async () => {
-        const resp = await api(`/api/OrdensServico?page=1&pageSize=1000`);
-        const itens = toItems(resp);
-        itens.forEach((os) => {
-          const data = os.dataAbertura || os.data;
-          if (!data) return;
-          eventos.push({
-            id: String(os.id),
-            title: `${codigoOSApi(os)} - ${(os.cliente?.nome || os.local || "").slice(0, 40)}`,
-            start: data,
-            allDay: true
-          });
-        });
-      },
-      () => {}
-    );
-    return eventos;
-  }
-
-  document.addEventListener("DOMContentLoaded", async () => {
-    const eventos = await carregarEventosCalendario();
-
-    const calendar = new FullCalendar.Calendar(calendarContainer, {
-      initialView: "dayGridMonth",
-      locale: "pt-br",
-      height: "auto",
-      events: eventos,
-      dateClick(info) {
-        const dataEscolhida = info.dateStr; // yyyy-mm-dd
-        const lista = eventos.filter((e) =>
-          (e.start || "").toString().slice(0, 10) === dataEscolhida
-        );
-
-        if (!lista.length) {
-          alert(`Nenhuma OS para o dia ${new Date(dataEscolhida).toLocaleDateString("pt-BR")}.`);
-          return;
-        }
-
-        const texto = lista
-          .map((e) => `• ${e.title}`)
-          .join("\n");
-        alert(`OS do dia ${new Date(dataEscolhida).toLocaleDateString("pt-BR")}:\n\n${texto}`);
-      },
-      eventClick(info) {
-        const id = parseInt(info.event.id, 10);
-        if (!isNaN(id) && typeof window.abrirModal === "function") {
-          window.abrirModal(id);
-        }
-      }
-    });
-
-    calendar.render();
-  });
-}
-
-/*************************************************
- * USUÁRIOS (usuarios.html) – SOMENTE ADMIN
- *************************************************/
-const formUsuario = document.getElementById("formUsuario");
-
-/** Lê o usuário salvo no storage */
-function getStoredUser() {
-  try {
-    const raw =
-      sessionStorage.getItem("air_user") ||
-      localStorage.getItem("air_user");
-    return raw ? JSON.parse(raw) : null;
-  } catch {
-    return null;
-  }
-}
-
-/** Descobre o cargo atual (sempre em minúsculo) */
-function getCargoAtual() {
-  const u = getStoredUser();
-
-  // 1º tenta pegar do objeto salvo (air_user)
-  if (u?.cargo) {
-    return String(u.cargo || "").toLowerCase();
-  }
-
-  // 2º tenta pegar do session/localStorage
-  const c =
-    sessionStorage.getItem("cargo") ||
-    localStorage.getItem("userRole") ||
-    "";
-
-  return String(c || "").toLowerCase();
-}
-
-/** Garante que só admin acesse a página de usuários */
-function ensureAdmin() {
-  const cargo = getCargoAtual(); // já vem em minúsculo
-  console.log("ensureAdmin() cargo atual =", cargo);
-
-  if (!cargo) {
-    alert("Faça login novamente.");
-    window.location.href = "index.html";
-    return;
-  }
-
-  if (cargo !== "admin") {
-    alert("Somente administradores podem gerenciar usuários.");
-    window.location.href = "dashboard.html";
-  }
-}
-
-if (formUsuario) {
-  // Bloqueio de rota
-  ensureAdmin();
-
-  const selCargoU = document.getElementById("uCargo");
-  if (selCargoU && Array.isArray(CARGOS)) {
-    selCargoU.innerHTML = CARGOS
-      .map((c) => `<option value="${c}">${c}</option>`)
-      .join("");
-    if (!selCargoU.value) selCargoU.value = "Tecnico";
-  }
-
-  formUsuario.addEventListener("submit", async (e) => {
-    e.preventDefault();
-
-    const nome = document.getElementById("uNome").value.trim();
-    const email = document.getElementById("uEmail").value.trim();
-    const telefone = document.getElementById("uTelefone").value.trim();
-    const senha = document.getElementById("uSenha").value.trim();
-    const cargo = (document.getElementById("uCargo")?.value || "Tecnico").trim();
-
-    if (!nome || !email || !senha) {
-      alert("Preencha pelo menos nome, e-mail e senha.");
-      return;
-    }
-
-    try {
-      await api(`/api/Auth/registrar`, {
-        method: "POST",
-        data: { nome, email, telefone, senha, cargo }
-      });
-
-      alert("Usuário cadastrado com sucesso!");
-      formUsuario.reset();
-      if (selCargoU) selCargoU.value = "Tecnico";
-    } catch (err) {
-      const msg = String(err.message || "");
-      if (msg.startsWith("409")) {
-        alert("E-mail já está cadastrado.");
-      } else {
-        alert("Falha ao salvar usuário:\n" + msg);
-      }
-    }
-  });
-}
