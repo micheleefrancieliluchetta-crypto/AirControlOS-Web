@@ -106,6 +106,14 @@ function isLogged() {
   );
 }
 
+function getCargoAtual() {
+  return (
+    sessionStorage.getItem("cargo") ||
+    localStorage.getItem("userRole") ||
+    ""
+  ).toLowerCase();
+}
+
 function role() {
   return getCargoAtual(); // já vem em minúsculo
 }
@@ -1128,7 +1136,8 @@ window.salvarStatusModal = function () {
 };
 
 /*************************************************
- * GERAÇÃO DE PDF DA ORDEM DE SERVIÇO
+ * GERAÇÃO DE PDF DA ORDEM DE SERVIÇO (jsPDF)
+ *  – continua aqui se você quiser o modelo antigo.
  *************************************************/
 
 /** Carrega uma OS (online ou offline) pelo id */
@@ -1145,7 +1154,7 @@ async function carregarOSPorId(id) {
   return os;
 }
 
-/** Gera o PDF da OS atualmente aberta no modal */
+/** Gera o PDF da OS atualmente aberta no modal (modelo antigo em texto) */
 window.gerarPdfOrdem = async function () {
   if (modalOSId == null) {
     alert("Abra uma OS e depois clique em Gerar PDF.");
@@ -1191,7 +1200,12 @@ window.gerarPdfOrdem = async function () {
   let y = 15;
 
   doc.setFontSize(14);
-  doc.text("FICHA DE MANUTENÇÃO CORRETIVA DE APARELHOS DE AR CONDICIONADO", 105, y, { align: "center" });
+  doc.text(
+    "FICHA DE MANUTENÇÃO CORRETIVA DE APARELHOS DE AR CONDICIONADO",
+    105,
+    y,
+    { align: "center" }
+  );
   y += 8;
   doc.setFontSize(11);
   doc.text(`Ordem de Serviço: ${codigo}`, 14, y);
@@ -1243,3 +1257,51 @@ window.gerarPdfOrdem = async function () {
 
   doc.save(`OS_${codigo}.pdf`);
 };
+
+/*************************************************
+ * FICHA CORRETIVA – PDF IGUAL AO BLOCO (duas vias)
+ *************************************************/
+
+// ficha: {unidade, data, patrimonio, local, marca, btu, modelo, tipo, info}
+function imprimirCorretiva(ficha) {
+  const div = document.getElementById('printCorretiva');
+  if (!div) {
+    alert("Modelo da ficha corretiva (printCorretiva) não encontrado nesta página.");
+    return;
+  }
+
+  // função auxiliar para preencher uma via
+  function preencherVia(prefixo) {
+    const set = (idSuf, val) => {
+      const el = document.getElementById(prefixo + '_' + idSuf);
+      if (el) el.textContent = val || '';
+    };
+    set('unidade', ficha.unidade || '');
+    set('data',    ficha.data || '');
+    set('patrimonio', ficha.patrimonio || '');
+    set('local',   ficha.local || '');
+    set('marca',   ficha.marca || '');
+    set('btu',     ficha.btu || '');
+    set('modelo',  ficha.modelo || '');
+    set('tipo',    ficha.tipo || '');
+    set('info',    ficha.info || '');
+  }
+
+  preencherVia('cor1');
+  preencherVia('cor2');
+
+  div.style.display = 'block';
+
+  const opt = {
+    margin: 10,
+    filename: `Ficha-Corretiva-${ficha.unidade || ''}.pdf`,
+    image: { type: 'jpeg', quality: 0.98 },
+    html2canvas: { scale: 2 },
+    jsPDF: { unit: 'mm', format: 'a4', orientation: 'portrait' }
+  };
+
+  html2pdf().from(div).set(opt).save().then(() => {
+    div.style.display = 'none';
+  });
+}
+
