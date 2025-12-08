@@ -8,181 +8,17 @@
   <!-- CSS geral do app -->
   <link rel="stylesheet" href="css/style.css" />
 
-  <!-- ESTILO APENAS DO CALENDÁRIO (não aparece como texto!) -->
-  <style>
-    /* garante que esta página possa rolar normalmente */
-    body.page-calendario {
-      min-height: 100vh;
-      overflow-y: auto !important;
-      background: #0ea5e9;
-    }
-
-    .wrap-calendario {
-      max-width: 1120px;
-      margin: 0 auto;
-      padding: 20px 16px 40px;
-    }
-
-    .layout-calendario {
-      display: grid;
-      grid-template-columns: 2fr 1fr;
-      gap: 16px;
-      align-items: flex-start;
-    }
-
-    /* Caixa que contém o calendário com rolagem própria */
-    #calendarWrapper {
-      background: #fff;
-      border-radius: 14px;
-      padding: 10px;
-      box-shadow: 0 10px 25px rgba(15,23,42,.08);
-      max-height: 520px;
-      overflow-y: auto;
-    }
-
-    #calendar {
-      font-size: 0.85rem;
-    }
-
-    .filtros-calendario {
-      display: flex;
-      align-items: center;
-      gap: 12px;
-      margin-bottom: 16px;
-      flex-wrap: wrap;
-    }
-
-    .filtros-calendario label {
-      font-weight: 600;
-    }
-
-    .filtros-calendario input[type="month"] {
-      padding: 6px 10px;
-      border-radius: 8px;
-      border: 1px solid #dbe2ea;
-    }
-
-    .painel-dia {
-      background: #fff;
-      border-radius: 14px;
-      padding: 14px 16px;
-      box-shadow: 0 10px 25px rgba(15,23,42,.08);
-      min-height: 260px;
-      max-height: 520px;
-      display: flex;
-      flex-direction: column;
-      overflow-y: auto;
-    }
-
-    .painel-dia h2 {
-      font-size: 1.1rem;
-      margin: 0 0 4px;
-    }
-
-    .painel-dia small {
-      color: #64748b;
-    }
-
-    #listaDia {
-      margin-top: 8px;
-      flex: 1;
-    }
-
-    .os-card {
-      border-radius: 10px;
-      border: 1px solid #e2e8f0;
-      padding: 8px 10px;
-      margin-top: 8px;
-      font-size: .9rem;
-      background: #f8fafc;
-    }
-
-    .os-card strong {
-      display: block;
-      margin-bottom: 4px;
-    }
-
-    .os-card span.badge {
-      display: inline-block;
-      padding: 2px 8px;
-      border-radius: 999px;
-      font-size: .75rem;
-      margin-right: 4px;
-    }
-
-    .badge-prio-Alta   { background:#fee2e2; color:#b91c1c; }
-    .badge-prio-Média  { background:#fef3c7; color:#92400e; }
-    .badge-prio-Baixa  { background:#dcfce7; color:#166534; }
-
-    .badge-status-Aberta        { background:#dbeafe; color:#1d4ed8; }
-    .badge-status-Em\ Andamento { background:#fef9c3; color:#92400e; }
-    .badge-status-Concluída     { background:#bbf7d0; color:#166534; }
-
-    #btnRelatorioDia {
-      margin-top: 12px;
-      padding: 8px 16px;
-      border-radius: 999px;
-      border: 0;
-      background: #1e90ff;
-      color: #fff;
-      font-weight: 600;
-      cursor: pointer;
-      align-self: flex-start;
-      display: none; /* só aparece quando tiver OS no dia */
-    }
-
-    .loader {
-      font-size: .9rem;
-      color: #64748b;
-      margin-top: 4px;
-    }
-
-    /* dias clicáveis no calendário */
-    .fc-daygrid-day-frame {
-      cursor: pointer;
-    }
-
-    /* barras de rolagem mais visíveis (calendário + painel do dia) */
-    #calendarWrapper,
-    .painel-dia {
-      scrollbar-width: thin;
-      scrollbar-color: #94a3b8 #e2e8f0;
-    }
-    #calendarWrapper::-webkit-scrollbar,
-    .painel-dia::-webkit-scrollbar {
-      width: 8px;
-    }
-    #calendarWrapper::-webkit-scrollbar-track,
-    .painel-dia::-webkit-scrollbar-track {
-      background: #e2e8f0;
-      border-radius: 999px;
-    }
-    #calendarWrapper::-webkit-scrollbar-thumb,
-    .painel-dia::-webkit-scrollbar-thumb {
-      background: #94a3b8;
-      border-radius: 999px;
-    }
-
-    @media (max-width: 900px) {
-      .layout-calendario {
-        grid-template-columns: 1fr;
-      }
-
-      #calendarWrapper,
-      .painel-dia {
-        max-height: none;
-      }
-    }
-  </style>
-
-  <!-- FullCalendar JS (APENAS JS, sem CSS – evita 404) -->
-  <script src="https://cdn.jsdelivr.net/npm/fullcalendar@6.1.19/index.global.min.js"></script>
-
-  <!-- html2pdf para gerar os PDFs do dia -->
-  <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
+  <!-- FullCalendar 5.11.0 (estável, com CSS próprio, sem 404) -->
+  <link
+    rel="stylesheet"
+    href="https://cdn.jsdelivr.net/npm/fullcalendar@5.11.0/main.min.css"
+  />
+  <script src="https://cdn.jsdelivr.net/npm/fullcalendar@5.11.0/main.min.js"></script>
 </head>
-
 <body class="page-calendario">
+  <!-- script principal (API_BASE, api(), getOS(), toItems(), codigoOSApi etc.) -->
+  <script src="js/script.js"></script>
+
   <header class="topbar-lite"
           style="border-radius:0 0 18px 18px; background:linear-gradient(90deg,#1e90ff,#0ea5e9); color:#fff; padding:16px 0;">
     <div class="wrap-calendario">
@@ -213,10 +49,9 @@
     </div>
   </main>
 
-  <!-- JS principal (login, getOS, api, etc.) -->
-  <script src="js/script.js"></script>
+  <!-- Lib do html2pdf (para gerar PDF do dia) -->
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
 
-  <!-- Lógica específica do calendário + PDF diário -->
   <script>
     document.addEventListener("DOMContentLoaded", async () => {
       const calendarEl = document.getElementById("calendar");
@@ -284,7 +119,7 @@
               <span class="badge badge-prio-${prioridade}">
                 Prioridade: ${prioridade}
               </span>
-              <span class="badge badge-status-${status.replace(" ", "\\ ")}">
+              <span class="badge badge-status-${status.replace(" ", "\\ ")}}">
                 Status: ${status}
               </span>
             </div>
@@ -319,7 +154,8 @@
         osDoMes = [];
 
         try {
-          const offline = typeof getOS === "function" ? getOS() : [];
+          const offline = getOS && typeof getOS === "function" ? getOS() : null;
+
           if (offline && offline.length) {
             // dados OFFLINE
             offline.forEach(os => {
@@ -341,7 +177,7 @@
           } else {
             // dados ONLINE (API)
             const resp  = await api(`/api/OrdensServico?page=1&pageSize=500`);
-            const itens = (typeof toItems === "function" ? toItems(resp) : (resp.items || resp)) || [];
+            const itens = toItems(resp) || [];
 
             itens.forEach(os => {
               const dataRef = normalizarDataDia(os.dataAbertura);
@@ -397,7 +233,7 @@
         await carregarEventosDoMes(ano, mes);
       });
 
-      // --------- PDF do dia (com 2 LOGOS + QUADRADOS) ----------
+      // --------- PDF (estilo ficha, com 2 logos + quadros) ----------
       btnPDF.addEventListener("click", () => {
         if (!dataSelecionada) return;
 
@@ -469,7 +305,7 @@
         `;
 
         const opt = {
-          margin:       [20, 20, 20, 20],  // margens iguais (não corta o "5" do ano)
+          margin:       [20, 20, 20, 20],
           filename:     `os-do-dia-${dataSelecionada.replace(/-/g,"")}.pdf`,
           html2canvas:  { scale: 2 },
           jsPDF:        { unit: "mm", format: "a4", orientation: "portrait" }
@@ -481,4 +317,3 @@
   </script>
 </body>
 </html>
-
