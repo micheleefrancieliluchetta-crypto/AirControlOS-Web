@@ -210,6 +210,40 @@
     </div>
   </main>
 
+  <!-- TEMPLATE ESCONDIDO PARA O RELATÓRIO DIÁRIO -->
+<div id="printRelatorioDia" style="display:none; width:210mm; min-height:297mm; padding:20mm; box-sizing:border-box; font-family:'Times New Roman',serif; font-size:12pt; color:#000;">
+  <!-- Cabeçalho com logos -->
+  <div style="display:flex; justify-content:space-between; align-items:center;">
+    <img src="/imagem/prefeitura-sv.png"
+         alt="Prefeitura de São Vicente"
+         style="height:40px; max-width:170px; object-fit:contain;">
+    <div style="text-align:center; font-size:12pt;">
+      <div><strong>AirControl OS - Sistema de Ordens de Serviço</strong></div>
+      <div>Relatório diário de ordens de serviço</div>
+    </div>
+    <img src="/imagem/Maxi.png"
+         alt="Maxi Serviços"
+         style="height:40px; max-width:170px; object-fit:contain;">
+  </div>
+
+  <!-- Data de emissão (direita) -->
+  <p style="text-align:right; margin:10pt 0 4pt;">
+    Data de emissão: <span id="relDataEmissao"></span>
+  </p>
+
+  <!-- Título do dia -->
+  <h2 style="text-align:center; font-size:13pt; margin:0 0 12pt;">
+    OS do dia <span id="relDataDia"></span>
+  </h2>
+
+  <!-- Aqui vão entrar os "quadrados" de cada OS -->
+  <div id="relListaOS"></div>
+
+  <p style="margin-top:16pt; font-size:10pt;">
+    Relatório gerado automaticamente pelo sistema AirControl OS.
+  </p>
+</div>
+
   <!-- Scripts das libs -->
   <script src="https://cdn.jsdelivr.net/npm/fullcalendar@6.1.15/index.global.min.js"></script>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
@@ -476,4 +510,5 @@
   </script>
 </body>
 </html>
+
 
