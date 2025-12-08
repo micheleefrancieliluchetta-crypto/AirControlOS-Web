@@ -206,15 +206,123 @@
     </form>
   </main>
 
-  <!-- JS principal (inclui também código da OS) -->
-  <!-- html2pdf (usado nas telas que geram PDF; carregar aqui não atrapalha) -->
+  <!-- 🔹 AQUI ENTRA O MODELO ESCONDIDO DA FICHA CORRETIVA (DUAS VIAS) -->
+  <!-- Ele fica fora do <main>, mas dentro do <body>, logo antes dos scripts -->
+  <!-- As imagens "img/maxi.png" e "img/prefeitura-sv.png" você já coloca na pasta img/ -->
+  <div id="printCorretiva" class="pagina-a4" style="display:none;">
+
+    <!-- primeira via -->
+    <div class="bloco-corretiva">
+      <div class="cabecalho-maxi">
+        <img src="img/maxi.png" alt="MAXI">
+        <div class="titulo-centro">
+          <div><strong>FICHA DE MANUTENÇÃO CORRETIVA DE APARELHOS DE AR CONDICIONADO</strong></div>
+          <div>CONTRATO 02/2023</div>
+        </div>
+        <img src="img/prefeitura-sv.png" alt="Prefeitura de São Vicente">
+      </div>
+
+      <div style="margin-top:4mm; font-weight:bold;">Dados do Atendimento:</div>
+
+      <table class="tabela-corretiva">
+        <tr>
+          <th style="width:18%;">Unidade</th>
+          <td id="cor1_unidade"></td>
+          <th style="width:10%;">Data</th>
+          <td id="cor1_data" style="width:15%;"></td>
+        </tr>
+        <tr>
+          <th>Patrimônio</th>
+          <td id="cor1_patrimonio"></td>
+          <th>Local</th>
+          <td id="cor1_local"></td>
+        </tr>
+        <tr>
+          <th>Marca</th>
+          <td id="cor1_marca"></td>
+          <th>BTU/h</th>
+          <td id="cor1_btu"></td>
+        </tr>
+        <tr>
+          <th>Mod.</th>
+          <td id="cor1_modelo"></td>
+          <th>Normal/Inv.</th>
+          <td id="cor1_tipo"></td>
+        </tr>
+      </table>
+
+      <div style="margin-top:4mm; font-weight:bold;">Informações da Manutenção:</div>
+      <div id="cor1_info" class="box-linhas"></div>
+
+      <div class="assinaturas">
+        <span>Responsável pela manutenção</span>
+        <span>Responsável pela unidade de saúde</span>
+      </div>
+    </div>
+
+    <!-- segunda via (igual à primeira) -->
+    <div class="bloco-corretiva">
+      <div class="cabecalho-maxi">
+        <img src="img/maxi.png" alt="MAXI">
+        <div class="titulo-centro">
+          <div><strong>FICHA DE MANUTENÇÃO CORRETIVA DE APARELHOS DE AR CONDICIONADO</strong></div>
+          <div>CONTRATO 02/2023</div>
+        </div>
+        <img src="img/prefeitura-sv.png" alt="Prefeitura de São Vicente">
+      </div>
+
+      <div style="margin-top:4mm; font-weight:bold;">Dados do Atendimento:</div>
+
+      <table class="tabela-corretiva">
+        <tr>
+          <th style="width:18%;">Unidade</th>
+          <td id="cor2_unidade"></td>
+          <th style="width:10%;">Data</th>
+          <td id="cor2_data" style="width:15%;"></td>
+        </tr>
+        <tr>
+          <th>Patrimônio</th>
+          <td id="cor2_patrimonio"></td>
+          <th>Local</th>
+          <td id="cor2_local"></td>
+        </tr>
+        <tr>
+          <th>Marca</th>
+          <td id="cor2_marca"></td>
+          <th>BTU/h</th>
+          <td id="cor2_btu"></td>
+        </tr>
+        <tr>
+          <th>Mod.</th>
+          <td id="cor2_modelo"></td>
+          <th>Normal/Inv.</th>
+          <td id="cor2_tipo"></td>
+        </tr>
+      </table>
+
+      <div style="margin-top:4mm; font-weight:bold;">Informações da Manutenção:</div>
+      <div id="cor2_info" class="box-linhas"></div>
+
+      <div class="assinaturas">
+        <span>Responsável pela manutenção</span>
+        <span>Responsável pela unidade de saúde</span>
+      </div>
+    </div>
+
+  </div>
+  <!-- 🔹 FIM DO MODELO DA FICHA CORRETIVA -->
+
+  <!-- Bibliotecas de PDF (se ainda não tiver em outra página) -->
   <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
+
+  <!-- JS principal -->
   <script src="js/script.js"></script>
 
   <script>
     // Garante login
     requireLogin();
 
+    // Mesma lógica de esconder menus de admin se quiser
     const cargoAtual = sessionStorage.getItem("cargo") || role();
     if (!cargoAtual) {
       window.location.href = "index.html";
