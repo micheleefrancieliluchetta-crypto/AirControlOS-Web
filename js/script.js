@@ -764,6 +764,15 @@ function fmtData(iso) {
   }
 }
 
+function getLocalDateStr(iso) {
+  if (!iso) return null;
+  const d = new Date(iso);
+  const y = d.getFullYear();
+  const m = String(d.getMonth() + 1).padStart(2, "0");
+  const day = String(d.getDate()).padStart(2, "0");
+  return `${y}-${m}-${day}`; // ex: "2025-12-07"
+}
+
 async function renderTabela(filtro = "Todas") {
   if (!tbody) return;
 
