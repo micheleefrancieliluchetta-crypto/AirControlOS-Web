@@ -8,13 +8,14 @@
   <!-- CSS geral do app -->
   <link rel="stylesheet" href="css/style.css" />
 
-  <!-- CSS do FullCalendar -->
+  <!-- CSS do FullCalendar (correto) -->
   <link
     rel="stylesheet"
-    href="https://cdn.jsdelivr.net/npm/fullcalendar@6.1.15/index.global.min.css"
+    href="https://cdn.jsdelivr.net/npm/fullcalendar@6.1.15/main.min.css"
   />
 
   <style>
+    /* garante que esta página possa rolar normalmente */
     body.page-calendario {
       min-height: 100vh;
       overflow-y: auto !important;
@@ -34,6 +35,7 @@
       align-items: flex-start;
     }
 
+    /* Caixa que contém o calendário com rolagem própria */
     #calendarWrapper {
       background: #fff;
       border-radius: 14px;
@@ -43,6 +45,7 @@
       overflow-y: auto;
     }
 
+    /* deixa o calendário visualmente um pouco menor */
     #calendar {
       font-size: 0.85rem;
     }
@@ -140,10 +143,12 @@
       margin-top: 4px;
     }
 
+    /* dias clicáveis */
     .fc-daygrid-day-frame {
       cursor: pointer;
     }
 
+    /* barras de rolagem mais visíveis (calendário + painel do dia) */
     #calendarWrapper,
     .painel-dia {
       scrollbar-width: thin;
@@ -177,7 +182,7 @@
   </style>
 </head>
 <body class="page-calendario">
-  <!-- script principal (api(), getOS(), toItems(), codigoOSApi etc.) -->
+  <!-- script principal (API_BASE, api(), getOS(), toItems(), codigoOSApi etc.) -->
   <script src="js/script.js"></script>
 
   <header class="topbar-lite"
@@ -210,40 +215,6 @@
     </div>
   </main>
 
-  <!-- TEMPLATE ESCONDIDO PARA O RELATÓRIO DIÁRIO -->
-<div id="printRelatorioDia" style="display:none; width:210mm; min-height:297mm; padding:20mm; box-sizing:border-box; font-family:'Times New Roman',serif; font-size:12pt; color:#000;">
-  <!-- Cabeçalho com logos -->
-  <div style="display:flex; justify-content:space-between; align-items:center;">
-    <img src="/imagem/prefeitura-sv.png"
-         alt="Prefeitura de São Vicente"
-         style="height:40px; max-width:170px; object-fit:contain;">
-    <div style="text-align:center; font-size:12pt;">
-      <div><strong>AirControl OS - Sistema de Ordens de Serviço</strong></div>
-      <div>Relatório diário de ordens de serviço</div>
-    </div>
-    <img src="/imagem/Maxi.png"
-         alt="Maxi Serviços"
-         style="height:40px; max-width:170px; object-fit:contain;">
-  </div>
-
-  <!-- Data de emissão (direita) -->
-  <p style="text-align:right; margin:10pt 0 4pt;">
-    Data de emissão: <span id="relDataEmissao"></span>
-  </p>
-
-  <!-- Título do dia -->
-  <h2 style="text-align:center; font-size:13pt; margin:0 0 12pt;">
-    OS do dia <span id="relDataDia"></span>
-  </h2>
-
-  <!-- Aqui vão entrar os "quadrados" de cada OS -->
-  <div id="relListaOS"></div>
-
-  <p style="margin-top:16pt; font-size:10pt;">
-    Relatório gerado automaticamente pelo sistema AirControl OS.
-  </p>
-</div>
-
   <!-- Scripts das libs -->
   <script src="https://cdn.jsdelivr.net/npm/fullcalendar@6.1.15/index.global.min.js"></script>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
@@ -257,19 +228,18 @@
       const listaDia   = document.getElementById("listaDia");
       const btnPDF     = document.getElementById("btnRelatorioDia");
 
+      // lista normalizada de OS do mês
       let osDoMes = [];
       let dataSelecionada = null; // yyyy-mm-dd
 
-      // Usa data LOCAL (Brasil) pra não empurrar pro dia seguinte
       function normalizarDataDia(valor) {
         if (!valor) return null;
+        if (typeof valor === "string" && valor.length >= 10) {
+          return valor.slice(0, 10);
+        }
         try {
-          const d = (valor instanceof Date) ? valor : new Date(valor);
-          if (isNaN(d)) return null;
-          const y = d.getFullYear();
-          const m = String(d.getMonth() + 1).padStart(2, "0");
-          const dia = String(d.getDate()).padStart(2, "0");
-          return `${y}-${m}-${dia}`;
+          const d = valor instanceof Date ? valor : new Date(valor);
+          return d.toISOString().slice(0, 10);
         } catch {
           return null;
         }
@@ -351,7 +321,7 @@
         try {
           const offline = getOS();
           if (offline && offline.length) {
-            // OFFLINE
+            // dados OFFLINE
             offline.forEach(os => {
               const dataRef = normalizarDataDia(os.criadoEm || os.dataAbertura);
               if (!dataRef) return;
@@ -369,7 +339,7 @@
               });
             });
           } else {
-            // ONLINE (API)
+            // dados ONLINE (API)
             const resp  = await api(`/api/OrdensServico?page=1&pageSize=500`);
             const itens = toItems(resp) || [];
 
@@ -391,6 +361,7 @@
             });
           }
 
+          // filtra pelo mês/ano selecionados
           const eventos = osDoMes
             .filter(os => {
               const [y, m] = os.dataRef.split("-").map(Number);
@@ -426,77 +397,27 @@
         await carregarEventosDoMes(ano, mes);
       });
 
+      // --------- PDF (relatório diário com 2 logos + quadrados) ----------
       btnPDF.addEventListener("click", () => {
-  if (!dataSelecionada) return;
+        if (!dataSelecionada) return;
 
-  const osDoDia = osDoMes.filter(os => os.dataRef === dataSelecionada);
-  if (!osDoDia.length) return;
+        const osDoDia = osDoMes.filter(os => os.dataRef === dataSelecionada);
+        if (!osDoDia.length) return;
 
-  const dataHojeBR = new Date().toLocaleDateString("pt-BR");
-  const dataDiaBR  = new Date(dataSelecionada + "T00:00:00").toLocaleDateString("pt-BR");
+        const dataHojeBR = new Date().toLocaleDateString("pt-BR");
+        const dataDiaBR  = new Date(dataSelecionada + "T00:00:00").toLocaleDateString("pt-BR");
 
-  // Pega o template
-  const container = document.getElementById("printRelatorioDia");
-  const spanEmissao = document.getElementById("relDataEmissao");
-  const spanDia     = document.getElementById("relDataDia");
-  const listaOS     = document.getElementById("relListaOS");
+        const container = document.createElement("div");
+        container.innerHTML = `
+          <div style="font-family:'Times New Roman',serif; font-size:12pt; line-height:1.5;">
 
-  if (!container || !spanEmissao || !spanDia || !listaOS) {
-    alert("Modelo de relatório diário não encontrado (printRelatorioDia).");
-    return;
-  }
-
-  // Preenche textos principais
-  spanEmissao.textContent = dataHojeBR;
-  spanDia.textContent     = dataDiaBR;
-
-  // Limpa lista e monta os quadrados
-  listaOS.innerHTML = "";
-  osDoDia.forEach((os, idx) => {
-    const div = document.createElement("div");
-    div.className = "rel-os-bloco";
-    div.innerHTML = `
-      <p><strong>${idx + 1}. Cliente:</strong> ${os.clienteNome}</p>
-      <p><strong>Número da OS:</strong> ${os.numeroOS || "—"}</p>
-      <p><strong>Técnico responsável:</strong> ${os.tecnicoNome || "—"}</p>
-      <p><strong>Prioridade:</strong> ${os.prioridade}</p>
-      <p><strong>Status:</strong> ${os.status}</p>
-      <p><strong>Data de abertura:</strong> ${os.dtAbertura || "—"}</p>
-      <p><strong>Data de conclusão:</strong> ${os.dtConclusao || "—"}</p>
-      <p><strong>Descrição do serviço:</strong> ${os.descricao}</p>
-
-      <p style="margin-top:6pt;">
-        Tempo de serviço (estimado): ________________________________
-      </p>
-
-      <p style="margin-top:6pt;">
-        Assinatura do técnico: _____________________________________________
-      </p>
-      <p>
-        Assinatura do responsável pela unidade: _____________________________
-      </p>
-    `;
-    listaOS.appendChild(div);
-  });
-
-  // Gera o PDF a partir do template preenchido
-  const opt = {
-    margin:       [20, 20, 20, 20],
-    filename:     `os-do-dia-${dataSelecionada.replace(/-/g,"")}.pdf`,
-    html2canvas:  { scale: 2 },
-    jsPDF:        { unit: "mm", format: "a4", orientation: "portrait" }
-  };
-
-  html2pdf().set(opt).from(container).save();
-});
-
-  <!-- LINHA DOS LOGOS -->
-      <div style="display:flex; justify-content:space-between; align-items:center; margin:0 0 14pt;">
-        <img src="/imagem/prefeitura-sv.png"
-  style="height:70px; max-width:170px; object-fit:contain;"
-       alt="Prefeitura de São Vicente" />
-         <img src="/imagem/Maxi.png"
-      style="height:70px; max-width:170px; object-fit:contain;"
+            <!-- LINHA DOS LOGOS -->
+            <div style="display:flex; justify-content:space-between; align-items:center; margin:0 0 14pt;">
+              <img src="imagem/logo-prefeitura-sv.png"
+                   style="height:70px; max-width:170px; object-fit:contain;"
+                   alt="Prefeitura de São Vicente" />
+              <img src="imagem/logo-maxi.png"
+                   style="height:70px; max-width:170px; object-fit:contain;"
                    alt="Maxi Serviços" />
             </div>
 
@@ -518,26 +439,15 @@
             </h3>
 
             ${osDoDia.map((os, idx) => `
-              <div style="margin-bottom:18pt; border:1px solid #000; padding:8pt 10pt; page-break-inside: avoid;">
-                <p style="margin:0 0 4pt;"><strong>${idx + 1}. Cliente:</strong> ${os.clienteNome}</p>
-                <p style="margin:0 0 4pt;"><strong>Número da OS:</strong> ${os.numeroOS || "—"}</p>
-                <p style="margin:0 0 4pt;"><strong>Técnico responsável:</strong> ${os.tecnicoNome || "—"}</p>
-                <p style="margin:0 0 4pt;"><strong>Prioridade:</strong> ${os.prioridade}</p>
-                <p style="margin:0 0 4pt;"><strong>Status:</strong> ${os.status}</p>
-                <p style="margin:0 0 4pt;"><strong>Data de abertura:</strong> ${os.dtAbertura || "—"}</p>
-                <p style="margin:0 0 8pt;"><strong>Data de conclusão:</strong> ${os.dtConclusao || "—"}</p>
-                <p style="margin:0 0 8pt;"><strong>Descrição do serviço:</strong> ${os.descricao}</p>
-
-                <p style="margin:0 0 18pt;">
-                  Tempo de serviço (estimado): ________________________________
-                </p>
-
-                <p style="margin:0 0 12pt;">
-                  Assinatura do técnico: _____________________________________________
-                </p>
-                <p style="margin:0;">
-                  Assinatura do responsável pela unidade: _____________________________
-                </p>
+              <div class="rel-os-bloco">
+                <p><strong>${idx + 1}. Cliente:</strong> ${os.clienteNome}</p>
+                <p><strong>Número da OS:</strong> ${os.numeroOS || "—"}</p>
+                <p><strong>Técnico responsável:</strong> ${os.tecnicoNome || "—"}</p>
+                <p><strong>Prioridade:</strong> ${os.prioridade}</p>
+                <p><strong>Status:</strong> ${os.status}</p>
+                <p><strong>Data de abertura:</strong> ${os.dtAbertura || "—"}</p>
+                <p><strong>Data de conclusão:</strong> ${os.dtConclusao || "—"}</p>
+                <p><strong>Descrição do serviço:</strong> ${os.descricao}</p>
               </div>
             `).join("")}
 
@@ -560,6 +470,8 @@
   </script>
 </body>
 </html>
+
+
 
 
 
