@@ -426,27 +426,77 @@
         await carregarEventosDoMes(ano, mes);
       });
 
-      // --------- PDF diário ---------- //
       btnPDF.addEventListener("click", () => {
-        if (!dataSelecionada) return;
+  if (!dataSelecionada) return;
 
-        const osDoDia = osDoMes.filter(os => os.dataRef === dataSelecionada);
-        if (!osDoDia.length) return;
+  const osDoDia = osDoMes.filter(os => os.dataRef === dataSelecionada);
+  if (!osDoDia.length) return;
 
-        const dataHojeBR = new Date().toLocaleDateString("pt-BR");
-        const dataDiaBR  = new Date(dataSelecionada + "T00:00:00").toLocaleDateString("pt-BR");
+  const dataHojeBR = new Date().toLocaleDateString("pt-BR");
+  const dataDiaBR  = new Date(dataSelecionada + "T00:00:00").toLocaleDateString("pt-BR");
 
-        const container = document.createElement("div");
-        container.innerHTML = `
-          <div style="font-family:'Times New Roman',serif; font-size:12pt; line-height:1.5;">
+  // Pega o template
+  const container = document.getElementById("printRelatorioDia");
+  const spanEmissao = document.getElementById("relDataEmissao");
+  const spanDia     = document.getElementById("relDataDia");
+  const listaOS     = document.getElementById("relListaOS");
 
-            <!-- LINHA DOS LOGOS -->
-            <div style="display:flex; justify-content:space-between; align-items:center; margin:0 0 14pt;">
-              <img src="/imagem/prefeitura-sv.png"
-                   style="height:70px; max-width:170px; object-fit:contain;"
-                   alt="Prefeitura de São Vicente" />
-              <img src="/imagem/Maxi.png"
-                   style="height:70px; max-width:170px; object-fit:contain;"
+  if (!container || !spanEmissao || !spanDia || !listaOS) {
+    alert("Modelo de relatório diário não encontrado (printRelatorioDia).");
+    return;
+  }
+
+  // Preenche textos principais
+  spanEmissao.textContent = dataHojeBR;
+  spanDia.textContent     = dataDiaBR;
+
+  // Limpa lista e monta os quadrados
+  listaOS.innerHTML = "";
+  osDoDia.forEach((os, idx) => {
+    const div = document.createElement("div");
+    div.className = "rel-os-bloco";
+    div.innerHTML = `
+      <p><strong>${idx + 1}. Cliente:</strong> ${os.clienteNome}</p>
+      <p><strong>Número da OS:</strong> ${os.numeroOS || "—"}</p>
+      <p><strong>Técnico responsável:</strong> ${os.tecnicoNome || "—"}</p>
+      <p><strong>Prioridade:</strong> ${os.prioridade}</p>
+      <p><strong>Status:</strong> ${os.status}</p>
+      <p><strong>Data de abertura:</strong> ${os.dtAbertura || "—"}</p>
+      <p><strong>Data de conclusão:</strong> ${os.dtConclusao || "—"}</p>
+      <p><strong>Descrição do serviço:</strong> ${os.descricao}</p>
+
+      <p style="margin-top:6pt;">
+        Tempo de serviço (estimado): ________________________________
+      </p>
+
+      <p style="margin-top:6pt;">
+        Assinatura do técnico: _____________________________________________
+      </p>
+      <p>
+        Assinatura do responsável pela unidade: _____________________________
+      </p>
+    `;
+    listaOS.appendChild(div);
+  });
+
+  // Gera o PDF a partir do template preenchido
+  const opt = {
+    margin:       [20, 20, 20, 20],
+    filename:     `os-do-dia-${dataSelecionada.replace(/-/g,"")}.pdf`,
+    html2canvas:  { scale: 2 },
+    jsPDF:        { unit: "mm", format: "a4", orientation: "portrait" }
+  };
+
+  html2pdf().set(opt).from(container).save();
+});
+
+  <!-- LINHA DOS LOGOS -->
+      <div style="display:flex; justify-content:space-between; align-items:center; margin:0 0 14pt;">
+        <img src="/imagem/prefeitura-sv.png"
+  style="height:70px; max-width:170px; object-fit:contain;"
+       alt="Prefeitura de São Vicente" />
+         <img src="/imagem/Maxi.png"
+      style="height:70px; max-width:170px; object-fit:contain;"
                    alt="Maxi Serviços" />
             </div>
 
@@ -510,5 +560,6 @@
   </script>
 </body>
 </html>
+
 
 
