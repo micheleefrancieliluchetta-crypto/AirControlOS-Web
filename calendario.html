@@ -8,17 +8,13 @@
   <!-- CSS geral do app -->
   <link rel="stylesheet" href="css/style.css" />
 
-  <!-- CSS do FullCalendar (CDN nova) -->
+  <!-- CSS do FullCalendar -->
   <link
     rel="stylesheet"
     href="https://cdn.jsdelivr.net/npm/fullcalendar@6.1.15/index.global.min.css"
   />
 
-  <!-- JS do FullCalendar (CDN nova) -->
-  <script src="https://cdn.jsdelivr.net/npm/fullcalendar@6.1.15/index.global.min.js"></script>
-
   <style>
-    /* garante que esta página possa rolar normalmente */
     body.page-calendario {
       min-height: 100vh;
       overflow-y: auto !important;
@@ -38,17 +34,15 @@
       align-items: flex-start;
     }
 
-    /* Caixa que contém o calendário com rolagem própria */
     #calendarWrapper {
       background: #fff;
       border-radius: 14px;
       padding: 10px;
       box-shadow: 0 10px 25px rgba(15,23,42,.08);
-      max-height: 520px;          /* altura máxima da caixa */
-      overflow-y: auto;           /* rolagem interna */
+      max-height: 520px;
+      overflow-y: auto;
     }
 
-    /* deixa o calendário visualmente um pouco menor */
     #calendar {
       font-size: 0.85rem;
     }
@@ -77,7 +71,7 @@
       padding: 14px 16px;
       box-shadow: 0 10px 25px rgba(15,23,42,.08);
       min-height: 260px;
-      max-height: 520px;          /* painel também com rolagem própria */
+      max-height: 520px;
       display: flex;
       flex-direction: column;
       overflow-y: auto;
@@ -146,12 +140,10 @@
       margin-top: 4px;
     }
 
-    /* dias clicáveis */
     .fc-daygrid-day-frame {
       cursor: pointer;
     }
 
-    /* barras de rolagem mais visíveis (calendário + painel do dia) */
     #calendarWrapper,
     .painel-dia {
       scrollbar-width: thin;
@@ -185,7 +177,7 @@
   </style>
 </head>
 <body class="page-calendario">
-  <!-- script principal (API_BASE, api(), getOS(), toItems(), codigoOSApi etc.) -->
+  <!-- script principal (api(), getOS(), toItems(), codigoOSApi etc.) -->
   <script src="js/script.js"></script>
 
   <header class="topbar-lite"
@@ -219,7 +211,7 @@
   </main>
 
   <!-- Scripts das libs -->
-  <script src="https://cdn.jsdelivr.net/npm/fullcalendar@6.1.11/index.global.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/fullcalendar@6.1.15/index.global.min.js"></script>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
 
   <script>
@@ -231,20 +223,20 @@
       const listaDia   = document.getElementById("listaDia");
       const btnPDF     = document.getElementById("btnRelatorioDia");
 
-      // lista normalizada de OS do mês
-      // { dataRef, clienteNome, tecnicoNome, numeroOS, prioridade, status,
-      //   dtAbertura, dtConclusao, descricao }
       let osDoMes = [];
       let dataSelecionada = null; // yyyy-mm-dd
 
+      // 🔹 Agora usa data LOCAL (getFullYear/getMonth/getDate)
+      // para não empurrar a OS pro dia seguinte.
       function normalizarDataDia(valor) {
         if (!valor) return null;
-        if (typeof valor === "string" && valor.length >= 10) {
-          return valor.slice(0, 10);
-        }
         try {
-          const d = valor instanceof Date ? valor : new Date(valor);
-          return d.toISOString().slice(0, 10);
+          const d = (valor instanceof Date) ? valor : new Date(valor);
+          if (isNaN(d)) return null;
+          const y = d.getFullYear();
+          const m = String(d.getMonth() + 1).padStart(2, "0");
+          const dia = String(d.getDate()).padStart(2, "0");
+          return `${y}-${m}-${dia}`;
         } catch {
           return null;
         }
@@ -326,7 +318,7 @@
         try {
           const offline = getOS();
           if (offline && offline.length) {
-            // dados OFFLINE
+            // OFFLINE
             offline.forEach(os => {
               const dataRef = normalizarDataDia(os.criadoEm || os.dataAbertura);
               if (!dataRef) return;
@@ -344,7 +336,7 @@
               });
             });
           } else {
-            // dados ONLINE (API)
+            // ONLINE (API)
             const resp  = await api(`/api/OrdensServico?page=1&pageSize=500`);
             const itens = toItems(resp) || [];
 
@@ -366,7 +358,6 @@
             });
           }
 
-          // filtra pelo mês/ano selecionados
           const eventos = osDoMes
             .filter(os => {
               const [y, m] = os.dataRef.split("-").map(Number);
@@ -402,7 +393,7 @@
         await carregarEventosDoMes(ano, mes);
       });
 
-      // --------- PDF (estilo ficha, com 2 logos + quadros) ----------
+      // --------- PDF diário ---------- //
       btnPDF.addEventListener("click", () => {
         if (!dataSelecionada) return;
 
@@ -418,10 +409,10 @@
 
             <!-- LINHA DOS LOGOS -->
             <div style="display:flex; justify-content:space-between; align-items:center; margin:0 0 14pt;">
-              <img src="/imagem/logo-prefeitura-sv.png"
+              <img src="/imagem/prefeitura-sv.png"
                    style="height:70px; max-width:170px; object-fit:contain;"
                    alt="Prefeitura de São Vicente" />
-              <img src="/imagem/logo-maxi.png"
+              <img src="/imagem/Maxi.png"
                    style="height:70px; max-width:170px; object-fit:contain;"
                    alt="Maxi Serviços" />
             </div>
@@ -444,7 +435,7 @@
             </h3>
 
             ${osDoDia.map((os, idx) => `
-              <div style="margin-bottom:18pt; border:1px solid #000; padding:8pt 10pt;">
+              <div style="margin-bottom:18pt; border:1px solid #000; padding:8pt 10pt; page-break-inside: avoid;">
                 <p style="margin:0 0 4pt;"><strong>${idx + 1}. Cliente:</strong> ${os.clienteNome}</p>
                 <p style="margin:0 0 4pt;"><strong>Número da OS:</strong> ${os.numeroOS || "—"}</p>
                 <p style="margin:0 0 4pt;"><strong>Técnico responsável:</strong> ${os.tecnicoNome || "—"}</p>
@@ -474,7 +465,7 @@
         `;
 
         const opt = {
-          margin:       [20, 20, 20, 20],  // margens iguais (não corta o "5" do ano)
+          margin:       [20, 20, 20, 20],
           filename:     `os-do-dia-${dataSelecionada.replace(/-/g,"")}.pdf`,
           html2canvas:  { scale: 2 },
           jsPDF:        { unit: "mm", format: "a4", orientation: "portrait" }
