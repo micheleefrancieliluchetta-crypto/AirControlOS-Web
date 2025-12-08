@@ -8,11 +8,11 @@
   <!-- CSS geral do app -->
   <link rel="stylesheet" href="css/style.css" />
 
-  <!-- CSS do FullCalendar (correto) -->
- <link
-  rel="stylesheet"
-  href="https://cdn.jsdelivr.net/npm/fullcalendar@6.1.15/index.global.min.css"
-/>
+  <!-- CSS do FullCalendar (CDN ok) -->
+  <link
+    rel="stylesheet"
+    href="https://cdn.jsdelivr.net/npm/fullcalendar@6.1.8/index.global.min.css"
+  />
 
   <style>
     /* garante que esta página possa rolar normalmente */
@@ -45,7 +45,6 @@
       overflow-y: auto;
     }
 
-    /* deixa o calendário visualmente um pouco menor */
     #calendar {
       font-size: 0.85rem;
     }
@@ -143,12 +142,10 @@
       margin-top: 4px;
     }
 
-    /* dias clicáveis */
     .fc-daygrid-day-frame {
       cursor: pointer;
     }
 
-    /* barras de rolagem mais visíveis (calendário + painel do dia) */
     #calendarWrapper,
     .painel-dia {
       scrollbar-width: thin;
@@ -179,8 +176,49 @@
         max-height: none;
       }
     }
+
+    /* Página A4 para o relatório diário */
+    .pagina-a4 {
+      width: 210mm;
+      min-height: 297mm;
+      padding: 15mm;
+      box-sizing: border-box;
+      font-family: "Times New Roman", serif;
+      color: #000;
+    }
+
+    .rel-cabecalho {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+    }
+
+    .rel-cabecalho img {
+      height: 35px;
+      object-fit: contain;
+    }
+
+    .rel-titulos {
+      text-align: center;
+      font-size: 12pt;
+      line-height: 1.3;
+    }
+
+    /* Blocos das OS no relatório diário */
+    .rel-os-bloco {
+      border: 1px solid #000;
+      padding: 6pt 10pt;
+      margin-bottom: 8pt;
+      font-size: 11pt;
+      page-break-inside: avoid;
+    }
+
+    .rel-os-bloco p {
+      margin: 2px 0;
+    }
   </style>
 </head>
+
 <body class="page-calendario">
   <!-- script principal (API_BASE, api(), getOS(), toItems(), codigoOSApi etc.) -->
   <script src="js/script.js"></script>
@@ -215,8 +253,35 @@
     </div>
   </main>
 
+  <!-- Template escondido para o relatório diário (A4, com dois logos) -->
+  <div id="printRelatorioDia" class="pagina-a4" style="display:none;">
+    <div class="rel-cabecalho">
+      <img src="imagem/prefeitura-sv.png" alt="Prefeitura de São Vicente" />
+      <div class="rel-titulos">
+        <div><strong>AirControl OS - Sistema de Ordens de Serviço</strong></div>
+        <div>Relatório diário de ordens de serviço</div>
+      </div>
+      <img src="imagem/logo-maxi.png" alt="Maxi Serviços e Reformas" />
+    </div>
+
+    <p style="text-align:right; margin:10pt 0 4pt;">
+      Data de emissão: <span id="relDataEmissao"></span>
+    </p>
+
+    <h2 style="text-align:center; font-size:13pt; margin:0 0 12pt;">
+      OS do dia <span id="relDataDia"></span>
+    </h2>
+
+    <!-- Aqui vão entrar os "quadrados" de cada OS -->
+    <div id="rellistaOS"></div>
+
+    <p style="margin-top:16pt; font-size:10pt;">
+      Relatório gerado automaticamente pelo sistema AirControl OS.
+    </p>
+  </div>
+
   <!-- Scripts das libs -->
-  <script src="https://cdn.jsdelivr.net/npm/fullcalendar@6.1.15/index.global.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/fullcalendar@6.1.8/index.global.min.js"></script>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
 
   <script>
@@ -228,7 +293,6 @@
       const listaDia   = document.getElementById("listaDia");
       const btnPDF     = document.getElementById("btnRelatorioDia");
 
-      // lista normalizada de OS do mês
       let osDoMes = [];
       let dataSelecionada = null; // yyyy-mm-dd
 
@@ -321,7 +385,6 @@
         try {
           const offline = getOS();
           if (offline && offline.length) {
-            // dados OFFLINE
             offline.forEach(os => {
               const dataRef = normalizarDataDia(os.criadoEm || os.dataAbertura);
               if (!dataRef) return;
@@ -339,7 +402,6 @@
               });
             });
           } else {
-            // dados ONLINE (API)
             const resp  = await api(`/api/OrdensServico?page=1&pageSize=500`);
             const itens = toItems(resp) || [];
 
@@ -361,7 +423,6 @@
             });
           }
 
-          // filtra pelo mês/ano selecionados
           const eventos = osDoMes
             .filter(os => {
               const [y, m] = os.dataRef.split("-").map(Number);
@@ -384,7 +445,6 @@
         }
       }
 
-      // mês atual
       const hoje = new Date();
       mesInput.value =
         `${hoje.getFullYear()}-${String(hoje.getMonth() + 1).padStart(2,"0")}`;
@@ -397,7 +457,6 @@
         await carregarEventosDoMes(ano, mes);
       });
 
-      // --------- PDF (relatório diário com 2 logos + quadrados) ----------
       btnPDF.addEventListener("click", () => {
         if (!dataSelecionada) return;
 
@@ -407,61 +466,44 @@
         const dataHojeBR = new Date().toLocaleDateString("pt-BR");
         const dataDiaBR  = new Date(dataSelecionada + "T00:00:00").toLocaleDateString("pt-BR");
 
-        const container = document.createElement("div");
-        container.innerHTML = `
-          <div style="font-family:'Times New Roman',serif; font-size:12pt; line-height:1.5;">
+        document.getElementById("relDataEmissao").textContent = dataHojeBR;
+        document.getElementById("relDataDia").textContent      = dataDiaBR;
 
-            <!-- LINHA DOS LOGOS -->
-            <div style="display:flex; justify-content:space-between; align-items:center; margin:0 0 14pt;">
-              <img src="imagem/logo-prefeitura-sv.png"
-                   style="height:70px; max-width:170px; object-fit:contain;"
-                   alt="Prefeitura de São Vicente" />
-              <img src="imagem/logo-maxi.png"
-                   style="height:70px; max-width:170px; object-fit:contain;"
-                   alt="Maxi Serviços" />
-            </div>
+        const lista = document.getElementById("rellistaOS");
+        lista.innerHTML = "";
 
-            <!-- TÍTULOS -->
-            <h1 style="text-align:center; font-size:14pt; margin:0 0 4pt;">
-              AirControl OS - Sistema de Ordens de Serviço
-            </h1>
-            <h2 style="text-align:center; font-size:13pt; margin:0 0 12pt;">
-              Relatório diário de ordens de serviço
-            </h2>
-
-            <!-- LINHA DATA EMISSÃO -->
-            <p style="text-align:right; margin:0 4pt 12pt 4pt; width:100%;">
-              Data de emissão: ${dataHojeBR}
+        osDoDia.forEach((os, idx) => {
+          const bloco = document.createElement("div");
+          bloco.className = "rel-os-bloco";
+          bloco.innerHTML = `
+            <p><strong>${idx + 1}. Cliente:</strong> ${os.clienteNome}</p>
+            <p><strong>Número da OS:</strong> ${os.numeroOS || "—"}</p>
+            <p><strong>Técnico responsável:</strong> ${os.tecnicoNome || "—"}</p>
+            <p><strong>Prioridade:</strong> ${os.prioridade}</p>
+            <p><strong>Status:</strong> ${os.status}</p>
+            <p><strong>Data de abertura:</strong> ${os.dtAbertura || "—"}</p>
+            <p><strong>Data de conclusão:</strong> ${os.dtConclusao || "—"}</p>
+            <p><strong>Descrição do serviço:</strong> ${os.descricao}</p>
+            <p style="margin-top:10pt;">
+              Tempo de serviço (estimado): ________________________________
             </p>
-
-            <h3 style="text-align:center; font-size:13pt; margin:0 0 14pt;">
-              OS do dia ${dataDiaBR}
-            </h3>
-
-            ${osDoDia.map((os, idx) => `
-              <div class="rel-os-bloco">
-                <p><strong>${idx + 1}. Cliente:</strong> ${os.clienteNome}</p>
-                <p><strong>Número da OS:</strong> ${os.numeroOS || "—"}</p>
-                <p><strong>Técnico responsável:</strong> ${os.tecnicoNome || "—"}</p>
-                <p><strong>Prioridade:</strong> ${os.prioridade}</p>
-                <p><strong>Status:</strong> ${os.status}</p>
-                <p><strong>Data de abertura:</strong> ${os.dtAbertura || "—"}</p>
-                <p><strong>Data de conclusão:</strong> ${os.dtConclusao || "—"}</p>
-                <p><strong>Descrição do serviço:</strong> ${os.descricao}</p>
-              </div>
-            `).join("")}
-
-            <p style="margin-top:16pt; font-size:10pt;">
-              Relatório gerado automaticamente pelo sistema AirControl OS.
+            <p style="margin-top:10pt;">
+              Assinatura do técnico: _____________________________________________
             </p>
-          </div>
-        `;
+            <p>
+              Assinatura do responsável pela unidade: _____________________________
+            </p>
+          `;
+          lista.appendChild(bloco);
+        });
+
+        const container = document.getElementById("printRelatorioDia");
 
         const opt = {
-          margin:       [20, 20, 20, 20],
-          filename:     `os-do-dia-${dataSelecionada.replace(/-/g,"")}.pdf`,
-          html2canvas:  { scale: 2 },
-          jsPDF:        { unit: "mm", format: "a4", orientation: "portrait" }
+          margin: [20,20,20,20],
+          filename: `os-do-dia-${dataSelecionada.replace(/-/g,"")}.pdf`,
+          html2canvas: { scale: 2 },
+          jsPDF: { unit: "mm", format: "a4", orientation: "portrait" }
         };
 
         html2pdf().set(opt).from(container).save();
@@ -470,11 +512,3 @@
   </script>
 </body>
 </html>
-
-
-
-
-
-
-
-
