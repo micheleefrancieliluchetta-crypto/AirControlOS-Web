@@ -226,8 +226,7 @@
       let osDoMes = [];
       let dataSelecionada = null; // yyyy-mm-dd
 
-      // 🔹 Agora usa data LOCAL (getFullYear/getMonth/getDate)
-      // para não empurrar a OS pro dia seguinte.
+      // Usa data LOCAL (Brasil) pra não empurrar pro dia seguinte
       function normalizarDataDia(valor) {
         if (!valor) return null;
         try {
@@ -477,3 +476,4 @@
   </script>
 </body>
 </html>
+
