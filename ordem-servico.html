@@ -35,18 +35,18 @@
 
   <!-- Sidebar -->
   <nav class="sidebar">
-  <ul>
-    <li><a href="dashboard.html">🏠 Dashboard</a></li>
-    <li><a href="ordem-servico.html">📝 Ordem de Serviço</a></li>
-    <li><a href="calendario.html">📝 Calendário</a></li>
-    <li><a href="local.html">📍 Locais</a></li>
-    <li><a href="tecnico.html">🧑‍🔧 Técnicos</a></li>
-    <li><a href="usuarios.html">👤 Usuários</a></li>
-    <li><a href="aparelhos-por-unidade.html">🏥 Aparelhos por unidade</a></li>
-    <li><a href="pmoc.html">✅ Checklist PMOC</a></li>
-    <li><a href="pmoc-historico.html">📂 Histórico PMOC</a></li>
-  </ul>
-</nav>
+    <ul>
+      <li><a href="dashboard.html">🏠 Dashboard</a></li>
+      <li><a href="ordem-servico.html">📝 Ordem de Serviço</a></li>
+      <li><a href="calendario.html">📝 Calendário</a></li>
+      <li><a href="local.html">📍 Locais</a></li>
+      <li><a href="tecnico.html">🧑‍🔧 Técnicos</a></li>
+      <li><a href="usuarios.html">👤 Usuários</a></li>
+      <li><a href="aparelhos-por-unidade.html">🏥 Aparelhos por unidade</a></li>
+      <li><a href="pmoc.html">✅ Checklist PMOC</a></li>
+      <li><a href="pmoc-historico.html">📂 Histórico PMOC</a></li>
+    </ul>
+  </nav>
 
   <!-- Conteúdo -->
   <main class="main-content">
@@ -206,14 +206,15 @@
     </form>
   </main>
 
-  <!-- JS principal -->
+  <!-- JS principal (inclui também código da OS) -->
+  <!-- html2pdf (usado nas telas que geram PDF; carregar aqui não atrapalha) -->
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
   <script src="js/script.js"></script>
 
   <script>
     // Garante login
     requireLogin();
 
-    // Mesma lógica de esconder menus de admin se quiser
     const cargoAtual = sessionStorage.getItem("cargo") || role();
     if (!cargoAtual) {
       window.location.href = "index.html";
