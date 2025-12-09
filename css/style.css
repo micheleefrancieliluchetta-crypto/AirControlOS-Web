@@ -848,3 +848,33 @@ body.page-calendario {
   min-height: 260px;
 }
 
+/* ===== FULLCALENDAR AJUSTES VISUAIS ===== */
+
+.fc {
+  background: #ffffff;
+  border-radius: 12px;
+}
+
+.fc-daygrid-day {
+  background: #ffffff;
+}
+
+.fc-daygrid-day-number {
+  color: #0f172a;
+  font-weight: 600;
+}
+
+.fc-col-header-cell {
+  background: #f1f5f9;
+  color: #0f172a;
+  font-weight: 700;
+}
+
+.fc-event {
+  background: #2563eb !important;
+  border: none !important;
+  color: #ffffff !important;
+  font-size: 0.75rem;
+  border-radius: 6px;
+  padding: 2px 4px;
+}
