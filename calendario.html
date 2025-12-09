@@ -287,7 +287,8 @@
         relContainer.style.display = "block";
 
         const opt = {
-          margin: 0,
+          // [topo, direita, baixo, esquerda] em mm
+          margin: [5, 10, 12, 10],
           filename: `os-do-dia-${dateStr.replace(/-/g,"")}.pdf`,
           html2canvas: { scale: 2 },
           jsPDF: { unit: "mm", format: "a4", orientation: "portrait" }
