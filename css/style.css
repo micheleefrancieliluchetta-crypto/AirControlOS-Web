@@ -810,71 +810,134 @@ body.page-usuarios .main-content {
 }
 
 /* ====== PÁGINA CALENDÁRIO DE OS ====== */
+
+/* fundo e fonte um pouco menores */
 body.page-calendario {
   min-height: 100vh;
   overflow-y: auto !important;
   background: linear-gradient(90deg, #1e90ff, #0ea5e9);
+  font-size: 0.95rem; /* encolhe tudo um pouquinho */
 }
 
+/* container central mais estreito e com menos padding */
 .wrap-calendario {
-  max-width: 1120px;
+  max-width: 1000px;          /* antes 1120px */
   margin: 0 auto;
-  padding: 20px 16px 40px;
+  padding: 12px 12px 28px;
 }
 
+/* grade: calendário + painel do dia */
 .layout-calendario {
   display: grid;
-  grid-template-columns: 2fr 1fr;
-  gap: 16px;
+  grid-template-columns: 3fr 2fr; /* calendário um pouco menor, painel também */
+  gap: 14px;
   align-items: flex-start;
 }
 
+/* caixa do calendário – menor altura */
 #calendarWrapper {
   background: #ffffff;
   border-radius: 14px;
-  padding: 10px;
-  box-shadow: 0 10px 25px rgba(15, 23, 42, 0.12);
-  max-height: 520px;
+  padding: 8px;
+  box-shadow: 0 8px 20px rgba(15, 23, 42, 0.12);
+  max-height: 460px;       /* antes 520px */
   overflow-y: auto;
 }
 
+/* painel lateral “OS do dia” */
 .painel-dia {
   background: #ffffff;
   border-radius: 14px;
-  padding: 14px 16px;
-  box-shadow: 0 10px 25px rgba(15, 23, 42, 0.12);
+  padding: 12px 14px;
+  box-shadow: 0 8px 20px rgba(15, 23, 42, 0.12);
   display: flex;
   flex-direction: column;
-  min-height: 260px;
+  min-height: 240px;
+  font-size: 0.9rem; /* texto um pouco menor */
 }
 
-/* ===== FULLCALENDAR AJUSTES VISUAIS ===== */
-
-.fc {
-  background: #ffffff;
-  border-radius: 12px;
+.painel-dia h2 {
+  margin-bottom: 4px;
 }
 
-.fc-daygrid-day {
-  background: #ffffff;
+.painel-dia small {
+  color: #64748b;
 }
 
-.fc-daygrid-day-number {
-  color: #0f172a;
-  font-weight: 600;
+/* lista de OS do dia */
+#listaDia {
+  margin-top: 8px;
+  flex: 1;
+  overflow-y: auto;
 }
 
-.fc-col-header-cell {
-  background: #f1f5f9;
-  color: #0f172a;
+/* botão do PDF */
+#btnRelatorioDia {
+  margin-top: 10px;
+  padding: 8px 10px;
+  border-radius: 10px;
+  border: none;
+  background: #1e90ff;
+  color: #ffffff;
   font-weight: 700;
+  cursor: pointer;
+  font-size: 0.9rem;
 }
 
-.fc-event {
-  background: #2563eb !important;
-  border: none !important;
-  color: #ffffff !important;
-  font-size: 0.75rem;
-  border-radius: 6px;
-  padding: 2px 4px;
+#btnRelatorioDia:hover {
+  background: #0ea5e9;
+}
+
+/* cards das OS do dia */
+.os-card {
+  border: 1px solid #e5e7eb;
+  border-radius: 8px;
+  padding: 6px;
+  margin-bottom: 6px;
+  font-size: 0.85rem;
+  background: #f9fafb;
+}
+
+.os-card strong {
+  display: block;
+  margin-bottom: 3px;
+}
+
+.os-card .badge {
+  display: inline-block;
+  font-size: 0.7rem;
+  background: #e5f2ff;
+  color: #1e40af;
+  padding: 2px 6px;
+  border-radius: 999px;
+  margin-right: 4px;
+}
+
+/* Deixar o FullCalendar visualmente menor */
+.page-calendario .fc .fc-toolbar-title {
+  font-size: 1.4rem; /* título do mês menor */
+}
+
+.page-calendario .fc .fc-col-header-cell-cushion {
+  padding: 4px 0;
+  font-size: 0.8rem; /* dom, seg, ter... */
+}
+
+.page-calendario .fc .fc-daygrid-day-number {
+  font-size: 0.8rem;
+}
+
+.page-calendario .fc .fc-daygrid-event {
+  font-size: 0.78rem;
+  padding: 1px 3px;
+}
+
+/* responsivo: empilha tudo quando a tela é pequena */
+@media (max-width: 900px) {
+  .layout-calendario {
+    grid-template-columns: 1fr;
+  }
+  #calendarWrapper {
+    max-height: none;
+  }
 }
