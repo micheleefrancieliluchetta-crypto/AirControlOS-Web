@@ -255,7 +255,7 @@
         await carregarEventosDoMes(ano, mes);
       });
 
-      // ---------- GERAÇÃO DO PDF USANDO O MODELO .pagina-a4 ----------
+           // ---------- GERAÇÃO DO PDF USANDO O MODELO .pagina-a4 ----------
       function gerarRelatorioDia(dateStr) {
         const osDoDia = osDoMes.filter(os => os.dataRef === dateStr);
         if (!osDoDia.length) {
@@ -269,7 +269,7 @@
         relDataEmissao.textContent = hojeBR;
         relDataDia.textContent     = diaBR;
 
-        // monta os quadrinhos das OS, usando .rel-os-bloco (do CSS)
+        // monta os quadrinhos das OS
         relListaOS.innerHTML = osDoDia.map((os, idx) => `
           <div class="rel-os-bloco">
             <p><strong>${idx + 1}. Cliente:</strong> ${os.clienteNome}</p>
@@ -287,12 +287,11 @@
         relContainer.style.display = "block";
 
         const opt = {
-        // [topo, direita, baixo, esquerda] em mm
-        margin: [3, 10, 12, 10], // 🔥 topo bem pequeno
-
-        filename: `os-do-dia-${dateStr.replace(/-/g,"")}.pdf`,
-        html2canvas: { scale: 2 },
-        jsPDF: { unit: "mm", format: "a4", orientation: "portrait" }
+          // sem margem extra do jsPDF – quem manda é a .pagina-a4
+          margin: 0,
+          filename: `os-do-dia-${dateStr.replace(/-/g,"")}.pdf`,
+          html2canvas: { scale: 2 },
+          jsPDF: { unit: "mm", format: "a4", orientation: "portrait" }
         };
 
         html2pdf()
@@ -311,4 +310,5 @@
   </script>
 </body>
 </html>
+
 
