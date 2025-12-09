@@ -678,7 +678,7 @@ body.page-usuarios .main-content {
 .pagina-a4 {
   width: 210mm;
   min-height: 297mm;
-  padding: 6mm 15mm 15mm 15mm; /* topo 6mm (antes 8 ou 15) */
+  padding: 2mm 15mm 15mm 15mm;
   box-sizing: border-box;
   font-family: "Times New Roman", serif;
   font-size: 12pt;
