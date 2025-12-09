@@ -674,12 +674,11 @@ body.page-usuarios .main-content {
   font-weight: 800;
 }
 
-/* Página A4 para impressão (usada na ficha e no relatório diário) */
+/* Página A4 para impressão – menos espaço no topo */
 .pagina-a4 {
   width: 210mm;
   min-height: 297mm;
-  /* menos espaço em cima e embaixo */
-  padding: 8mm 15mm 15mm 15mm;
+  padding: 6mm 15mm 15mm 15mm; /* topo 6mm (antes 8 ou 15) */
   box-sizing: border-box;
   font-family: "Times New Roman", serif;
   font-size: 12pt;
