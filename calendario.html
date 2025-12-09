@@ -287,11 +287,12 @@
         relContainer.style.display = "block";
 
         const opt = {
-          // [topo, direita, baixo, esquerda] em mm
-          margin: [5, 10, 12, 10],
-          filename: `os-do-dia-${dateStr.replace(/-/g,"")}.pdf`,
-          html2canvas: { scale: 2 },
-          jsPDF: { unit: "mm", format: "a4", orientation: "portrait" }
+        // [topo, direita, baixo, esquerda] em mm
+        margin: [3, 10, 12, 10], // 🔥 topo bem pequeno
+
+        filename: `os-do-dia-${dateStr.replace(/-/g,"")}.pdf`,
+        html2canvas: { scale: 2 },
+        jsPDF: { unit: "mm", format: "a4", orientation: "portrait" }
         };
 
         html2pdf()
@@ -310,3 +311,4 @@
   </script>
 </body>
 </html>
+
