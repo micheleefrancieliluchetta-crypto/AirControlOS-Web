@@ -674,19 +674,16 @@ body.page-usuarios .main-content {
   font-weight: 800;
 }
 
-/* =========================================================
-   RELATÓRIOS PDF – PADRÃO A4 (BASE PARA TODOS OS PDFS)
-   ========================================================= */
-
+/* ===== RELATÓRIO DIÁRIO (PDF A4) ===== */
 .pagina-a4 {
   width: 210mm;
   min-height: 297mm;
   margin: 0 auto;
-  padding: 15mm 15mm 18mm 15mm; /* topo controlado aqui */
+  padding: 15mm 15mm 18mm 15mm;
   background: #ffffff;
   color: #000;
   font-family: "Times New Roman", serif;
-  font-size: 11pt;
+  font-size: 10pt;          /* 🔽 DIMINUI O TEXTO */
   box-sizing: border-box;
 }
 
@@ -703,7 +700,7 @@ body.page-usuarios .main-content {
 
 .cabecalho-maxi img,
 .rel-cabecalho img {
-  height: 38px; /* tamanho equilibrado */
+  height: 55px; /* tamanho equilibrado */
 }
 
 .cabecalho-maxi .titulo-centro,
@@ -804,10 +801,10 @@ body.page-usuarios .main-content {
   border: 1px solid #000;
   padding: 6pt 10pt;
   margin-bottom: 8pt;
-  font-size: 11pt;
+  font-size: 10pt;
   width: 100%;
   box-sizing: border-box;
-  page-break-inside: avoid; /* não quebrar no meio */
+  page-break-inside: avoid; 
 }
 
 .rel-os-bloco p {
