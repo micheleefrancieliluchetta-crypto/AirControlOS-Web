@@ -678,7 +678,10 @@ body.page-usuarios .main-content {
 .pagina-a4 {
   width: 210mm;
   min-height: 297mm;
-  padding: 8mm 15mm 15mm 15mm;
+
+  /* topo menor – ESSENCIAL */
+  padding: 4mm 15mm 15mm 15mm;
+
   box-sizing: border-box;
   font-family: "Times New Roman", serif;
   font-size: 12pt;
@@ -776,10 +779,12 @@ body.page-usuarios .main-content {
   display: flex;
   align-items: center;
   justify-content: space-between;
+  margin-top: 0;
+  padding-top: 0;
 }
 
 .rel-cabecalho img {
-  height: 55px; /* logos maiores no relatório diário */
+  height: 40px; /* não mexa mais */
 }
 
 .rel-titulos {
