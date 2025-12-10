@@ -1160,6 +1160,16 @@ async function carregarOSPorId(id) {
   if (offline) {
     return offline;  // não chama a API → não tem 404
   }
+
+  // 2) se não achou offline, tenta a API
+  try {
+    const osApi = await api(`/api/OrdensServico/${id}`);
+    return osApi;
+  } catch (e) {
+    console.warn("Falha ao carregar OS da API:", e.message || e);
+    return null;
+  }
+}
   
 /** Gera o PDF da OS atualmente aberta no modal (modelo antigo em texto) */
 window.gerarPdfOrdem = async function () {
