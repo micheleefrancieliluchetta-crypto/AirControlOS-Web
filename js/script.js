@@ -1112,10 +1112,15 @@ window.abrirModal = async function (id) {
       await renderFotos("detFotosAntes",  os.fotosAntesIds,  os.fotosAntes);
       await renderFotos("detFotosDepois", os.fotosDepoisIds, os.fotosDepois);
 
-      const mapEl = document.getElementById("detMap");
+         const mapEl = document.getElementById("detMap");
       if (mapEl) {
         mapEl.innerHTML = "";
         if (typeof L !== "undefined" && os.local?.lat && os.local?.lng) {
+          // ⚠️ evita o erro "Map container is already initialized"
+          if (mapEl._leaflet_id) {
+            mapEl._leaflet_id = null;
+          }
+
           const lat = parseFloat(os.local.lat), lng = parseFloat(os.local.lng);
           const map = L.map(mapEl).setView([lat, lng], 14);
           L.tileLayer("https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png", {
