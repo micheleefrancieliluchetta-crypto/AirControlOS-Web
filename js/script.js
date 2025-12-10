@@ -1184,31 +1184,8 @@ window.gerarPdfOrdem = async function () {
   const { jsPDF } = window.jspdf;
   const doc = new jsPDF();
 
-  // ========= 1) CARREGAR LOGOS E DESENHAR NO TOPO =========
-  try {
-    const [logoPref, logoMaxi] = await Promise.all([
-      carregarImagem("imagem/logo-prefeitura-sv.png"),
-      carregarImagem("imagem/logo-Maxi.png")
-    ]);
-
-    // esquerda (prefeitura)
-    doc.addImage(logoPref, "PNG", 15, 8, 25, 18);
-    // direita (Maxi)
-    doc.addImage(logoMaxi, "PNG", 170, 8, 25, 18);
-  } catch (e) {
-    console.warn("Não foi possível carregar os logos no PDF:", e);
-  }
-
-  // ========= 2) DADOS DA OS (MANTENDO SEU LAYOUT) =========
   const codigo = os.codigo || codigoOSApi(os);
   const dataAbertura = os.dataAbertura || os.criadoEm || new Date().toISOString();
-
-  // 👉 AQUI TIRA O HORÁRIO: só a data em pt-BR
-  let dataAberturaBR = "-";
-  try {
-    dataAberturaBR = new Date(dataAbertura).toLocaleDateString("pt-BR");
-  } catch {}
-
   const local =
     os.cliente?.nome ||
     os.localNome ||
@@ -1229,8 +1206,7 @@ window.gerarPdfOrdem = async function () {
   const modelo = eq.modelo || "-";
   const tipo = eq.tipo || "-";
 
-  // Começa um pouco mais embaixo por causa dos logos
-  let y = 28;
+  let y = 15;
 
   doc.setFontSize(14);
   doc.text(
@@ -1239,12 +1215,10 @@ window.gerarPdfOrdem = async function () {
     y,
     { align: "center" }
   );
-
   y += 8;
   doc.setFontSize(11);
   doc.text(`Ordem de Serviço: ${codigo}`, 14, y);
-  // 👉 Usa só a data (sem hora)
-  doc.text(`Data: ${dataAberturaBR}`, 120, y);
+  doc.text(`Data: ${fmtData(dataAbertura)}`, 120, y);
   y += 8;
 
   doc.text(`Local / Unidade: ${local}`, 14, y);
