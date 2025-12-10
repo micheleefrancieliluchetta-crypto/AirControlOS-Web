@@ -1155,18 +1155,12 @@ window.salvarStatusModal = function () {
 
 /** Carrega uma OS (online ou offline) pelo id */
 async function carregarOSPorId(id) {
-  let os = null;
-  await tryApi(
-    async () => {
-      os = await api(`/api/OrdensServico/${id}`);
-    },
-    () => {
-      os = getOS().find((o) => o.id === id);
-    }
-  );
-  return os;
-}
-
+  // 1) tenta achar offline primeiro (OS salvas no navegador)
+  const offline = getOS().find((o) => o.id === id);
+  if (offline) {
+    return offline;  // não chama a API → não tem 404
+  }
+  
 /** Gera o PDF da OS atualmente aberta no modal (modelo antigo em texto) */
 window.gerarPdfOrdem = async function () {
   if (modalOSId == null) {
