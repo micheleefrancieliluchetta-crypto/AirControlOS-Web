@@ -1009,8 +1009,6 @@ if (formTecnico) {
  *************************************************/
 let modalOSId = null;
 
-let detMapInstance = null; // mapa Leaflet do modal (pra não inicializar duas vezes)
-
 async function preencherModalComAPI(id) {
   const os = await api(`/api/OrdensServico/${id}`);
   const setTxt = (i, v) => {
