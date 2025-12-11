@@ -23,9 +23,10 @@
   <link id="apple-icon" rel="apple-touch-icon" href="icons/empresa/icon-192.png" />
   <link id="favicon" rel="icon" href="icons/empresa/icon-192.png" />
   <meta name="theme-color" content="#1e90ff" />
-  <meta name="mobile-web-app-capable" content="yes">
+  <meta name="mobile-web-app-capable" content="yes" />
   <meta name="apple-mobile-web-app-capable" content="yes" />
   <meta name="apple-mobile-web-app-status-bar-style" content="default" />
+
   <script>
     const BRAND = localStorage.getItem('brand') || 'empresa';
     document.getElementById('apple-icon').href = `icons/${BRAND}/icon-192.png`;
@@ -216,10 +217,11 @@
 
   <!-- Registro do Service Worker -->
   <script>
-    if ('serviceWorker' in navigator && location.protocol.startsWith('http')) {
-      navigator.serviceWorker.register('./service-worker.js', { scope: './' })
-        .then(reg => console.log('Service Worker registrado:', reg.scope))
-        .catch(err => console.error('Erro ao registrar o Service Worker:', err));
+    if ("serviceWorker" in navigator && location.protocol.startsWith("http")) {
+      navigator.serviceWorker
+        .register("./service-worker.js", { scope: "./" })
+        .then((reg) => console.log("Service Worker registrado:", reg.scope))
+        .catch((err) => console.error("Erro ao registrar o Service Worker:", err));
     }
   </script>
 </body>
