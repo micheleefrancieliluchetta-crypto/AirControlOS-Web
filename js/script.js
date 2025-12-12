@@ -1008,8 +1008,7 @@ if (formTecnico) {
  * Modal Detalhes (dashboard.html)
  *************************************************/
 let modalOSId = null;
-
-let detMapInstance = null; // instancia do mapa Leaflet do modal
+let detMapInstance = null; // instancia única do mapa do modal
 
 async function preencherModalComAPI(id) {
   const os = await api(`/api/OrdensServico/${id}`);
@@ -1116,10 +1115,15 @@ window.abrirModal = async function (id) {
 
       const mapEl = document.getElementById("detMap");
         if (mapEl) {
-        // se já tiver mapa criado, destrói antes de criar outro
+        // se já existir um mapa, destrói
         if (detMapInstance) {
           detMapInstance.remove();
           detMapInstance = null;
+        }
+
+        // se o container ficou com _leaflet_id preso, limpa
+        if (mapEl._leaflet_id) {
+          mapEl._leaflet_id = null;
         }
 
         mapEl.innerHTML = "";
