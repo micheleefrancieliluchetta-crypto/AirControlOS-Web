@@ -1009,6 +1009,8 @@ if (formTecnico) {
  *************************************************/
 let modalOSId = null;
 
+let detMapInstance = null; // instancia do mapa Leaflet do modal
+
 async function preencherModalComAPI(id) {
   const os = await api(`/api/OrdensServico/${id}`);
   const setTxt = (i, v) => {
@@ -1112,20 +1114,27 @@ window.abrirModal = async function (id) {
       await renderFotos("detFotosAntes",  os.fotosAntesIds,  os.fotosAntes);
       await renderFotos("detFotosDepois", os.fotosDepoisIds, os.fotosDepois);
 
-        const mapEl = document.getElementById("detMap");
+      const mapEl = document.getElementById("detMap");
         if (mapEl) {
-       mapEl.innerHTML = "";
-       if (typeof L !== "undefined" && os.local?.lat && os.local?.lng) {
-     const lat = parseFloat(os.local.lat);
-     const lng = parseFloat(os.local.lng);
+        // se já tiver mapa criado, destrói antes de criar outro
+        if (detMapInstance) {
+          detMapInstance.remove();
+          detMapInstance = null;
+        }
 
-    const map = L.map(mapEl).setView([lat, lng], 14);
+        mapEl.innerHTML = "";
 
-    L.tileLayer("https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png", {
-      attribution: "&copy; OpenStreetMap"
-    }).addTo(map);
+        if (typeof L !== "undefined" && os.local?.lat && os.local?.lng) {
+          const lat = parseFloat(os.local.lat);
+          const lng = parseFloat(os.local.lng);
 
-    L.marker([lat, lng]).addTo(map);
+          detMapInstance = L.map(mapEl).setView([lat, lng], 14);
+
+          L.tileLayer("https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png", {
+            attribution: "&copy; OpenStreetMap"
+          }).addTo(detMapInstance);
+
+          L.marker([lat, lng]).addTo(detMapInstance);
         }
       }
     }
@@ -1139,6 +1148,12 @@ window.fecharModal = function () {
   if (!modal) return;
   modal.style.display = "none";
   modalOSId = null;
+
+  // limpa o mapa ao fechar
+  if (detMapInstance) {
+    detMapInstance.remove();
+    detMapInstance = null;
+  }
 };
 
 window.salvarStatusModal = function () {
