@@ -69,6 +69,19 @@
     </form>
   </main>
 
+  <script>
+  requireLogin();
+
+  const cargoBruto = sessionStorage.getItem("cargo") || role() || "";
+  const cargo = cargoBruto.toString().trim().toLowerCase();
+  const ehAdmin = cargo.startsWith("admin");
+
+  if (!ehAdmin) {
+    alert("Somente administradores podem acessar esta página.");
+    window.location.href = "dashboard.html";
+  }
+</script>
+
   <!-- script principal -->
   <script src="js/script.js"></script>
 
