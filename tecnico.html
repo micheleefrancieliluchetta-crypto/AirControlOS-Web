@@ -26,18 +26,18 @@
 
   <!-- MENU LATERAL (ATUALIZADO) -->
   <nav class="sidebar">
-  <ul>
-    <li><a href="dashboard.html">🏠 Dashboard</a></li>
-    <li><a href="ordem-servico.html">📝 Ordem de Serviço</a></li>
-    <li><a href="calendario.html">📝 Calendário</a></li>
-    <li><a href="local.html">📍 Locais</a></li>
-    <li><a href="tecnico.html" class="active">🧑‍🔧 Técnicos</a></li>
-    <li><a href="usuarios.html">👤 Usuários</a></li>
-    <li><a href="aparelhos-por-unidade.html">🏥 Aparelhos por unidade</a></li>
-    <li><a href="pmoc.html">✅ Checklist PMOC</a></li>
-    <li><a href="pmoc-historico.html">📂 Histórico PMOC</a></li>
-  </ul>
-</nav>
+    <ul>
+      <li><a href="dashboard.html">🏠 Dashboard</a></li>
+      <li><a href="ordem-servico.html">📝 Ordem de Serviço</a></li>
+      <li><a href="calendario.html">📝 Calendário</a></li>
+      <li><a href="local.html">📍 Locais</a></li>
+      <li><a href="tecnico.html" class="active">🧑‍🔧 Técnicos</a></li>
+      <li><a href="usuarios.html">👤 Usuários</a></li>
+      <li><a href="aparelhos-por-unidade.html">🏥 Aparelhos por unidade</a></li>
+      <li><a href="pmoc.html">✅ Checklist PMOC</a></li>
+      <li><a href="pmoc-historico.html">📂 Histórico PMOC</a></li>
+    </ul>
+  </nav>
 
   <main class="main-content">
     <h2>Cadastrar Novo Técnico</h2>
@@ -59,7 +59,7 @@
       <label for="nivel">Nível de Acesso:</label>
       <select id="nivel" name="nivel" required>
         <option value="Admin">Admin</option>
-        <!-- aqui depois você pode adicionar outros níveis se quiser -->
+        <!-- depois você pode adicionar outros níveis -->
       </select>
 
       <label for="senha">Senha:</label>
@@ -69,49 +69,31 @@
     </form>
   </main>
 
-  <script>
-  // Garante que está logado
-  requireLogin();
-
-  // Pega o cargo de vários lugares possíveis
-  function obterCargoAtual() {
-    const possivel =
-      sessionStorage.getItem("cargo") ||
-      localStorage.getItem("cargo") ||
-      localStorage.getItem("role") ||
-      "";
-    return possivel.toString().trim().toLowerCase();
-  }
-
-  const cargo = obterCargoAtual();
-
-  // Considera admin qualquer cargo que contenha "admin"
-  // (Admin, Administrador, Admin TI, etc.)
-  const ehAdmin =
-    cargo.includes("admin");
-
-  if (!ehAdmin) {
-    alert("Somente administradores podem acessar esta página.");
-    window.location.href = "dashboard.html";
-  }
-</script>
-
-<!-- script principal -->
-<script src="js/script.js"></script>
+  <!-- script principal (tudo que define requireLogin, ensureAdmin, etc.) -->
+  <script src="js/script.js"></script>
 
   <!-- Bloqueio de acesso: somente Admin -->
   <script>
-    // Se existir helper global (que definimos no script.js), usa ele
+    // Garante que o usuário esteja logado
+    if (typeof requireLogin === "function") {
+      requireLogin();
+    }
+
+    // Se existir helper global ensureAdmin (definido no script.js), usa ele
     if (typeof ensureAdmin === "function") {
       ensureAdmin();
     } else {
-      // Fallback: usa o cargo salvo pelo login na sessionStorage
-      const cargo = sessionStorage.getItem("cargo");
+      // Fallback: lê o cargo de vários lugares possíveis
+      const cargoBruto =
+        sessionStorage.getItem("cargo") ||
+        localStorage.getItem("cargo") ||
+        localStorage.getItem("role") ||
+        "";
 
-      if (!cargo) {
-        alert("Faça login para continuar.");
-        window.location.href = "index.html";
-      } else if (cargo !== "Admin") {   // mesma grafia que vem do backend
+      const cargo = cargoBruto.toString().trim().toLowerCase();
+
+      // Considera admin se contiver "admin"
+      if (!cargo.includes("admin")) {
         alert("Somente administradores podem acessar esta página.");
         window.location.href = "dashboard.html";
       }
@@ -121,9 +103,11 @@
   <!-- Service Worker -->
   <script>
     if ('serviceWorker' in navigator) {
-      navigator.serviceWorker.register('./service-worker.js', { scope: './' })
+      navigator.serviceWorker
+        .register('./service-worker.js', { scope: './' })
         .catch(err => console.error('SW erro:', err));
     }
   </script>
 </body>
 </html>
+
