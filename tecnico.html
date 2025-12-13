@@ -70,11 +70,25 @@
   </main>
 
   <script>
+  // Garante que está logado
   requireLogin();
 
-  const cargoBruto = sessionStorage.getItem("cargo") || role() || "";
-  const cargo = cargoBruto.toString().trim().toLowerCase();
-  const ehAdmin = cargo.startsWith("admin");
+  // Pega o cargo de vários lugares possíveis
+  function obterCargoAtual() {
+    const possivel =
+      sessionStorage.getItem("cargo") ||
+      localStorage.getItem("cargo") ||
+      localStorage.getItem("role") ||
+      "";
+    return possivel.toString().trim().toLowerCase();
+  }
+
+  const cargo = obterCargoAtual();
+
+  // Considera admin qualquer cargo que contenha "admin"
+  // (Admin, Administrador, Admin TI, etc.)
+  const ehAdmin =
+    cargo.includes("admin");
 
   if (!ehAdmin) {
     alert("Somente administradores podem acessar esta página.");
@@ -82,8 +96,8 @@
   }
 </script>
 
-  <!-- script principal -->
-  <script src="js/script.js"></script>
+<!-- script principal -->
+<script src="js/script.js"></script>
 
   <!-- Bloqueio de acesso: somente Admin -->
   <script>
