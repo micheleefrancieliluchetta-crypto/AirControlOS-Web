@@ -193,27 +193,26 @@
   <script src="js/script.js"></script>
 
   <!-- Controle de login e permissão -->
-  <script>
-    // Garante que o usuário esteja logado (usa função do script.js)
-    requireLogin();
+<script>
+  // Garante que o usuário esteja logado (usa função do script.js)
+  requireLogin();
 
-    // Tenta ler o cargo tanto da sessionStorage (novo) quanto da localStorage (legado)
-    const cargoAtual = sessionStorage.getItem("cargo") || role();
+  // Lê o cargo salvo e padroniza
+  const cargoBruto = sessionStorage.getItem("cargo") || role() || "";
+  const cargo = cargoBruto.toString().trim().toLowerCase();
 
-    // Se não tiver cargo, volta pro login
-    if (!cargoAtual) {
-      window.location.href = "index.html";
-    }
+  // Considera admin qualquer cargo que comece com "admin"
+  const ehAdmin = cargo.startsWith("admin");
 
-    // Esconder menus que só o Admin pode ver
-    if (cargoAtual.toLowerCase() !== "admin") {
-      const linkTecnico = document.querySelector('a[href="tecnico.html"]');
-      if (linkTecnico) linkTecnico.style.display = "none";
+  // Esconde menus exclusivos de admin
+  if (!ehAdmin) {
+    const linkTecnico = document.querySelector('a[href="tecnico.html"]');
+    if (linkTecnico) linkTecnico.style.display = "none";
 
-      const linkAbrir = document.querySelector('a[href="abrir-os.html"]');
-      if (linkAbrir) linkAbrir.style.display = "none";
-    }
-  </script>
+    const linkAbrir = document.querySelector('a[href="abrir-os.html"]');
+    if (linkAbrir) linkAbrir.style.display = "none";
+  }
+</script>
 
   <!-- Registro do Service Worker -->
   <script>
