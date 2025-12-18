@@ -19,11 +19,27 @@
   <!-- script principal (API_BASE, api(), getOS(), toItems(), codigoOSApi etc.) -->
   <script src="js/script.js"></script>
 
-  <header class="topbar-lite"
+    <header class="topbar-lite calendario-topbar"
           style="border-radius:0 0 18px 18px; background:linear-gradient(90deg,#1e90ff,#0ea5e9); color:#fff; padding:16px 0;">
     <div class="wrap-calendario">
-      <h1 style="margin:0; font-size:1.4rem;">📅 Calendário de OS – AirControl OS</h1>
-      <p class="muted" style="color:#e2f3ff;">Visualize as ordens de serviço por dia.</p>
+      <div class="linha-topo-calendario">
+        <button class="btn-voltar" type="button"
+                onclick="window.location.href='dashboard.html'">
+          ← Voltar
+        </button>
+
+        <h1 style="margin:0; font-size:1.4rem;">
+          📅 Calendário de OS – AirControl OS
+        </h1>
+
+        <button class="btn-sair" type="button" onclick="logout()">
+          Sair
+        </button>
+      </div>
+
+      <p class="muted" style="color:#e2f3ff; margin-top:8px;">
+        Visualize as ordens de serviço por dia.
+      </p>
     </div>
   </header>
 
@@ -310,5 +326,6 @@
   </script>
 </body>
 </html>
+
 
 
