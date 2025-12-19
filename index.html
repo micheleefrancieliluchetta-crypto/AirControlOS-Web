@@ -260,6 +260,21 @@
   <!-- JS principal -->
   <script src="js/script.js"></script>
 
+  <script>
+  // Rolagem suave para a seção "sobre"
+  document.addEventListener('DOMContentLoaded', function () {
+    const scrollBtn = document.querySelector('.scroll-button');
+    const target = document.querySelector('#sobre');
+
+    if (scrollBtn && target) {
+      scrollBtn.addEventListener('click', function (e) {
+        e.preventDefault();
+        target.scrollIntoView({ behavior: 'smooth' });
+      });
+    }
+  });
+</script>
+
   <!-- Registro do Service Worker -->
   <script>
     if ('serviceWorker' in navigator && location.protocol.startsWith('http')) {
