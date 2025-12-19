@@ -928,15 +928,16 @@ body.page-calendario {
   padding: 24px 0 0 0;
 }
 
-/* Cartão principal com 2 colunas */
+/* Cartão principal de login */
 .login-layout {
-  max-width: 960px;
+  max-width: 1100px;
   width: 100%;
   background: #ffffff;
-  border-radius: 16px;
+  border-radius: 18px;
   display: flex;
-  box-shadow: 0 14px 30px rgba(15, 23, 42, 0.25);
+  box-shadow: 0 18px 40px rgba(15, 23, 42, 0.35);
   overflow: hidden;
+  margin: 0 16px 32px;   /* espaço embaixo pro início das seções */
 }
 
 /* Coluna esquerda (texto/marketing) – mais sóbria */
