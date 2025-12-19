@@ -917,14 +917,15 @@ body.page-calendario {
   color: #fff;
 }
 
-/* Fundo da página de login */
+/* Fundo geral da página */
 .login-bg {
   min-height: 100vh;
+  margin: 0;
   display: flex;
-  align-items: center;
-  justify-content: center;
+  flex-direction: column;      /* empilha: login, seções, footer */
+  align-items: center;         /* centraliza o cartão de login */
   background: linear-gradient(135deg, #0ea5e9, #1d4ed8);
-  padding: 24px;
+  padding: 24px 0 0 0;
 }
 
 /* Cartão principal com 2 colunas */
