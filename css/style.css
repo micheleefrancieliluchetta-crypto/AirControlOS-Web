@@ -1400,3 +1400,27 @@ body.page-calendario {
   }
 }
 
+/* Ajustes finos de organização das seções abaixo do login */
+
+/* dá um pouco mais de respiro após o hero */
+.landing-section {
+  padding-top: 64px;
+  padding-bottom: 56px;
+}
+
+/* deixa os títulos das seções mais destacados e alinhados */
+.landing-section h2 {
+  margin-bottom: 16px;
+}
+
+/* limita um pouco a largura dos textos para não ficar “tela inteira” */
+.landing-text p,
+.landing-full p {
+  max-width: 850px;
+}
+
+/* garante que a primeira seção (#sobre) não fique colada visualmente no hero */
+#sobre {
+  margin-top: 8px;
+}
+
