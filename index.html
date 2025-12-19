@@ -8,39 +8,74 @@
 
   <link rel="stylesheet" href="css/style.css" />
 
-<link rel="manifest" href="manifest.webmanifest" />
-<meta name="theme-color" content="#1e90ff" />
+  <link rel="manifest" href="manifest.webmanifest" />
+  <meta name="theme-color" content="#1e90ff" />
 
-<!-- recomendado pelo aviso -->
-<meta name="mobile-web-app-capable" content="yes">
+  <!-- recomendado pelo aviso -->
+  <meta name="mobile-web-app-capable" content="yes">
 
-<!-- iOS -->
-<link rel="icon" type="image/png" href="icons/icon-192.png">
-<meta name="apple-mobile-web-app-capable" content="yes" />
-<meta name="apple-mobile-web-app-status-bar-style" content="default" />
-
+  <!-- iOS -->
+  <link rel="icon" type="image/png" href="icons/icon-192.png">
+  <meta name="apple-mobile-web-app-capable" content="yes" />
+  <meta name="apple-mobile-web-app-status-bar-style" content="default" />
 </head>
+
 <body class="login-bg">
 
-  <section class="login-header">
-    <h1>AirControl OS</h1>
-    <form id="loginForm" class="login-inline">
-      <input id="loginEmail" type="email" placeholder="Email" required />
-      <input id="loginSenha" type="password" placeholder="Senha" required />
-      <button type="submit">Entrar</button>
-    </form>
-  </section>
+  <!-- LAYOUT PRINCIPAL: 2 COLUNAS -->
+  <main class="login-layout">
+    <!-- COLUNA ESQUERDA: TEXTO / MARKETING -->
+    <section class="login-hero">
+      <div class="login-logo">AirControl OS</div>
+      <h1>Aplicativo de ordem de serviço para equipes de campo</h1>
+      <p>
+        Controle de ordens de serviço, técnicos e histórico de manutenções
+        em um único sistema, ideal para empresas de ar-condicionado
+        e refrigeração.
+      </p>
+
+      <ul class="login-benefits">
+        <li>✅ Abertura e acompanhamento das OS em tempo real</li>
+        <li>✅ Organização da agenda dos técnicos</li>
+        <li>✅ Histórico de clientes e equipamentos</li>
+      </ul>
+
+      <small class="login-tagline">
+        Desenvolvido por Francieli Luchetta – Coordenadora de TI
+      </small>
+    </section>
+
+    <!-- COLUNA DIREITA: FORM DE LOGIN (mantive os mesmos IDs) -->
+    <section class="login-card">
+      <h2>Entrar no sistema</h2>
+      <form id="loginForm" class="login-form">
+        <div class="form-group">
+          <label for="loginEmail">E-mail</label>
+          <input id="loginEmail" type="email"
+                 placeholder="seuemail@empresa.com" required />
+        </div>
+
+        <div class="form-group">
+          <label for="loginSenha">Senha</label>
+          <input id="loginSenha" type="password"
+                 placeholder="Sua senha" required />
+        </div>
+
+        <button type="submit" class="btn-login">Entrar</button>
+      </form>
+    </section>
+  </main>
 
   <!-- JS principal -->
   <script src="js/script.js"></script>
 
   <!-- Registro do Service Worker -->
-<script>
-  if ('serviceWorker' in navigator && location.protocol.startsWith('http')) {
-    navigator.serviceWorker.register('./service-worker.js', { scope: './' })
-      .then(reg => console.log('Service Worker registrado:', reg.scope))
-      .catch(err => console.error('Erro ao registrar o Service Worker:', err));
-  }
-</script>
+  <script>
+    if ('serviceWorker' in navigator && location.protocol.startsWith('http')) {
+      navigator.serviceWorker.register('./service-worker.js', { scope: './' })
+        .then(reg => console.log('Service Worker registrado:', reg.scope))
+        .catch(err => console.error('Erro ao registrar o Service Worker:', err));
+    }
+  </script>
 </body>
 </html>
