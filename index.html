@@ -20,148 +20,216 @@
   <meta name="apple-mobile-web-app-status-bar-style" content="default" />
 </head>
 
-<body class="login-bg">
-  <!-- LAYOUT PRINCIPAL: 2 COLUNAS (hero + login) -->
-  <main class="login-layout">
-    <!-- COLUNA ESQUERDA: TEXTO / MARKETING -->
-    <section class="login-hero">
-      <h2 class="login-logo">AIRCONTROL OS</h2>
+<!-- uso as duas classes: login-bg (fundo) + landing-page (rolagem) -->
+<body class="login-bg landing-page">
 
-      <h1>Aplicativo de ordem de serviço para equipes de campo</h1>
+  <!-- HERO COM LOGIN (topo da página) -->
+  <header class="landing-hero">
+    <div class="landing-hero-inner">
 
-      <p>
-        Controle de ordens de serviço, técnicos e histórico de manutenções
-        em um único sistema, ideal para empresas de ar-condicionado
-        e refrigeração.
-      </p>
+      <!-- Coluna esquerda: texto / marketing -->
+      <section class="login-hero">
+        <div class="login-logo">AIRC0NTROL OS</div>
 
-      <ul class="login-benefits">
-        <li>✅ Abertura e acompanhamento das OS em tempo real</li>
-        <li>✅ Organização da agenda dos técnicos</li>
-        <li>✅ Histórico de clientes e equipamentos</li>
-      </ul>
+        <h1>Aplicativo de ordem de serviço para equipes de campo</h1>
 
-      <small class="login-tagline">
-        Desenvolvido por Francieli Luchetta – Coordenadora de TI
-      </small>
+        <p>
+          Controle de ordens de serviço, técnicos e histórico de manutenções
+          em um único sistema, ideal para empresas de ar-condicionado
+          e refrigeração.
+        </p>
 
-      <!-- BOTÃO DE ROLAGEM -->
-      <button type="button" class="scroll-button">
-        Saiba mais sobre o sistema ↓
-      </button>
-    </section>
+        <ul class="login-benefits">
+          <li>✅ Abertura e acompanhamento das OS em tempo real</li>
+          <li>✅ Organização da agenda dos técnicos</li>
+          <li>✅ Histórico de clientes e equipamentos</li>
+        </ul>
 
-    <!-- COLUNA DIREITA: FORM DE LOGIN -->
-    <section class="login-card">
-      <h2>Entrar no sistema</h2>
+        <small class="login-tagline">
+          Desenvolvido por Francieli Luchetta – Coordenadora de TI
+        </small>
 
-      <form id="loginForm" class="login-form">
-        <div class="form-group">
-          <label for="loginEmail">E-mail</label>
-          <input
-            id="loginEmail"
-            type="email"
-            placeholder="seuemail@empresa.com"
-            required
-          />
+        <!-- botão que desce para a seção “sobre” -->
+        <a href="#sobre" class="scroll-button">
+          Saiba mais sobre o sistema ↓
+        </a>
+      </section>
+
+      <!-- Coluna direita: formulário de login -->
+      <section class="login-card">
+        <h2>Entrar no sistema</h2>
+        <form id="loginForm" class="login-form">
+          <div class="form-group">
+            <label for="loginEmail">E-mail</label>
+            <input
+              id="loginEmail"
+              type="email"
+              placeholder="seuemail@empresa.com"
+              required
+            />
+          </div>
+
+          <div class="form-group">
+            <label for="loginSenha">Senha</label>
+            <input
+              id="loginSenha"
+              type="password"
+              placeholder="Sua senha"
+              required
+            />
+          </div>
+
+          <button type="submit" class="btn-login">Entrar</button>
+        </form>
+      </section>
+
+    </div>
+  </header>
+
+  <!-- CONTEÚDO DEBAIXO DO HERO (rolagem) -->
+  <main>
+
+    <!-- SEÇÃO 1 – Texto principal + imagem do painel -->
+    <section id="sobre" class="landing-section landing-section-white">
+      <div class="landing-container landing-container-split">
+
+        <div class="landing-text">
+          <h2>AirControl OS – Aplicativo de Ordem de Serviço</h2>
+          <p>
+            O AirControl OS coloca muito mais do que um simples calendário nas mãos da sua equipe.
+            Ele elimina o uso de planilhas e papéis para controlar as ordens de serviço e oferece
+            uma plataforma única para acompanhar as atividades de campo.
+          </p>
+          <p>
+            Com o sistema, a empresa passa a ter todas as informações necessárias para a execução
+            dos serviços: dados do cliente, equipamentos instalados, horários, responsáveis,
+            histórico de visitas e observações técnicas. Isso torna a troca de informações entre
+            escritório e equipe externa muito mais ágil e confiável.
+          </p>
         </div>
 
-        <div class="form-group">
-          <label for="loginSenha">Senha</label>
-          <input
-            id="loginSenha"
-            type="password"
-            placeholder="Sua senha"
-            required
-          />
+        <!-- imagem opcional (coloque uma print do teu dashboard em img/painel-aircontrol.png) -->
+        <div class="landing-image">
+          <img src="img/painel-aircontrol.png" alt="Painel do AirControl OS" />
         </div>
 
-        <button type="submit" class="btn-login">Entrar</button>
-      </form>
+      </div>
     </section>
+
+    <!-- SEÇÃO 2 – Principais recursos (cards) -->
+    <section class="landing-section landing-section-light">
+      <div class="landing-container landing-full">
+        <h2>Principais recursos do AirControl OS</h2>
+
+        <div class="landing-features-grid">
+
+          <article class="feature-card">
+            <h3>Informações completas das ordens de serviço</h3>
+            <p>
+              Registro de data, horário, tipo de atendimento, responsável, situação da OS
+              e observações técnicas em um único lugar.
+            </p>
+          </article>
+
+          <article class="feature-card">
+            <h3>Encerramento da ordem de serviço</h3>
+            <p>
+              Finalização da OS com descrição do que foi executado, equipamentos utilizados,
+              parecer técnico e status de conclusão.
+            </p>
+          </article>
+
+          <article class="feature-card">
+            <h3>Histórico de clientes e equipamentos</h3>
+            <p>
+              Consulta rápida ao histórico de visitas, manutenções e trocas de peças
+              para cada cliente e equipamento instalado.
+            </p>
+          </article>
+
+          <article class="feature-card">
+            <h3>Controle da equipe em campo</h3>
+            <p>
+              Visão organizada das ordens de serviço por técnico, facilitando o
+              planejamento da agenda e a distribuição das tarefas.
+            </p>
+          </article>
+
+        </div>
+      </div>
+    </section>
+
+    <!-- SEÇÃO 3 – Manutenção preventiva / corretiva -->
+    <section class="landing-section landing-section-white">
+      <div class="landing-container landing-container-split">
+
+        <div class="maintenance-block">
+          <h2>Mais que um aplicativo de ordem de serviço</h2>
+          <p>
+            A solução foi pensada para que a gestão operacional acompanhe, em tempo real,
+            tudo o que acontece em campo: abertura, execução e encerramento das ordens de serviço.
+          </p>
+          <p>
+            Com isso, a empresa ganha organização, reduz retrabalho e melhora o atendimento ao cliente.
+            Seus técnicos passam a ter todas as informações na palma da mão, enquanto o escritório
+            acompanha indicadores como volume de atendimentos, tempo médio de execução e serviços
+            mais críticos.
+          </p>
+
+          <ul class="maintenance-list">
+            <li>• Manutenção preventiva planejada</li>
+            <li>• Manutenção corretiva registrada e rastreável</li>
+            <li>• Histórico completo por cliente e equipamento</li>
+          </ul>
+        </div>
+
+        <!-- imagem opcional de equipe em campo -->
+        <div class="maintenance-image">
+          <img src="img/equipe-campo.jpg" alt="Equipe de campo utilizando o AirControl OS" />
+        </div>
+
+      </div>
+    </section>
+
   </main>
 
-  <!-- SEÇÕES DE CONTEÚDO (PARTE DE BAIXO DA HOME) -->
-  <section id="sobre" class="landing-section landing-full">
-    <div class="landing-text">
-      <h2>AirControl OS – Aplicativo de Ordem de Serviço</h2>
-      <p>
-        O AirControl OS coloca muito mais do que um simples calendário nas mãos da sua equipe.
-        Ele elimina o uso de planilhas e papéis para controlar as ordens de serviço e
-        oferece uma plataforma única para acompanhar as atividades de campo.
-      </p>
-      <p>
-        Com o sistema, a empresa passa a ter todas as informações necessárias para a execução
-        dos serviços: dados do cliente, equipamentos instalados, horários, responsáveis,
-        histórico de visitas e observações técnicas. Isso torna a troca de informações entre
-        escritório e equipe externa muito mais ágil e confiável.
-      </p>
-    </div>
-  </section>
-
-  <section class="landing-section landing-columns">
-    <div class="landing-text">
-      <h3>Informações completas das ordens de serviço</h3>
-      <p>
-        Registro de data, horário, tipo de atendimento, responsável, situação da OS e
-        observações técnicas em um único lugar.
-      </p>
-
-      <h3>Encerramento da ordem de serviço</h3>
-      <p>
-        Finalização da OS com descrição do que foi executado, equipamentos utilizados,
-        parecer técnico e status de conclusão.
-      </p>
-
-      <h3>Histórico de clientes e equipamentos</h3>
-      <p>
-        Consulta rápida ao histórico de visitas, manutenções e trocas de peças para cada
-        cliente e equipamento instalado.
-      </p>
-    </div>
-
-    <div class="landing-text">
-      <h3>Controle da equipe em campo</h3>
-      <p>
-        Visão organizada das ordens de serviço por técnico, facilitando o planejamento da
-        agenda e a distribuição das tarefas.
-      </p>
-
-      <h3>O AirControl OS é mais que um aplicativo de ordem de serviço</h3>
-      <p>
-        A solução foi pensada para que a gestão operacional acompanhe, em tempo real, tudo o
-        que acontece em campo: abertura, execução e encerramento das ordens de serviço.
-      </p>
-      <p>
-        Com isso, a empresa ganha organização, reduz retrabalho e melhora o atendimento ao
-        cliente. Seus técnicos passam a ter todas as informações na palma da mão, enquanto o
-        escritório acompanha indicadores como volume de atendimentos, tempo médio de execução
-        e serviços mais críticos.
-      </p>
-    </div>
-  </section>
-
+  <!-- RODAPÉ -->
   <footer class="landing-footer">
-    <div class="landing-footer-content">
-      <div>
-        <strong>AirControl OS</strong><br />
-        Sistema de gestão de ordens de serviço para empresas de refrigeração e ar-condicionado.
+    <div class="landing-footer-inner">
+
+      <div class="footer-brand">
+        <span class="footer-logo">AirControl OS</span>
+        <p>
+          Sistema de gestão de ordens de serviço para empresas de refrigeração
+          e ar-condicionado, com foco em agilidade, organização e controle em tempo real.
+        </p>
       </div>
-      <div>
-        <strong>Recursos</strong><br />
-        <a href="#">Gestão de OS</a><br />
-        <a href="#">Histórico de clientes</a><br />
-        <a href="#">Controle de equipe</a>
+
+      <div class="footer-cols">
+        <div class="footer-col">
+          <h4>Recursos</h4>
+          <ul>
+            <li>Gestão de OS</li>
+            <li>Histórico de clientes</li>
+            <li>Controle de equipe</li>
+          </ul>
+        </div>
+
+        <div class="footer-col">
+          <h4>Contato</h4>
+          <ul>
+            <li>E-mail: contato@aircontrolos.com.br</li>
+            <li>Telefone: (00) 0000-0000</li>
+            <li>São Bernardo do Campo / SP</li>
+          </ul>
+        </div>
       </div>
-      <div>
-        <strong>Contato</strong><br />
-        E-mail: <a href="mailto:contato@aircontrolos.com.br">contato@aircontrolos.com.br</a><br />
-        São Bernardo do Campo / SP
-      </div>
+
     </div>
-    <p class="landing-footer-copy">
-      © 2025 AirControl OS – Todos os direitos reservados.
-    </p>
+
+    <div class="footer-copy">
+      © 2025 AirControl OS — Todos os direitos reservados.
+    </div>
   </footer>
 
   <!-- JS principal -->
@@ -175,22 +243,8 @@
         .catch(err => console.error('Erro ao registrar o Service Worker:', err));
     }
   </script>
-
-  <!-- Rolagem suave do botão "Saiba mais sobre o sistema" -->
-  <script>
-    document.addEventListener('DOMContentLoaded', function () {
-      const scrollBtn = document.querySelector('.scroll-button');
-      const target = document.querySelector('#sobre');
-
-      if (scrollBtn && target) {
-        scrollBtn.addEventListener('click', function (e) {
-          e.preventDefault();
-          target.scrollIntoView({ behavior: 'smooth' });
-        });
-      }
-    });
-  </script>
 </body>
 </html>
+
 
 
