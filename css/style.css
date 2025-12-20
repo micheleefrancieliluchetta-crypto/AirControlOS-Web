@@ -24,6 +24,11 @@ body {
   overflow: hidden; /* conteúdo rola no main-content */
 }
 
+/* quando estiver na landing/login (body com class="login-bg"), libera o scroll vertical */
+body.login-bg {
+  overflow-y: auto;
+}
+
 /* LOGIN – centralizado */
 .login-bg {
   margin: 0;
@@ -354,7 +359,7 @@ body {
 
 /* Mini-mapa de preview no formulário público */
 .map-mini{
-  height:220px; border-radius:12px; background:#f1f5f9;
+  height:220px; border-radius:12px; background:#f1f59;
 }
 
 /* Linha de botões do formulário público */
@@ -1423,4 +1428,5 @@ body.page-calendario {
 #sobre {
   margin-top: 8px;
 }
+
 
