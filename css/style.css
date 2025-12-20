@@ -21,7 +21,8 @@ body {
   font-family: "Segoe UI", system-ui, -apple-system, Arial, sans-serif;
   background: linear-gradient(90deg, var(--azul), var(--azul-2));
   color: #111;
-  overflow: hidden; /* conteúdo rola no main-content */
+  /* libera scroll vertical e só esconde horizontal */
+  overflow-x: hidden;
 }
 
 /* quando estiver na landing/login (body com class="login-bg"), libera o scroll vertical */
@@ -29,15 +30,6 @@ body.login-bg {
   overflow-y: auto;
 }
 
-/* LOGIN – centralizado */
-.login-bg {
-  margin: 0;
-  min-height: 100vh;
-  display: flex;
-  justify-content: center;
-  align-items: center;
-  background: linear-gradient(90deg, var(--azul), var(--azul-2));
-}
 .login-header {
   background: #fff;
   padding: 30px 40px;
@@ -926,11 +918,7 @@ body.page-calendario {
 .login-bg {
   min-height: 100vh;
   margin: 0;
-  display: flex;
-  flex-direction: column;      /* empilha: login, seções, footer */
-  align-items: center;         /* centraliza o cartão de login */
   background: linear-gradient(135deg, #0ea5e9, #1d4ed8);
-  padding: 24px 0 0 0;
 }
 
 /* Cartão principal de login */
