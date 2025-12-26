@@ -78,16 +78,44 @@ body.login-bg {
 .topbar button:hover{ background:#eaeff3; }
 
 .sidebar{
-  position:fixed; top:0; left:0; width:200px; height:100%;
+  position:fixed;
+  top:0;
+  left:0;
+  width:200px;
+  height:100vh;           /* ⬅ altura da tela inteira */
   background:var(--cinza-bg);
-  padding-top:80px; box-shadow: 2px 0 8px rgba(0,0,0,.06);
+  padding-top:80px;
+  box-shadow: 2px 0 8px rgba(0,0,0,.06);
+
+  overflow-y: auto;       /* ⬅ ativa a rolagem vertical */
+  overflow-x: hidden;     /* ⬅ evita barra horizontal */
 }
-.sidebar ul{ list-style:none; padding:0 14px; }
-.sidebar li{ margin:14px 0; }
+
+.sidebar ul{
+  list-style:none;
+  padding:0 10px;
+}
+
+.sidebar li{
+  margin:10px 0;               /* menos espaço entre itens */
+}
+
 .sidebar a{
-  display:block; text-decoration:none; color:#333; font-weight:700;
-  padding:10px 12px; border-radius:10px;
+  display:block;
+  text-decoration:none;
+  color:#333;
+  font-weight:700;
+  font-size:0.9rem;            /* ⬅ texto menor */
+  line-height:1.2;             /* ⬅ linhas mais juntinhas */
+  padding:8px 10px;            /* ⬅ menos “gordura” dentro do botão */
+  border-radius:10px;
 }
+
+.sidebar a span,
+.sidebar a i{
+  font-size:1rem;
+}
+
 .sidebar a:hover, .sidebar a.active{
   background:#d9ecff; color:var(--azul);
 }
@@ -295,6 +323,13 @@ body.login-bg {
   .main-content{ padding:22px; }
   .form-os{ max-width: 100%; }
 }
+
+@media (max-width: 1024px) {
+  .sidebar a{
+    font-size: 0.8rem;   /* ⬅ ainda menor em notebook/tablet */
+  }
+}
+
 @media (max-width: 880px){
   .sidebar{ width:180px; }
   .topbar{ left:180px; }
@@ -1400,21 +1435,3 @@ body.page-calendario {
   padding-top: 64px;
   padding-bottom: 56px;
 }
-
-/* deixa os títulos das seções mais destacados e alinhados */
-.landing-section h2 {
-  margin-bottom: 16px;
-}
-
-/* limita um pouco a largura dos textos para não ficar “tela inteira” */
-.landing-text p,
-.landing-full p {
-  max-width: 850px;
-}
-
-/* garante que a primeira seção (#sobre) não fique colada visualmente no hero */
-#sobre {
-  margin-top: 8px;
-}
-
-
