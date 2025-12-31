@@ -1,0 +1,543 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8" />
+  <title>PMOC por Cidade / Unidade</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+
+  <style>
+    /* --- Layout básico, você pode adaptar para o CSS do seu app --- */
+
+    body {
+      font-family: Arial, sans-serif;
+      margin: 0;
+      background: #f4f4f4;
+      color: #333;
+    }
+
+    header {
+      background: #0a5877; /* pode trocar pra cor da Maxi */
+      color: #fff;
+      padding: 12px 20px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+    }
+
+    header h1 {
+      font-size: 18px;
+      margin: 0;
+    }
+
+    .pmoc-container {
+      padding: 16px;
+      max-width: 1100px;
+      margin: 0 auto;
+    }
+
+    .pmoc-filtros {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 10px;
+      margin-bottom: 16px;
+      align-items: center;
+    }
+
+    .pmoc-filtros label {
+      font-size: 14px;
+      font-weight: bold;
+      margin-right: 6px;
+    }
+
+    .pmoc-filtros select,
+    .pmoc-filtros input {
+      padding: 6px 8px;
+      border-radius: 4px;
+      border: 1px solid #ccc;
+      font-size: 14px;
+    }
+
+    .cidade-bloco {
+      margin-bottom: 24px;
+    }
+
+    .cidade-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      margin-bottom: 8px;
+    }
+
+    .cidade-header h2 {
+      font-size: 18px;
+      margin: 0;
+      color: #0a5877;
+    }
+
+    .cidade-header small {
+      font-size: 12px;
+      color: #666;
+    }
+
+    .unidades-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+      gap: 12px;
+    }
+
+    .unidade-card {
+      background: #fff;
+      border-radius: 6px;
+      padding: 12px;
+      box-shadow: 0 1px 4px rgba(0,0,0,0.08);
+      border-left: 4px solid #0a5877;
+      display: flex;
+      flex-direction: column;
+      gap: 6px;
+    }
+
+    .unidade-card h3 {
+      font-size: 15px;
+      margin: 0;
+    }
+
+    .unidade-card p {
+      margin: 0;
+      font-size: 13px;
+      color: #555;
+    }
+
+    .unidade-meta {
+      font-size: 12px;
+      color: #777;
+    }
+
+    .unidade-actions {
+      margin-top: 8px;
+      display: flex;
+      justify-content: flex-end;
+      gap: 8px;
+    }
+
+    .btn {
+      border: none;
+      border-radius: 4px;
+      padding: 6px 10px;
+      font-size: 13px;
+      cursor: pointer;
+    }
+
+    .btn-primario {
+      background: #0a5877;
+      color: #fff;
+    }
+
+    .btn-primario:hover {
+      background: #08435a;
+    }
+
+    .btn-secundario {
+      background: #e0e0e0;
+      color: #333;
+    }
+
+    .unidade-card.desabilitada {
+      opacity: 0.55;
+      border-left-color: #999;
+    }
+
+    .unidade-card.desabilitada .btn-primario {
+      cursor: not-allowed;
+    }
+
+    /* --- Modal de Login da Unidade --- */
+
+    .modal-backdrop {
+      display: none;
+      position: fixed;
+      inset: 0;
+      background: rgba(0,0,0,0.4);
+      align-items: center;
+      justify-content: center;
+      z-index: 999;
+    }
+
+    .modal-backdrop.ativo {
+      display: flex;
+    }
+
+    .modal {
+      background: #fff;
+      border-radius: 6px;
+      max-width: 380px;
+      width: 90%;
+      padding: 16px 18px;
+      box-shadow: 0 2px 10px rgba(0,0,0,0.25);
+    }
+
+    .modal header {
+      background: none;
+      color: #333;
+      padding: 0 0 8px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+
+    .modal header h2 {
+      font-size: 16px;
+      margin: 0;
+    }
+
+    .modal header button {
+      background: transparent;
+      border: none;
+      font-size: 18px;
+      cursor: pointer;
+    }
+
+    .modal .subtitulo {
+      font-size: 12px;
+      color: #666;
+      margin-bottom: 12px;
+    }
+
+    .modal form {
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+    }
+
+    .modal label {
+      font-size: 13px;
+      font-weight: bold;
+    }
+
+    .modal input {
+      padding: 6px 8px;
+      border: 1px solid #ccc;
+      border-radius: 4px;
+      font-size: 13px;
+    }
+
+    .modal .actions {
+      display: flex;
+      justify-content: flex-end;
+      gap: 8px;
+      margin-top: 6px;
+    }
+
+    .modal p.msg-demo {
+      font-size: 11px;
+      color: #999;
+      margin-top: 8px;
+    }
+  </style>
+</head>
+<body>
+
+<header>
+  <h1>PMOC – Cidades e Unidades</h1>
+  <span style="font-size:13px;">AirControlOS</span>
+</header>
+
+<main class="pmoc-container">
+
+  <!-- FILTROS TOPO -->
+  <section class="pmoc-filtros">
+    <div>
+      <label for="filtroEmpresa">Empresa:</label>
+      <select id="filtroEmpresa">
+        <option value="todas">Todas</option>
+        <option value="MAXI" selected>Maxi Ar Condicionado LTDA</option>
+        <option value="G&G">G&G TECH GESTAO E SERVIÇOS LTDA</option>
+      </select>
+    </div>
+
+    <div>
+      <label for="filtroCidade">Cidade:</label>
+      <select id="filtroCidade">
+        <option value="todas">Todas</option>
+        <option value="São Vicente" selected>São Vicente</option>
+        <option value="Santos">Santos</option>
+        <option value="Bertioga">Bertioga</option>
+        <option value="São Paulo">São Paulo</option>
+      </select>
+    </div>
+
+    <div>
+      <label for="buscaUnidade">Buscar unidade:</label>
+      <input id="buscaUnidade" type="text" placeholder="Ex.: Hospital Vicentino" />
+    </div>
+  </section>
+
+  <!-- AQUI A LISTA DE CIDADES/UNIDADES VAI SER DESENHADA VIA JS -->
+  <section id="listaCidades"></section>
+
+</main>
+
+<!-- MODAL LOGIN UNIDADE -->
+<div class="modal-backdrop" id="modalLoginBackdrop">
+  <div class="modal">
+    <header>
+      <h2>Login da Unidade</h2>
+      <button type="button" id="btnFecharModal">&times;</button>
+    </header>
+    <div class="subtitulo">
+      <div><strong>Unidade:</strong> <span id="modalUnidadeNome"></span></div>
+      <div><strong>Cidade:</strong> <span id="modalUnidadeCidade"></span></div>
+    </div>
+    <form id="formLoginUnidade">
+      <div>
+        <label for="loginEmail">Usuário / E-mail</label>
+        <input id="loginEmail" type="email" required />
+      </div>
+      <div>
+        <label for="loginSenha">Senha</label>
+        <input id="loginSenha" type="password" required />
+      </div>
+      <div class="actions">
+        <button type="button" class="btn btn-secundario" id="btnCancelarModal">
+          Cancelar
+        </button>
+        <button type="submit" class="btn btn-primario">
+          Acessar PMOC
+        </button>
+      </div>
+      <p class="msg-demo">
+        *Nesta versão de exemplo, o login apenas simula o acesso. Depois você liga na API real.
+      </p>
+    </form>
+  </div>
+</div>
+
+<script>
+  // ============================
+  // DADOS DE EXEMPLO
+  // (Depois isso pode vir da sua API / banco)
+  // ============================
+  const unidades = [
+    {
+      id: 1,
+      empresa: "MAXI",
+      empresaNome: "Maxi Ar Condicionado LTDA",
+      cidade: "São Vicente",
+      nome: "Hospital Vicentino",
+      endereco: "Rua Exemplo, 123 – Centro",
+      tipo: "Hospital",
+      ativa: true
+    },
+    {
+      id: 2,
+      empresa: "MAXI",
+      empresaNome: "Maxi Ar Condicionado LTDA",
+      cidade: "Santos",
+      nome: "Loja Shopping Santos (em configuração)",
+      endereco: "Aguardando dados",
+      tipo: "Loja",
+      ativa: false   // ainda sem dados, só layout
+    },
+    {
+      id: 3,
+      empresa: "G&G",
+      empresaNome: "G&G TECH GESTAO E SERVIÇOS LTDA",
+      cidade: "São Paulo",
+      nome: "Cliente G&G – Unidade SP (em configuração)",
+      endereco: "Aguardando dados",
+      tipo: "Hospital / Contrato",
+      ativa: false
+    }
+  ];
+
+  // ============================
+  // ELEMENTOS DA TELA
+  // ============================
+  const listaCidadesEl = document.getElementById("listaCidades");
+  const filtroEmpresaEl = document.getElementById("filtroEmpresa");
+  const filtroCidadeEl  = document.getElementById("filtroCidade");
+  const buscaUnidadeEl  = document.getElementById("buscaUnidade");
+
+  const modalBackdrop   = document.getElementById("modalLoginBackdrop");
+  const modalUnidadeNome   = document.getElementById("modalUnidadeNome");
+  const modalUnidadeCidade = document.getElementById("modalUnidadeCidade");
+  const formLoginUnidade   = document.getElementById("formLoginUnidade");
+  const btnFecharModal     = document.getElementById("btnFecharModal");
+  const btnCancelarModal   = document.getElementById("btnCancelarModal");
+
+  // ============================
+  // FUNÇÃO PARA RENDERIZAR LISTA
+  // ============================
+  function renderizarCidades() {
+    const empresaFiltro = filtroEmpresaEl.value;
+    const cidadeFiltro  = filtroCidadeEl.value;
+    const textoBusca    = buscaUnidadeEl.value.trim().toLowerCase();
+
+    // Filtra unidades
+    const unidadesFiltradas = unidades.filter(u => {
+      const okEmpresa =
+        empresaFiltro === "todas" || u.empresa === empresaFiltro;
+
+      const okCidade =
+        cidadeFiltro === "todas" || u.cidade === cidadeFiltro;
+
+      const okBusca =
+        !textoBusca ||
+        u.nome.toLowerCase().includes(textoBusca) ||
+        u.cidade.toLowerCase().includes(textoBusca);
+
+      return okEmpresa && okCidade && okBusca;
+    });
+
+    // Agrupar por cidade
+    const porCidade = {};
+    unidadesFiltradas.forEach(u => {
+      if (!porCidade[u.cidade]) {
+        porCidade[u.cidade] = [];
+      }
+      porCidade[u.cidade].push(u);
+    });
+
+    // Limpa container
+    listaCidadesEl.innerHTML = "";
+
+    // Se não tiver nada
+    if (Object.keys(porCidade).length === 0) {
+      listaCidadesEl.innerHTML =
+        "<p>Nenhuma unidade encontrada com os filtros selecionados.</p>";
+      return;
+    }
+
+    // Monta blocos de cidade
+    Object.keys(porCidade).forEach(cidade => {
+      const unidadesCidade = porCidade[cidade];
+
+      const cidadeSection = document.createElement("section");
+      cidadeSection.className = "cidade-bloco";
+
+      const headerDiv = document.createElement("div");
+      headerDiv.className = "cidade-header";
+
+      const h2 = document.createElement("h2");
+      h2.textContent = cidade;
+
+      const info = document.createElement("small");
+      const countAtivas = unidadesCidade.filter(u => u.ativa).length;
+      info.textContent = `${unidadesCidade.length} unidade(s) • ${
+        countAtivas
+      } ativa(s)`;
+
+      headerDiv.appendChild(h2);
+      headerDiv.appendChild(info);
+
+      const grid = document.createElement("div");
+      grid.className = "unidades-grid";
+
+      // Cartões
+      unidadesCidade.forEach(u => {
+        const card = document.createElement("article");
+        card.className = "unidade-card";
+        if (!u.ativa) {
+          card.classList.add("desabilitada");
+        }
+
+        const h3 = document.createElement("h3");
+        h3.textContent = u.nome;
+
+        const pEndereco = document.createElement("p");
+        pEndereco.textContent = u.endereco;
+
+        const meta = document.createElement("div");
+        meta.className = "unidade-meta";
+        meta.textContent = `Empresa: ${u.empresaNome} • Tipo: ${u.tipo}`;
+
+        const actions = document.createElement("div");
+        actions.className = "unidade-actions";
+
+        const btnDemo = document.createElement("button");
+        btnDemo.className = "btn btn-secundario";
+        btnDemo.textContent = "Detalhes";
+        btnDemo.onclick = () => {
+          alert(
+            `Detalhes da unidade:\n\n${u.nome}\n${u.endereco}\n${u.cidade}\nEmpresa: ${u.empresaNome}`
+          );
+        };
+
+        const btnAcessar = document.createElement("button");
+        btnAcessar.className = "btn btn-primario";
+        btnAcessar.textContent = u.ativa
+          ? "Acessar PMOC"
+          : "Em configuração";
+
+        if (u.ativa) {
+          btnAcessar.onclick = () => abrirModalLogin(u);
+        } else {
+          btnAcessar.disabled = true;
+        }
+
+        actions.appendChild(btnDemo);
+        actions.appendChild(btnAcessar);
+
+        card.appendChild(h3);
+        card.appendChild(pEndereco);
+        card.appendChild(meta);
+        card.appendChild(actions);
+
+        grid.appendChild(card);
+      });
+
+      cidadeSection.appendChild(headerDiv);
+      cidadeSection.appendChild(grid);
+
+      listaCidadesEl.appendChild(cidadeSection);
+    });
+  }
+
+  // ============================
+  // MODAL DE LOGIN
+  // ============================
+  let unidadeAtual = null;
+
+  function abrirModalLogin(unidade) {
+    unidadeAtual = unidade;
+    modalUnidadeNome.textContent = unidade.nome;
+    modalUnidadeCidade.textContent = unidade.cidade;
+    modalBackdrop.classList.add("ativo");
+    document.getElementById("loginEmail").focus();
+  }
+
+  function fecharModalLogin() {
+    modalBackdrop.classList.remove("ativo");
+    unidadeAtual = null;
+    formLoginUnidade.reset();
+  }
+
+  btnFecharModal.addEventListener("click", fecharModalLogin);
+  btnCancelarModal.addEventListener("click", fecharModalLogin);
+
+  formLoginUnidade.addEventListener("submit", function (e) {
+    e.preventDefault();
+
+    const email = this.loginEmail.value.trim();
+    const senha = this.loginSenha.value.trim();
+
+    // Aqui você depois troca pelo POST na sua API /login-unidade
+    alert(
+      `Simulação de login:\n\nUnidade: ${unidadeAtual?.nome}\nCidade: ${unidadeAtual?.cidade}\nE-mail: ${email}`
+    );
+
+    fecharModalLogin();
+  });
+
+  // ============================
+  // EVENTOS DOS FILTROS
+  // ============================
+  filtroEmpresaEl.addEventListener("change", renderizarCidades);
+  filtroCidadeEl.addEventListener("change", renderizarCidades);
+  buscaUnidadeEl.addEventListener("input", renderizarCidades);
+
+  // Render inicial
+  renderizarCidades();
+</script>
+
+</body>
+</html>
