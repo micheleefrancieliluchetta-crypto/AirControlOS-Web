@@ -366,6 +366,28 @@
 </div>
 
 <script>
+  // ========= CARREGAR UNIDADE VINDO DO MENU PMOC =========
+  const unidadeSelecionadaStr = localStorage.getItem("pmocUnidadeSelecionada");
+  if (unidadeSelecionadaStr) {
+    try {
+      const unidadeSel = JSON.parse(unidadeSelecionadaStr);
+
+      const campoUnidade = document.getElementById("unidade");
+      const campoLocal   = document.getElementById("local");
+
+      if (campoUnidade && !campoUnidade.value) {
+        campoUnidade.value = unidadeSel.nome || "";
+      }
+      if (campoLocal && !campoLocal.value) {
+        campoLocal.value = unidadeSel.cidade || "";
+      }
+
+      console.log("PMOC para a unidade:", unidadeSel);
+    } catch (e) {
+      console.warn("Não foi possível ler pmocUnidadeSelecionada:", e);
+    }
+  }
+
   function toggleObs() {
     const box = document.getElementById("obsTecnicaBox");
     box.style.display = (box.style.display === "none" || box.style.display === "") ? "block" : "none";
@@ -452,7 +474,3 @@
 
 </body>
 </html>
-
-
-
-
