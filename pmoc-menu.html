@@ -16,17 +16,34 @@
     }
 
     header {
-      background: #0a5877; /* pode trocar pra cor da Maxi */
+      background: #0a5877; /* cor Maxi – pode trocar */
       color: #fff;
-      padding: 12px 20px;
+      padding: 12px 16px;
       display: flex;
       align-items: center;
       justify-content: space-between;
+      box-shadow: 0 2px 6px rgba(0,0,0,0.15);
+    }
+
+    header .esquerda {
+      display: flex;
+      align-items: center;
+      gap: 10px;
     }
 
     header h1 {
       font-size: 18px;
       margin: 0;
+    }
+
+    .btn-voltar {
+      background: rgba(255,255,255,0.18);
+      border: none;
+      color: #fff;
+      padding: 6px 10px;
+      border-radius: 6px;
+      font-size: 13px;
+      cursor: pointer;
     }
 
     .pmoc-container {
@@ -44,9 +61,9 @@
     }
 
     .pmoc-filtros label {
-      font-size: 14px;
+      font-size: 13px;
       font-weight: bold;
-      margin-right: 6px;
+      margin-right: 4px;
     }
 
     .pmoc-filtros select,
@@ -54,7 +71,7 @@
       padding: 6px 8px;
       border-radius: 4px;
       border: 1px solid #ccc;
-      font-size: 14px;
+      font-size: 13px;
     }
 
     .cidade-bloco {
@@ -87,7 +104,7 @@
 
     .unidade-card {
       background: #fff;
-      border-radius: 6px;
+      border-radius: 8px;
       padding: 12px;
       box-shadow: 0 1px 4px rgba(0,0,0,0.08);
       border-left: 4px solid #0a5877;
@@ -168,7 +185,7 @@
 
     .modal {
       background: #fff;
-      border-radius: 6px;
+      border-radius: 8px;
       max-width: 380px;
       width: 90%;
       padding: 16px 18px;
@@ -182,6 +199,7 @@
       display: flex;
       justify-content: space-between;
       align-items: center;
+      box-shadow: none;
     }
 
     .modal header h2 {
@@ -237,7 +255,12 @@
 <body>
 
 <header>
-  <h1>PMOC – Cidades e Unidades</h1>
+  <div class="esquerda">
+    <button class="btn-voltar" onclick="window.location.href='dashboard.html'">
+      ← Voltar
+    </button>
+    <h1>PMOC – Cidades e Unidades</h1>
+  </div>
   <span style="font-size:13px;">AirControlOS</span>
 </header>
 
@@ -262,6 +285,8 @@
         <option value="Santos">Santos</option>
         <option value="Bertioga">Bertioga</option>
         <option value="São Paulo">São Paulo</option>
+        <option value="São Bernardo do Campo">São Bernardo do Campo</option>
+        <option value="Guarulhos">Guarulhos</option>
       </select>
     </div>
 
@@ -317,6 +342,7 @@
   // (Depois isso pode vir da sua API / banco)
   // ============================
   const unidades = [
+    // MAXI – São Vicente
     {
       id: 1,
       empresa: "MAXI",
@@ -331,18 +357,52 @@
       id: 2,
       empresa: "MAXI",
       empresaNome: "Maxi Ar Condicionado LTDA",
-      cidade: "Santos",
-      nome: "Loja Shopping Santos (em configuração)",
+      cidade: "São Vicente",
+      nome: "PS Central (em configuração)",
       endereco: "Aguardando dados",
-      tipo: "Loja",
-      ativa: false   // ainda sem dados, só layout
+      tipo: "Pronto-Socorro",
+      ativa: false
     },
     {
       id: 3,
+      empresa: "MAXI",
+      empresaNome: "Maxi Ar Condicionado LTDA",
+      cidade: "São Vicente",
+      nome: "Hospital Olavo (em configuração)",
+      endereco: "Aguardando dados",
+      tipo: "Hospital",
+      ativa: false
+    },
+
+    // MAXI – Bertioga / Santos / São Bernardo (exemplo)
+    {
+      id: 4,
+      empresa: "MAXI",
+      empresaNome: "Maxi Ar Condicionado LTDA",
+      cidade: "Bertioga",
+      nome: "UBS Bertioga (em configuração)",
+      endereco: "Aguardando dados",
+      tipo: "UBS",
+      ativa: false
+    },
+    {
+      id: 5,
+      empresa: "MAXI",
+      empresaNome: "Maxi Ar Condicionado LTDA",
+      cidade: "São Bernardo do Campo",
+      nome: "Contrato São Bernardo (em configuração)",
+      endereco: "Aguardando dados",
+      tipo: "Contrato",
+      ativa: false
+    },
+
+    // G&G – Guarulhos (exemplo)
+    {
+      id: 6,
       empresa: "G&G",
       empresaNome: "G&G TECH GESTAO E SERVIÇOS LTDA",
-      cidade: "São Paulo",
-      nome: "Cliente G&G – Unidade SP (em configuração)",
+      cidade: "Guarulhos",
+      nome: "Cliente G&G – Guarulhos (em configuração)",
       endereco: "Aguardando dados",
       tipo: "Hospital / Contrato",
       ativa: false
@@ -422,9 +482,7 @@
 
       const info = document.createElement("small");
       const countAtivas = unidadesCidade.filter(u => u.ativa).length;
-      info.textContent = `${unidadesCidade.length} unidade(s) • ${
-        countAtivas
-      } ativa(s)`;
+      info.textContent = `${unidadesCidade.length} unidade(s) • ${countAtivas} ativa(s)`;
 
       headerDiv.appendChild(h2);
       headerDiv.appendChild(info);
@@ -520,12 +578,22 @@
     const email = this.loginEmail.value.trim();
     const senha = this.loginSenha.value.trim();
 
-    // Aqui você depois troca pelo POST na sua API /login-unidade
+    // Aqui depois você troca pelo POST na sua API /login-unidade
+    // Por enquanto, só simula e redireciona pro pmoc.html
     alert(
       `Simulação de login:\n\nUnidade: ${unidadeAtual?.nome}\nCidade: ${unidadeAtual?.cidade}\nE-mail: ${email}`
     );
 
-    fecharModalLogin();
+    // Guarda a unidade selecionada no localStorage
+    if (unidadeAtual) {
+      localStorage.setItem(
+        "pmocUnidadeSelecionada",
+        JSON.stringify(unidadeAtual)
+      );
+    }
+
+    // Vai para a tela do checklist PMOC
+    window.location.href = "pmoc.html";
   });
 
   // ============================
