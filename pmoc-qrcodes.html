@@ -1,0 +1,216 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>QR Codes PMOC - AirControl OS</title>
+
+  <link rel="stylesheet" href="css/style.css">
+
+  <!-- PWA -->
+  <link rel="manifest" href="./manifest.webmanifest" />
+  <meta name="theme-color" content="#1e90ff" />
+
+  <link rel="apple-touch-icon" href="icons/icon-192.png" />
+  <meta name="mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="default" />
+
+  <!-- Lib de QRCode (CDN) -->
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"
+          integrity="sha512-MQzvM2Nf1pGg0sM4e2Y2fEPi9P4kWvHgHqvHTtu1TtRC6N0fHqD6YQX7qYJxQHpoSuxA0Zg4qtL3qnV8Y+Hfg=="
+          crossorigin="anonymous" referrerpolicy="no-referrer"></script>
+
+  <style>
+    .qrcode-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 16px;
+    }
+
+    .btn-imprimir {
+      padding: 8px 14px;
+      border-radius: 6px;
+      border: none;
+      background: #1e90ff;
+      color: #fff;
+      cursor: pointer;
+      font-size: 14px;
+    }
+
+    .qr-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+      gap: 16px;
+    }
+
+    .qr-card {
+      background: #fff;
+      border-radius: 10px;
+      padding: 12px;
+      box-shadow: 0 1px 4px rgba(0,0,0,0.1);
+      text-align: center;
+    }
+
+    .qr-card h3 {
+      margin: 4px 0 6px;
+      font-size: 15px;
+    }
+
+    .qr-card p {
+      margin: 0;
+      font-size: 12px;
+    }
+
+    .qr-box {
+      margin: 10px auto 4px;
+    }
+
+    .qr-url {
+      font-size: 10px;
+      word-break: break-all;
+      color: #555;
+      margin-top: 4px;
+    }
+
+    @media print {
+      .topbar,
+      .sidebar,
+      .qrcode-header {
+        display: none !important;
+      }
+      body {
+        background: #fff;
+      }
+      .qr-card {
+        box-shadow: none;
+        border: 1px solid #ddd;
+      }
+    }
+  </style>
+</head>
+<body>
+  <!-- TOPO COM VOLTAR -->
+  <header class="topbar">
+    <button onclick="window.location.href='dashboard.html'" class="btn-voltar">←</button>
+    <h1>QR Codes PMOC</h1>
+    <button onclick="logout()">Sair</button>
+  </header>
+
+  <!-- MENU LATERAL -->
+  <nav class="sidebar">
+    <ul>
+      <li><a href="dashboard.html">🏠 Dashboard</a></li>
+      <li><a href="ordem-servico.html">📝 Ordem de Serviço - Manutenção Corretiva</a></li>
+      <li><a href="calendario.html">📅 Agenda</a></li>
+      <li><a href="local.html">📍 Locais / Unidades</a></li>
+      <li><a href="tecnico.html">🧑‍🔧 Técnicos</a></li>
+      <li><a href="usuarios.html">👤 Usuários - Acesso ao Sistema</a></li>
+      <li><a href="aparelhos-por-unidade.html">🏥 Aparelhos por unidade</a></li>
+      <li><a href="pmoc.html">✅ Checklist PMOC</a></li>
+      <li><a href="pmoc-historico.html">📂 Histórico PMOC</a></li>
+      <li><a href="pmoc-menu.html">📌 PMOC por cidade / unidade</a></li>
+      <li><a href="pmoc-qrcodes.html">🔳 QR Codes PMOC</a></li>
+    </ul>
+  </nav>
+
+  <!-- CONTEÚDO -->
+  <main class="main-content">
+    <div class="qrcode-header">
+      <div>
+        <h2>Gerar QR Codes para os aparelhos</h2>
+        <p style="font-size:13px; color:#555;">
+          Cada QR abre o histórico do aparelho em
+          <code>pmoc-historico.html?aparelhoId=...</code>
+        </p>
+      </div>
+      <button class="btn-imprimir" onclick="window.print()">Imprimir página</button>
+    </div>
+
+    <section id="listaQRCodes" class="qr-grid"></section>
+  </main>
+
+  <script src="js/script.js"></script>
+
+  <script>
+    // Lista de exemplo (depois dá pra trocar por dados reais da API de aparelhos)
+    const aparelhosDemo = [
+      {
+        id: 10,
+        unidade: "Hospital Vicentino",
+        local: "3º andar - Enfermaria",
+        descricao: "Split 18.000 BTU"
+      },
+      {
+        id: 11,
+        unidade: "Hospital Vicentino",
+        local: "Sala de Espera",
+        descricao: "Split 24.000 BTU"
+      },
+      {
+        id: 20,
+        unidade: "PS Central",
+        local: "Recepção",
+        descricao: "Split 12.000 BTU"
+      },
+      {
+        id: 30,
+        unidade: "Hospital Olavo",
+        local: "UTI",
+        descricao: "Cassete 36.000 BTU"
+      }
+    ];
+
+    function montarQRCodes() {
+      const container = document.getElementById("listaQRCodes");
+      container.innerHTML = "";
+
+      const baseUrl = `${window.location.origin}/pmoc-historico.html`;
+
+      aparelhosDemo.forEach(ap => {
+        const urlHistorico = `${baseUrl}?aparelhoId=${ap.id}`;
+
+        const card = document.createElement("article");
+        card.className = "qr-card";
+
+        const titulo = document.createElement("h3");
+        titulo.textContent = `Aparelho #${ap.id} - ${ap.descricao || "Ar condicionado"}`;
+
+        const info = document.createElement("p");
+        info.textContent = `Unidade: ${ap.unidade} • Local: ${ap.local || "-"}`;
+
+        const qrBox = document.createElement("div");
+        qrBox.className = "qr-box";
+        qrBox.id = `qr-${ap.id}`;
+
+        const urlTexto = document.createElement("div");
+        urlTexto.className = "qr-url";
+        urlTexto.textContent = urlHistorico;
+
+        card.appendChild(titulo);
+        card.appendChild(info);
+        card.appendChild(qrBox);
+        card.appendChild(urlTexto);
+
+        container.appendChild(card);
+
+        new QRCode(qrBox, {
+          text: urlHistorico,
+          width: 128,
+          height: 128
+        });
+      });
+    }
+
+    document.addEventListener("DOMContentLoaded", montarQRCodes);
+  </script>
+
+  <!-- SW -->
+  <script>
+    if ('serviceWorker' in navigator) {
+      navigator.serviceWorker.register('./service-worker.js', { scope: './' })
+        .catch(console.error);
+    }
+  </script>
+</body>
+</html>
