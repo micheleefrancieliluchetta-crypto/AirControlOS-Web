@@ -267,7 +267,7 @@
     </div>
 
     <!-- POPs / Orientações gerais -->
-    <div class="card">
+    <div class="card" id="popsSection">
       <h2>POPs / Orientações gerais</h2>
       <p style="font-size:13px; margin-top:4px;">
         Abaixo estão os POPs gerais de higienização, instalação e testes.
@@ -296,7 +296,6 @@
         <a href="docs/Teste_Compressor_e_Motoventilador.pdf" target="_blank" class="btn-pop">
           POP – Teste de compressor e moto-ventilador
         </a>
-
       </div>
     </div>
 
@@ -456,6 +455,16 @@
       el.classList.toggle("problem");
     }
 
+    // ========= SCROLL PARA A SEÇÃO DE POPs QUANDO VIER COM #pops =========
+    document.addEventListener("DOMContentLoaded", () => {
+      if (window.location.hash === "#pops") {
+        const popsSection = document.getElementById("popsSection");
+        if (popsSection) {
+          popsSection.scrollIntoView({ behavior: "smooth", block: "start" });
+        }
+      }
+    });
+
     // ========= SALVAR NO BACKEND =========
     const API_PMOC_URL = "https://aircontrolos-api.onrender.com/api/PmocRegistros";
 
@@ -532,6 +541,3 @@
 
 </body>
 </html>
-
-
-
