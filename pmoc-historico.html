@@ -1,529 +1,173 @@
 <!DOCTYPE html>
-<html lang="pt-BR">
+<html lang="pt-br">
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Checklist PMOC</title>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Histórico PMOC - AirControl OS</title>
 
-  <style>
-    body {
-      margin: 0;
-      background: #f3f4f6;
-      font-family: Arial, sans-serif;
-    }
+  <!-- CSS principal do app -->
+  <link rel="stylesheet" href="css/style.css">
 
-    /* Topo estilo app */
-    .topo {
-      background: #007bff;
-      color: white;
-      padding: 16px;
-      font-size: 20px;
-      display: flex;
-      align-items: center;
-      gap: 12px;
-      font-weight: bold;
-      box-shadow: 0 2px 8px rgba(0,0,0,0.15);
-    }
-
-    .voltar {
-      background: rgba(255,255,255,0.25);
-      border: none;
-      padding: 6px 10px;
-      border-radius: 6px;
-      cursor: pointer;
-      color: white;
-      font-size: 14px;
-    }
-
-    .container {
-      max-width: 900px;
-      margin: auto;
-      padding: 16px;
-    }
-
-    /* Cartões */
-    .card {
-      background: white;
-      padding: 16px;
-      border-radius: 12px;
-      margin-bottom: 16px;
-      box-shadow: 0 2px 6px rgba(0,0,0,0.1);
-    }
-
-    h2 {
-      margin-top: 0;
-      font-size: 18px;
-    }
-
-    /* Campos de dados */
-    .grid {
-      display: grid;
-      gap: 12px;
-    }
-
-    .campo label {
-      font-size: 13px;
-      color: #555;
-    }
-
-    .campo input {
-      width: 100%;
-      padding: 10px;
-      border-radius: 8px;
-      border: 1px solid #ccc;
-      font-size: 14px;
-    }
-
-    /* Checklist itens */
-    .item {
-      padding: 12px 0;
-      border-bottom: 1px solid #eee;
-    }
-
-    .linha-item {
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-    }
-
-    .nome-item {
-      font-size: 15px;
-      font-weight: 600;
-    }
-
-    /* ====== SWITCH ====== */
-    .switch {
-      position: relative;
-      display: inline-block;
-      width: 44px;
-      height: 24px;
-    }
-
-    .switch input {
-      opacity: 0;
-      width: 0;
-      height: 0;
-    }
-
-    /* FUNDO DO SWITCH */
-    .slider {
-      position: absolute;
-      cursor: pointer;
-      top: 0;
-      left: 0;
-      right: 0;
-      bottom: 0;
-      background-color: #37d67a; /* VERDE POR PADRÃO (OK) */
-      transition: 0.2s;
-      border-radius: 999px;
-    }
-
-    /* BOLINHA */
-    .slider:before {
-      position: absolute;
-      content: "";
-      height: 20px;
-      width: 20px;
-      left: 2px;
-      bottom: 2px;
-      background-color: white;
-      transition: 0.2s;
-      border-radius: 50%;
-    }
-
-    /* QUANDO MARCAR COMO "PROBLEMA" (VERMELHO) */
-    .switch input.problem + .slider {
-      background-color: #ff4d4d !important;
-    }
-
-    .switch input.problem + .slider:before {
-      transform: translateX(20px);
-    }
-
-    textarea {
-      width: 100%;
-      margin-top: 8px;
-      padding: 8px;
-      border-radius: 8px;
-      border: 1px solid #ccc;
-      resize: vertical;
-    }
-
-    /* Obs técnicas */
-    .btn-obs {
-      width: 100%;
-      padding: 10px;
-      background: #e7f1ff;
-      border: 1px solid #70a9ff;
-      border-radius: 8px;
-      color: #0056c7;
-      cursor: pointer;
-      margin-top: 10px;
-    }
-
-    #obsTecnicaBox {
-      margin-top: 10px;
-      display: none;
-    }
-
-    /* Botão salvar */
-    .btn-salvar {
-      width: 100%;
-      background: #007bff;
-      border: none;
-      padding: 14px;
-      color: white;
-      font-size: 16px;
-      font-weight: bold;
-      border-radius: 10px;
-      cursor: pointer;
-      margin-top: 18px;
-    }
-
-    /* ====== POPs (orientações gerais) ====== */
-    .pops-links {
-      display: flex;
-      flex-wrap: wrap;
-      gap: 8px;
-      margin-top: 8px;
-    }
-
-    .btn-pop {
-      display: inline-block;
-      padding: 8px 12px;
-      border-radius: 8px;
-      background: #f1f5f9;
-      border: 1px solid #cbd5f5;
-      font-size: 13px;
-      text-decoration: none;
-      color: #0056c7;
-      cursor: pointer;
-      white-space: nowrap;
-    }
-
-    .btn-pop:hover {
-      background: #e2ecff;
-    }
-  </style>
+  <!-- PWA -->
+  <link rel="manifest" href="./manifest.webmanifest" />
+  <meta name="theme-color" content="#1e90ff" />
+  <link rel="apple-touch-icon" href="icons/icon-192.png" />
+  <meta name="mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="default" />
 </head>
 
 <body>
+  <!-- TOPO COM VOLTAR -->
+  <header class="topbar">
+    <button onclick="window.location.href='dashboard.html'" class="btn-voltar">←</button>
+    <h1>Histórico PMOC</h1>
+    <button onclick="logout()">Sair</button>
+  </header>
 
-  <div class="topo">
-    <button class="voltar" onclick="window.location.href='dashboard.html'">←</button>
-    Checklist PMOC
-  </div>
+  <!-- MENU LATERAL -->
+  <nav class="sidebar">
+    <ul>
+      <li><a href="dashboard.html">🏠 Dashboard</a></li>
+      <li><a href="ordem-servico.html">📝 Ordem de Serviço - Manutenção Corretiva</a></li>
+      <li><a href="calendario.html">📅 Agenda</a></li>
+      <li><a href="local.html">📍 Locais / Unidades</a></li>
+      <li><a href="tecnico.html">🧑‍🔧 Técnicos</a></li>
+      <li><a href="usuarios.html">👤 Usuários - Acesso ao Sistema</a></li>
+      <li><a href="aparelhos-por-unidade.html">🏥 Aparelhos por unidade</a></li>
+      <li><a href="pmoc.html">✅ Checklist PMOC - Manutenção Preventiva</a></li>
+      <li><a href="pmoc-historico.html">📂 Histórico PMOC por Aparelho</a></li>
+      <li><a href="pmoc-menu.html">📌 PMOC por cidade / unidade</a></li>
+    </ul>
+  </nav>
 
-  <div class="container">
+  <!-- CONTEÚDO -->
+  <main class="main-content">
+    <h2>Histórico de Checklist PMOC</h2>
 
-    <!-- Dados do aparelho -->
-    <div class="card">
-      <h2>Dados do aparelho</h2>
+    <!-- FILTRO -->
+    <section class="form-os" style="margin-bottom: 16px;">
+      <label for="aparelhoIdInput">ID do aparelho (AparelhoHdvId):</label>
+      <input type="number" id="aparelhoIdInput" placeholder="Ex: 10">
 
-      <div class="grid">
+      <button type="button" class="tecnico-btn" id="btnBuscar">
+        Buscar histórico
+      </button>
 
-        <!-- ID DO APARELHO (HDV) -->
-        <div class="campo">
-          <label>ID do aparelho (HDV)</label>
-          <input id="aparelhoHdvId" type="number" placeholder="Ex.: 2, 3, 10, 90" />
-        </div>
-
-        <div class="campo">
-          <label>Patrimônio</label>
-          <input id="patrimonio" type="text">
-        </div>
-
-        <div class="campo">
-          <label>Unidade</label>
-          <input id="unidade" type="text">
-        </div>
-
-        <div class="campo">
-          <label>Local</label>
-          <input id="local" type="text">
-        </div>
-
-        <div class="campo">
-          <label>Marca</label>
-          <input id="marca" type="text">
-        </div>
-
-        <div class="campo">
-          <label>BTUs</label>
-          <input id="btu" type="text">
-        </div>
-
-        <div class="campo">
-          <label>Modelo</label>
-          <input id="modelo" type="text">
-        </div>
-
-        <div class="campo">
-          <label>Data</label>
-          <input id="data" type="date">
-        </div>
-
-      </div>
-    </div>
-
-    <!-- POPs / Orientações gerais -->
-    <div class="card">
-      <h2>POPs / Orientações gerais</h2>
-      <p style="font-size:13px; margin-top:4px;">
-        Abaixo estão os POPs gerais de higienização, instalação e testes.
-        Eles abrem em outra aba para consulta durante o checklist.
+      <p id="msgInfo" style="font-size: 13px; color: #555; margin-top: 8px;">
+        Dica: você pode acessar com
+        <code>?aparelhoId=10</code> na URL para carregar automaticamente.
       </p>
+    </section>
 
-      <div class="pops-links">
-        <!-- Ajuste os caminhos conforme você subir os PDFs no GitHub -->
-        <a href="docs/POP_Higienizacao_Ar_Condicionado_Split.pdf" target="_blank" class="btn-pop">
-          POP – Higienização Split
-        </a>
+    <!-- LISTA DE REGISTROS -->
+    <section id="listaPmoc"></section>
+  </main>
 
-        <a href="docs/POP_Instalacao_Ar_Condicionado_Split.pdf" target="_blank" class="btn-pop">
-          POP – Instalação Split
-        </a>
+  <!-- SCRIPT PRINCIPAL (o mesmo do resto do app) -->
+  <script src="js/script.js"></script>
 
-        <a href="docs/POP_Teste_e_Troca_Capacitor.pdf" target="_blank" class="btn-pop">
-          POP – Teste e troca de capacitor
-        </a>
-
-        <!-- Opcional: fichas de monitoramento -->
-        <a href="docs/Fichas_de_Monitoramento.pdf" target="_blank" class="btn-pop">
-          Fichas de monitoramento
-        </a>
-      </div>
-    </div>
-
-    <!-- CHECKLIST -->
-    <div class="card">
-      <h2>Checklist</h2>
-
-      <!-- Item 1 -->
-      <div class="item">
-        <div class="linha-item">
-          <span class="nome-item">Funcionamento geral</span>
-          <label class="switch">
-            <input type="checkbox" class="chk-item" data-nome="Funcionamento geral" onclick="toggleColor(this)">
-            <span class="slider"></span>
-          </label>
-        </div>
-        <textarea class="obs-item" placeholder="Observações (opcional)"></textarea>
-      </div>
-
-      <!-- Item 2 -->
-      <div class="item">
-        <div class="linha-item">
-          <span class="nome-item">Filtro de ar</span>
-          <label class="switch">
-            <input type="checkbox" class="chk-item" data-nome="Filtro de ar" onclick="toggleColor(this)">
-            <span class="slider"></span>
-          </label>
-        </div>
-        <textarea class="obs-item" placeholder="Observações (opcional)"></textarea>
-      </div>
-
-      <!-- Item 3 -->
-      <div class="item">
-        <div class="linha-item">
-          <span class="nome-item">Evaporadora</span>
-          <label class="switch">
-            <input type="checkbox" class="chk-item" data-nome="Evaporadora" onclick="toggleColor(this)">
-            <span class="slider"></span>
-          </label>
-        </div>
-        <textarea class="obs-item" placeholder="Observações (opcional)"></textarea>
-      </div>
-
-      <!-- Item 4 -->
-      <div class="item">
-        <div class="linha-item">
-          <span class="nome-item">Condensadora</span>
-          <label class="switch">
-            <input type="checkbox" class="chk-item" data-nome="Condensadora" onclick="toggleColor(this)">
-            <span class="slider"></span>
-          </label>
-        </div>
-        <textarea class="obs-item" placeholder="Observações (opcional)"></textarea>
-      </div>
-
-      <!-- ===== BLOCO: MEDIÇÕES E LIMPEZA ===== -->
-      <h3 style="margin-top: 14px; font-size:16px;">Medições e limpeza</h3>
-
-      <div class="item">
-        <div class="linha-item">
-          <span class="nome-item">Amperagem dentro do normal</span>
-          <label class="switch">
-            <input type="checkbox" class="chk-item" data-nome="Amperagem dentro do normal" onclick="toggleColor(this)">
-            <span class="slider"></span>
-          </label>
-        </div>
-        <textarea class="obs-item" placeholder="Observações (opcional)"></textarea>
-      </div>
-
-      <div class="item">
-        <div class="linha-item">
-          <span class="nome-item">Pressões do sistema dentro da faixa</span>
-          <label class="switch">
-            <input type="checkbox" class="chk-item" data-nome="Pressões do sistema dentro da faixa" onclick="toggleColor(this)">
-            <span class="slider"></span>
-          </label>
-        </div>
-        <textarea class="obs-item" placeholder="Observações (opcional)"></textarea>
-      </div>
-
-      <div class="item">
-        <div class="linha-item">
-          <span class="nome-item">Refrigerante / gás em condição adequada</span>
-          <label class="switch">
-            <input type="checkbox" class="chk-item" data-nome="Refrigerante / gás em condição adequada" onclick="toggleColor(this)">
-            <span class="slider"></span>
-          </label>
-        </div>
-        <textarea class="obs-item" placeholder="Observações (opcional)"></textarea>
-      </div>
-
-      <div class="item">
-        <div class="linha-item">
-          <span class="nome-item">Estado geral da máquina</span>
-          <label class="switch">
-            <input type="checkbox" class="chk-item" data-nome="Estado geral de limpeza satisfatório" onclick="toggleColor(this)">
-            <span class="slider"></span>
-          </label>
-        </div>
-        <textarea class="obs-item" placeholder="Observações (opcional)"></textarea>
-      </div>
-
-      <div class="item">
-        <div class="linha-item">
-          <span class="nome-item">Limpeza da condensadora</span>
-          <label class="switch">
-            <input type="checkbox" class="chk-item" data-nome="Estado geral de limpeza satisfatório" onclick="toggleColor(this)">
-            <span class="slider"></span>
-          </label>
-        </div>
-        <textarea class="obs-item" placeholder="Observações (opcional)"></textarea>
-      </div>
-      <!-- ===== FIM BLOCO ===== -->
-
-      <button class="btn-obs" onclick="toggleObs()">+ Adicionar observações técnicas</button>
-
-      <div id="obsTecnicaBox">
-        <textarea id="obsTecnicasGerais" placeholder="Escreva observações técnicas detalhadas..."></textarea>
-      </div>
-
-      <button class="btn-salvar" id="btnSalvarPmoc">Salvar checklist</button>
-
-    </div>
-
-  </div>
-
+  <!-- PERMISSÃO ADMIN (igual você já usava) -->
   <script>
-    // ========= CARREGAR UNIDADE VINDO DO MENU PMOC =========
-    const unidadeSelecionadaStr = localStorage.getItem("pmocUnidadeSelecionada");
-    if (unidadeSelecionadaStr) {
-      try {
-        const unidadeSel = JSON.parse(unidadeSelecionadaStr);
-
-        const campoUnidade = document.getElementById("unidade");
-        const campoLocal   = document.getElementById("local");
-
-        if (campoUnidade && !campoUnidade.value) {
-          campoUnidade.value = unidadeSel.nome || "";
-        }
-        if (campoLocal && !campoLocal.value) {
-          campoLocal.value = unidadeSel.cidade || "";
-        }
-
-        console.log("PMOC para a unidade:", unidadeSel);
-      } catch (e) {
-        console.warn("Não foi possível ler pmocUnidadeSelecionada:", e);
+    if (typeof ensureAdmin === "function") {
+      ensureAdmin();
+    } else {
+      const cargo = sessionStorage.getItem("cargo");
+      if (!cargo) {
+        alert("Faça login para continuar.");
+        window.location.href = "index.html";
+      } else if (cargo.toLowerCase() !== "admin") {
+        alert("Somente administradores podem acessar esta página.");
+        window.location.href = "dashboard.html";
       }
     }
+  </script>
 
-    function toggleObs() {
-      const box = document.getElementById("obsTecnicaBox");
-      box.style.display = (box.style.display === "none" || box.style.display === "") ? "block" : "none";
-    }
+  <!-- LÓGICA DE HISTÓRICO PMOC -->
+  <script>
+    const API_PMOC_BASE = "https://aircontrolos-api.onrender.com/api/PmocRegistros";
 
-    /* alterna entre verde (OK) e vermelho (Problema) */
-    function toggleColor(el) {
-      el.classList.toggle("problem");
-    }
+    const inputAparelho = document.getElementById("aparelhoIdInput");
+    const btnBuscar = document.getElementById("btnBuscar");
+    const listaPmoc = document.getElementById("listaPmoc");
+    const msgInfo = document.getElementById("msgInfo");
 
-    // ========= SALVAR NO BACKEND =========
-    const API_PMOC_URL = "https://aircontrolos-api.onrender.com/api/PmocRegistros";
-
-    document.getElementById("btnSalvarPmoc").addEventListener("click", async function () {
-      // 1) Validar ID do aparelho
-      const aparelhoHdvIdStr = document.getElementById("aparelhoHdvId").value.trim();
-      if (!aparelhoHdvIdStr) {
-        alert("Informe o ID do aparelho (HDV).");
+    // Clique no botão "Buscar histórico"
+    btnBuscar.addEventListener("click", () => {
+      const id = parseInt(inputAparelho.value, 10);
+      if (!id) {
+        alert("Informe um ID válido.");
         return;
       }
+      carregarHistorico(id);
+    });
 
-      const aparelhoHdvId = parseInt(aparelhoHdvIdStr, 10);
-      if (Number.isNaN(aparelhoHdvId)) {
-        alert("O ID do aparelho (HDV) deve ser um número inteiro.");
-        return;
+    // Se vier ?aparelhoId=10 na URL, já carrega automático
+    (function init() {
+      const params = new URLSearchParams(window.location.search);
+      const id = params.get("aparelhoId");
+      if (id) {
+        inputAparelho.value = id;
+        carregarHistorico(id);
       }
+    })();
 
-      // 2) Montar o checklist (array de itens)
-      const checkboxes = document.querySelectorAll(".chk-item");
-      const observacoes = document.querySelectorAll(".obs-item");
-
-      const itens = [];
-      checkboxes.forEach((chk, index) => {
-        const nome = chk.dataset.nome || `Item ${index + 1}`;
-        const problema = chk.classList.contains("problem");  // true = problema (vermelho)
-        const obs = observacoes[index].value.trim();
-
-        itens.push({
-          nome: nome,
-          ok: !problema,              // ok = true quando NÃO marcado como problema
-          problema: problema,
-          observacao: obs
-        });
-      });
-
-      // 3) Campos adicionais
-      const data = document.getElementById("data").value; // yyyy-MM-dd
-      const obsTecnicasGerais = document.getElementById("obsTecnicasGerais")?.value || "";
-
-      // 4) Montar payload exatamente como a API espera
-      const payload = {
-        aparelhoHdvId: aparelhoHdvId,           // INT
-        data: data || new Date().toISOString().substring(0, 10),
-        checklistJson: JSON.stringify(itens),
-        observacoesTecnicas: obsTecnicasGerais
-      };
-
-      console.log("Enviando payload PMOC:", payload);
+    async function carregarHistorico(id) {
+      listaPmoc.innerHTML = "";
+      msgInfo.textContent = `Carregando histórico do aparelho ${id}...`;
 
       try {
-        const resp = await fetch(API_PMOC_URL, {
-          method: "POST",
-          headers: {
-            "Content-Type": "application/json"
-          },
-          body: JSON.stringify(payload)
-        });
-
+        const resp = await fetch(`${API_PMOC_BASE}/por-aparelho/${id}`);
         if (!resp.ok) {
-          const erroTxt = await resp.text();
-          console.error("Erro da API:", erroTxt);
-          alert("Erro ao salvar checklist no servidor.");
+          throw new Error(resp.status);
+        }
+
+        const registros = await resp.json();
+
+        if (!registros.length) {
+          msgInfo.textContent = "Nenhum registro encontrado para este aparelho.";
           return;
         }
 
-        alert("Checklist salvo com sucesso!");
-        // window.location.href = "dashboard.html";
+        msgInfo.textContent = `${registros.length} registro(s) encontrado(s).`;
+
+        registros.forEach(reg => {
+          const card = document.createElement("div");
+          card.className = "card-os";
+
+          const data = reg.data
+            ? new Date(reg.data).toLocaleString("pt-BR")
+            : "(sem data)";
+
+          card.innerHTML = `
+            <h3>Registro #${reg.id}</h3>
+            <p><strong>Data:</strong> ${data}</p>
+            <p><strong>Técnico:</strong> ${reg.tecnicoEmail || "-"}</p>
+            <p><strong>Aparelho ID:</strong> ${reg.aparelhoHdvId}</p>
+            <hr>
+            <h4>Itens</h4>
+            <pre>${reg.itensJson}</pre>
+            <h4>Observações técnicas</h4>
+            <p>${reg.observacoesTecnicas || "(sem observações)"}</p>
+          `;
+
+          listaPmoc.appendChild(card);
+        });
+
       } catch (e) {
-        console.error("Erro de rede ao salvar PMOC:", e);
-        alert("Erro de comunicação com o servidor.");
+        console.error(e);
+        msgInfo.textContent = "Erro ao buscar dados.";
+        alert("Erro ao comunicar com o servidor.");
       }
-    });
+    }
   </script>
 
+  <!-- SERVICE WORKER -->
+  <script>
+    if ("serviceWorker" in navigator) {
+      navigator.serviceWorker
+        .register("./service-worker.js", { scope: "./" })
+        .catch(console.error);
+    }
+  </script>
 </body>
 </html>
