@@ -1,0 +1,245 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8" />
+  <title>PMOC - Unidade</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+
+  <style>
+    body {
+      margin: 0;
+      font-family: Arial, sans-serif;
+      background: #f4f4f4;
+      color: #333;
+    }
+
+    header {
+      background: #0a5877;
+      color: #fff;
+      padding: 12px 16px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      box-shadow: 0 2px 6px rgba(0,0,0,0.18);
+    }
+
+    header .esq {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+
+    .btn-voltar {
+      background: rgba(255,255,255,0.2);
+      border: none;
+      color: #fff;
+      padding: 6px 10px;
+      border-radius: 6px;
+      font-size: 13px;
+      cursor: pointer;
+    }
+
+    header h1 {
+      margin: 0;
+      font-size: 18px;
+    }
+
+    main {
+      max-width: 900px;
+      margin: 0 auto;
+      padding: 16px;
+    }
+
+    .info-unidade {
+      background: #fff;
+      border-radius: 8px;
+      padding: 14px;
+      box-shadow: 0 1px 4px rgba(0,0,0,0.08);
+      margin-bottom: 16px;
+    }
+
+    .info-unidade h2 {
+      margin: 0 0 6px;
+      font-size: 17px;
+      color: #0a5877;
+    }
+
+    .info-unidade p {
+      margin: 2px 0;
+      font-size: 13px;
+      color: #555;
+    }
+
+    .info-unidade small {
+      font-size: 12px;
+      color: #777;
+    }
+
+    .acoes {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+      gap: 12px;
+      margin-top: 12px;
+    }
+
+    .card-acao {
+      background: #fff;
+      border-radius: 8px;
+      padding: 14px;
+      box-shadow: 0 1px 4px rgba(0,0,0,0.08);
+      display: flex;
+      flex-direction: column;
+      justify-content: space-between;
+    }
+
+    .card-acao h3 {
+      margin: 0 0 6px;
+      font-size: 15px;
+    }
+
+    .card-acao p {
+      margin: 0 0 10px;
+      font-size: 13px;
+      color: #555;
+    }
+
+    .btn {
+      border: none;
+      border-radius: 6px;
+      padding: 8px 10px;
+      font-size: 13px;
+      cursor: pointer;
+    }
+
+    .btn-primario {
+      background: #0a5877;
+      color: #fff;
+    }
+
+    .btn-primario:hover {
+      background: #08435a;
+    }
+
+    .btn-secundario {
+      background: #e0e0e0;
+      color: #333;
+    }
+
+    .aviso {
+      margin-top: 16px;
+      font-size: 12px;
+      color: #777;
+    }
+
+    .erro {
+      margin-top: 16px;
+      background: #ffe5e5;
+      border-left: 4px solid #ff4d4d;
+      padding: 10px 12px;
+      border-radius: 6px;
+      font-size: 13px;
+    }
+  </style>
+</head>
+<body>
+
+<header>
+  <div class="esq">
+    <button class="btn-voltar" onclick="window.location.href='pmoc-menu.html'">
+      ← Voltar
+    </button>
+    <h1>PMOC - Unidade</h1>
+  </div>
+  <span style="font-size:13px;">AirControlOS</span>
+</header>
+
+<main>
+  <div id="conteudoUnidade"></div>
+</main>
+
+<script>
+  // Carrega a unidade que veio do pmoc-menu
+  const conteudoUnidadeEl = document.getElementById("conteudoUnidade");
+  const unidadeStr = localStorage.getItem("pmocUnidadeSelecionada");
+
+  if (!unidadeStr) {
+    conteudoUnidadeEl.innerHTML = `
+      <div class="erro">
+        Não foi possível identificar a unidade selecionada.<br/>
+        Volte para o menu de cidades/unidades e escolha novamente.
+      </div>
+    `;
+  } else {
+    try {
+      const unidade = JSON.parse(unidadeStr);
+
+      conteudoUnidadeEl.innerHTML = `
+        <section class="info-unidade">
+          <h2>${unidade.nome || "Unidade"}</h2>
+          <p><strong>Cidade:</strong> ${unidade.cidade || "-"}</p>
+          <p><strong>Empresa:</strong> ${unidade.empresaNome || "-"}</p>
+          <p><strong>Tipo:</strong> ${unidade.tipo || "-"}</p>
+          <small>Depois você pode puxar mais detalhes da API (contrato, responsável, etc.).</small>
+
+          <div class="acoes">
+            <article class="card-acao">
+              <h3>Checklist PMOC</h3>
+              <p>Registrar uma nova manutenção preventiva/corretiva desta unidade.</p>
+              <button class="btn btn-primario" onclick="abrirChecklist()">
+                Abrir checklist PMOC
+              </button>
+            </article>
+
+            <article class="card-acao">
+              <h3>Histórico de PMOC</h3>
+              <p>Visualizar todos os checklists já realizados para esta unidade.</p>
+              <button class="btn btn-secundario" onclick="abrirHistorico()">
+                Ver histórico
+              </button>
+            </article>
+
+            <article class="card-acao">
+              <h3>POPs / Orientações gerais</h3>
+              <p>Documentos com orientações e procedimentos padrão (POPs) desta unidade.</p>
+              <button class="btn btn-secundario" onclick="abrirPops()">
+                Abrir POPs
+              </button>
+            </article>
+          </div>
+
+          <div class="aviso">
+            *Nesta versão de demonstração, os botões usam páginas estáticas
+            (<code>pmoc.html</code>, <code>pmoc-historico.html</code> etc.).<br/>
+            Depois você pode ligar isso à API e aos relatórios por QR Code.
+          </div>
+        </section>
+      `;
+    } catch (e) {
+      console.error(e);
+      conteudoUnidadeEl.innerHTML = `
+        <div class="erro">
+          Erro ao ler os dados da unidade. Tente voltar para o menu e selecionar novamente.
+        </div>
+      `;
+    }
+  }
+
+  function abrirChecklist() {
+    // garante que a unidade continua salva
+    // (se quiser, pode salvar mais coisas aqui)
+    window.location.href = "pmoc.html";
+  }
+
+  function abrirHistorico() {
+    // aqui no futuro você pode filtrar o histórico pela unidade
+    window.location.href = "pmoc-historico.html";
+  }
+
+  function abrirPops() {
+    // por enquanto, só um alerta; depois você cria uma página própria
+    alert("Aqui você poderá abrir os POPs / orientações gerais desta unidade.");
+  }
+</script>
+
+</body>
+</html>
