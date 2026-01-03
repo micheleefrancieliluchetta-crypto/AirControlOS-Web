@@ -17,6 +17,22 @@
 </head>
 
 <body>
+  <!-- GUARDA REDIRECT CASO NÃO ESTEJA LOGADO -->
+  <script>
+    (function () {
+      const cargo = sessionStorage.getItem("cargo");
+      if (!cargo) {
+        // guarda a URL completa (caminho + query string, ex: /pmoc-historico.html?aparelhoId=10)
+        const redirectUrl = window.location.pathname + window.location.search;
+        sessionStorage.setItem("redirectAfterLogin", redirectUrl);
+
+        alert("Faça login para acessar o histórico PMOC.");
+        window.location.href = "index.html";
+      }
+      // se tiver cargo mas não for admin, vamos bloquear mais embaixo
+    })();
+  </script>
+
   <!-- TOPO COM VOLTAR -->
   <header class="topbar">
     <button onclick="window.location.href='dashboard.html'" class="btn-voltar">←</button>
@@ -67,20 +83,24 @@
   <!-- SCRIPT PRINCIPAL (o mesmo do resto do app) -->
   <script src="js/script.js"></script>
 
-  <!-- PERMISSÃO ADMIN (igual você já usava) -->
+  <!-- PERMISSÃO ADMIN (VERSÃO COM REDIRECT JÁ RESOLVIDO ACIMA) -->
   <script>
-    if (typeof ensureAdmin === "function") {
-      ensureAdmin();
-    } else {
+    (function () {
       const cargo = sessionStorage.getItem("cargo");
       if (!cargo) {
+        // se chegou aqui sem cargo é porque o primeiro script ainda não rodou ou o usuário limpou storage
+        const redirectUrl = window.location.pathname + window.location.search;
+        sessionStorage.setItem("redirectAfterLogin", redirectUrl);
         alert("Faça login para continuar.");
         window.location.href = "index.html";
-      } else if (cargo.toLowerCase() !== "admin") {
+        return;
+      }
+
+      if (cargo.toLowerCase() !== "admin") {
         alert("Somente administradores podem acessar esta página.");
         window.location.href = "dashboard.html";
       }
-    }
+    })();
   </script>
 
   <!-- LÓGICA DE HISTÓRICO PMOC -->
@@ -172,5 +192,3 @@
   </script>
 </body>
 </html>
-
-
