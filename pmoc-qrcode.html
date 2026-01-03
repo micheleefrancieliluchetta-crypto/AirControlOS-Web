@@ -88,14 +88,14 @@
   </style>
 </head>
 <body>
-  <!-- TOPO -->
+  <!-- TOPO COM VOLTAR -->
   <header class="topbar">
     <button onclick="window.location.href='dashboard.html'" class="btn-voltar">←</button>
     <h1>QR Codes PMOC</h1>
     <button onclick="logout()">Sair</button>
   </header>
 
-  <!-- MENU LATERAL -->
+  <!-- MENU LATERAL (mesmo menu das outras telas) -->
   <nav class="sidebar">
     <ul>
       <li><a href="dashboard.html">🏠 Dashboard</a></li>
@@ -112,7 +112,7 @@
     </ul>
   </nav>
 
-  <!-- CONTEÚDO -->
+  <!-- CONTEÚDO CENTRAL -->
   <main class="main-content">
     <div class="qrcode-header">
       <div>
@@ -121,69 +121,70 @@
           Cada QR abre o histórico do aparelho em
           <code>pmoc-historico.html?aparelhoId=...</code>
         </p>
+        <p id="infoQuantidade" style="font-size:13px; color:#333;">
+          0 QR Code(s) gerado(s).
+        </p>
       </div>
       <button class="btn-imprimir" onclick="window.print()">Imprimir página</button>
     </div>
 
     <section id="listaQRCodes" class="qr-grid"></section>
-    <p id="msgQRCodes" style="margin-top:12px; font-size:13px; color:#555;"></p>
   </main>
 
-  <!-- Seu JS geral (se existir coisas como logout(), etc.) -->
+  <!-- SEU script principal (menu, logout, etc.) -->
   <script src="js/script.js"></script>
 
   <script>
     const API_APARELHOS_URL = "https://aircontrolos-api.onrender.com/api/aparelhos-hdv";
 
-    async function carregarQRCodes() {
+    async function carregarAparelhosDoBanco() {
       const container = document.getElementById("listaQRCodes");
-      const msg = document.getElementById("msgQRCodes");
-      container.innerHTML = "";
-      msg.textContent = "";
+      const infoQuantidade = document.getElementById("infoQuantidade");
 
-      // segurança: ver se a lib foi carregada
-      if (typeof QRCode === "undefined") {
-        msg.textContent = "Erro ao carregar biblioteca de QR Code.";
-        return;
-      }
+      container.innerHTML = "";
+      infoQuantidade.textContent = "Carregando aparelhos...";
 
       try {
         const resp = await fetch(API_APARELHOS_URL);
-        if (!resp.ok) throw new Error("Erro HTTP ao buscar aparelhos.");
+        if (!resp.ok) {
+          throw new Error("Erro ao buscar aparelhos do backend.");
+        }
 
         const dados = await resp.json();
 
-        if (!dados || dados.length === 0) {
-          msg.textContent = "Nenhum aparelho encontrado na base de dados.";
+        // 👉 Por enquanto: gera QR para TODOS os aparelhos retornados
+        const aparelhos = Array.isArray(dados) ? dados : [];
+
+        if (!aparelhos.length) {
+          infoQuantidade.textContent = "Nenhum aparelho encontrado na base.";
           return;
         }
 
-        const baseUrl = `${window.location.origin}/pmoc-historico.html`;
+        const baseUrlHistorico = `${window.location.origin}/pmoc-historico.html`;
 
-        dados.forEach(ap => {
-          // tenta adivinhar o campo ID
-          const id = ap.id ?? ap.aparelhoHdvId ?? ap.aparelhoId;
-          if (!id) {
-            return; // sem id não dá pra gerar URL
-          }
+        aparelhos.forEach(ap => {
+          // Melhor chute para o ID do aparelho (ajusta depois se o nome for outro)
+          const aparelhoId = ap.id ?? ap.aparelhoHdvId ?? ap.aparelhoId;
 
-          const descricao =
-            (ap.marca ? ap.marca + " " : "") +
-            (ap.btu ? ap.btu + " BTU" : "Ar condicionado");
+          // Texto do título
+          const desc =
+            ap.modelo ||
+            ap.descricao ||
+            (ap.marca && ap.btu ? `${ap.marca} ${ap.btu} BTU` : "Ar condicionado");
 
-          const unidadeTexto = "Hospital Vicentino"; // por enquanto fixo
-          const localTexto = ap.local || "-";
+          const unidadeExt = ap.unidadeExterna ?? "-";
+          const local = ap.local ?? "-";
 
-          const urlHistorico = `${baseUrl}?aparelhoId=${id}`;
+          const urlHistorico = `${baseUrlHistorico}?aparelhoId=${encodeURIComponent(aparelhoId)}`;
 
           const card = document.createElement("article");
           card.className = "qr-card";
 
           const titulo = document.createElement("h3");
-          titulo.textContent = `Aparelho #${id} - ${descricao}`;
+          titulo.textContent = `Aparelho #${aparelhoId ?? "?"} - ${desc}`;
 
           const info = document.createElement("p");
-          info.textContent = `Unidade: ${unidadeTexto} • Local: ${localTexto}`;
+          info.textContent = `Unidade externa: ${unidadeExt} • Local: ${local}`;
 
           const qrBox = document.createElement("div");
           qrBox.className = "qr-box";
@@ -196,30 +197,36 @@
           card.appendChild(info);
           card.appendChild(qrBox);
           card.appendChild(urlTexto);
+
           container.appendChild(card);
 
-          new QRCode(qrBox, {
-            text: urlHistorico,
-            width: 128,
-            height: 128
-          });
+          // Só gera o QR se tiver um ID
+          if (aparelhoId != null && typeof QRCode !== "undefined") {
+            new QRCode(qrBox, {
+              text: urlHistorico,
+              width: 128,
+              height: 128
+            });
+          } else {
+            qrBox.textContent = "Não foi possível gerar QR (ID inexistente).";
+          }
         });
 
-        msg.textContent = `${container.children.length} QR Code(s) gerado(s).`;
+        infoQuantidade.textContent = `${aparelhos.length} QR Code(s) gerado(s).`;
       } catch (e) {
         console.error(e);
-        msg.textContent = "Erro ao carregar aparelhos para gerar QR Codes.";
+        infoQuantidade.textContent = "Erro ao carregar aparelhos para gerar QR Codes.";
       }
     }
 
-    document.addEventListener("DOMContentLoaded", carregarQRCodes);
+    document.addEventListener("DOMContentLoaded", carregarAparelhosDoBanco);
   </script>
 
-  <!-- Service Worker -->
+  <!-- Service Worker PWA -->
   <script>
-    if ('serviceWorker' in navigator) {
+    if ("serviceWorker" in navigator) {
       navigator.serviceWorker
-        .register('./service-worker.js', { scope: './' })
+        .register("./service-worker.js", { scope: "./" })
         .catch(console.error);
     }
   </script>
