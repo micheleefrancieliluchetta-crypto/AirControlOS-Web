@@ -1341,3 +1341,100 @@ function imprimirCorretiva(ficha) {
   });
 }
 
+/*************************************************
+ * PMOC (pmoc.html) – salvar checklist
+ *************************************************/
+const formPmoc = document.getElementById("formPmoc");
+
+if (formPmoc) {
+  formPmoc.addEventListener("submit", salvarChecklistPmoc);
+}
+
+/** Transforma todos os campos do form em um objeto {campo: valor} */
+function serializeFormPmoc(form) {
+  const data = {};
+  Array.from(form.elements).forEach((el) => {
+    const name = el.name || el.id;
+    if (!name) return;
+
+    // ignora botões
+    if (el.type === "button" || el.type === "submit") return;
+
+    if (el.type === "checkbox" || el.type === "radio") {
+      data[name] = el.checked;
+    } else {
+      data[name] = el.value;
+    }
+  });
+  return data;
+}
+
+async function salvarChecklistPmoc(ev) {
+  ev.preventDefault();
+
+  if (!formPmoc) return;
+
+  // 1) pega o usuário logado para usar o e-mail como "técnico"
+  let tecnicoEmail = "";
+  try {
+    const user =
+      JSON.parse(sessionStorage.getItem("air_user") || "null") ||
+      JSON.parse(localStorage.getItem("air_user") || "null");
+    if (user && user.email) {
+      tecnicoEmail = user.email;
+    }
+  } catch (e) {
+    console.warn("Não foi possível ler usuário logado:", e);
+  }
+
+  // 2) ID do aparelho (AparelhoHdvId) e observações técnicas
+  const aparelhoId = parseInt(
+    (document.getElementById("aparelhoHdvId")?.value || "").trim(),
+    10
+  );
+
+  const observacoesTecnicas =
+    (document.getElementById("observacoesTecnicas")?.value || "").trim();
+
+  if (!aparelhoId) {
+    alert("Informe o ID do aparelho (AparelhoHdvId) antes de salvar.");
+    return;
+  }
+
+  // 3) captura TODOS os campos do formulário em um objeto
+  const itensObj = serializeFormPmoc(formPmoc);
+  const itensJson = JSON.stringify(itensObj);
+
+  // 4) monta o payload esperado pela API
+  const payload = {
+    aparelhoHdvId: aparelhoId,
+    data: new Date().toISOString(),
+    tecnicoEmail: tecnicoEmail || "pmoc@aircontrolos", // fallback
+    itensJson,
+    observacoesTecnicas,
+  };
+
+  try {
+    // usando a função api() que você já tem no topo
+    await api("/api/PmocRegistros", {
+      method: "POST",
+      data: payload,
+    });
+
+    alert("Checklist PMOC salvo com sucesso!");
+
+    // 5) limpar o formulário depois de salvar
+    formPmoc.reset();
+
+    // garante que qualquer checkbox/switch também volte desmarcado
+    formPmoc
+      .querySelectorAll('input[type="checkbox"], input[type="radio"]')
+      .forEach((chk) => {
+        chk.checked = false;
+      });
+
+  } catch (e) {
+    console.error(e);
+    alert("Erro ao salvar checklist PMOC:\n" + (e.message || e));
+  }
+}
