@@ -12,7 +12,6 @@
       font-family: Arial, sans-serif;
     }
 
-    /* Topo estilo app */
     .topo {
       background: #007bff;
       color: white;
@@ -41,7 +40,6 @@
       padding: 16px;
     }
 
-    /* Cartões */
     .card {
       background: white;
       padding: 16px;
@@ -55,7 +53,6 @@
       font-size: 18px;
     }
 
-    /* Campos de dados */
     .grid {
       display: grid;
       gap: 12px;
@@ -74,7 +71,6 @@
       font-size: 14px;
     }
 
-    /* Checklist itens */
     .item {
       padding: 12px 0;
       border-bottom: 1px solid #eee;
@@ -91,7 +87,6 @@
       font-weight: 600;
     }
 
-    /* ====== SWITCH ====== */
     .switch {
       position: relative;
       display: inline-block;
@@ -105,7 +100,6 @@
       height: 0;
     }
 
-    /* FUNDO DO SWITCH */
     .slider {
       position: absolute;
       cursor: pointer;
@@ -113,12 +107,11 @@
       left: 0;
       right: 0;
       bottom: 0;
-      background-color: #37d67a; /* VERDE POR PADRÃO (OK) */
+      background-color: #37d67a;
       transition: 0.2s;
       border-radius: 999px;
     }
 
-    /* BOLINHA */
     .slider:before {
       position: absolute;
       content: "";
@@ -131,7 +124,6 @@
       border-radius: 50%;
     }
 
-    /* QUANDO MARCAR COMO "PROBLEMA" (VERMELHO) */
     .switch input.problem + .slider {
       background-color: #ff4d4d !important;
     }
@@ -149,7 +141,6 @@
       resize: vertical;
     }
 
-    /* Obs técnicas */
     .btn-obs {
       width: 100%;
       padding: 10px;
@@ -166,7 +157,6 @@
       display: none;
     }
 
-    /* Botão salvar */
     .btn-salvar {
       width: 100%;
       background: #007bff;
@@ -180,7 +170,6 @@
       margin-top: 18px;
     }
 
-    /* ====== POPs (orientações gerais) ====== */
     .pops-links {
       display: flex;
       flex-wrap: wrap;
@@ -208,227 +197,216 @@
 </head>
 
 <body>
-
   <div class="topo">
     <button class="voltar" onclick="window.location.href='dashboard.html'">←</button>
     Checklist PMOC
   </div>
 
-  <div class="container">
+  <!-- FORM PMOC -->
+  <form id="formPmoc">
+    <div class="container">
 
-    <!-- Dados do aparelho -->
-    <div class="card">
-      <h2>Dados do aparelho</h2>
+      <!-- Dados do aparelho -->
+      <div class="card">
+        <h2>Dados do aparelho</h2>
 
-      <div class="grid">
+        <div class="grid">
+          <div class="campo">
+            <label>ID do aparelho (HDV)</label>
+            <input id="aparelhoHdvId" type="number" placeholder="Ex.: 2, 3, 10, 90" />
+          </div>
 
-        <!-- ID DO APARELHO (HDV) -->
-        <div class="campo">
-          <label>ID do aparelho (HDV)</label>
-          <input id="aparelhoHdvId" type="number" placeholder="Ex.: 2, 3, 10, 90" />
+          <div class="campo">
+            <label>Patrimônio</label>
+            <input id="patrimonio" type="text">
+          </div>
+
+          <div class="campo">
+            <label>Unidade</label>
+            <input id="unidade" type="text">
+          </div>
+
+          <div class="campo">
+            <label>Local</label>
+            <input id="local" type="text">
+          </div>
+
+          <div class="campo">
+            <label>Marca</label>
+            <input id="marca" type="text">
+          </div>
+
+          <div class="campo">
+            <label>BTUs</label>
+            <input id="btu" type="text">
+          </div>
+
+          <div class="campo">
+            <label>Modelo</label>
+            <input id="modelo" type="text">
+          </div>
+
+          <div class="campo">
+            <label>Data</label>
+            <input id="data" type="date">
+          </div>
+        </div>
+      </div>
+
+      <!-- POPs -->
+      <div class="card" id="popsSection">
+        <h2>POPs / Orientações gerais</h2>
+        <p style="font-size:13px; margin-top:4px;">
+          Abaixo estão os POPs gerais de higienização, instalação e testes.
+          Eles abrem em outra aba para consulta durante o checklist.
+        </p>
+
+        <div class="pops-links">
+          <a href="docs/POP_Higienizacao_Ar_Condicionado_Split.pdf" target="_blank" class="btn-pop">
+            POP – Higienização Split
+          </a>
+
+          <a href="docs/POP_Instalacao_Ar_Condicionado_Split.pdf" target="_blank" class="btn-pop">
+            POP – Instalação Split
+          </a>
+
+          <a href="docs/POP_Teste_e_Troca_Capacitor.pdf" target="_blank" class="btn-pop">
+            POP – Teste e troca de capacitor
+          </a>
+
+          <a href="docs/Fichas_de_Monitoramento.pdf" target="_blank" class="btn-pop">
+            Fichas de monitoramento
+          </a>
+
+          <a href="docs/Teste_Compressor_e_Motoventilador.pdf" target="_blank" class="btn-pop">
+            POP – Teste de compressor e moto-ventilador
+          </a>
+        </div>
+      </div>
+
+      <!-- CHECKLIST -->
+      <div class="card">
+        <h2>Checklist</h2>
+
+        <!-- Itens (mesmos que você já tinha) -->
+        <div class="item">
+          <div class="linha-item">
+            <span class="nome-item">Funcionamento geral</span>
+            <label class="switch">
+              <input type="checkbox" class="chk-item" data-nome="Funcionamento geral" onclick="toggleColor(this)">
+              <span class="slider"></span>
+            </label>
+          </div>
+          <textarea class="obs-item" placeholder="Observações (opcional)"></textarea>
         </div>
 
-        <div class="campo">
-          <label>Patrimônio</label>
-          <input id="patrimonio" type="text">
+        <div class="item">
+          <div class="linha-item">
+            <span class="nome-item">Filtro de ar</span>
+            <label class="switch">
+              <input type="checkbox" class="chk-item" data-nome="Filtro de ar" onclick="toggleColor(this)">
+              <span class="slider"></span>
+            </label>
+          </div>
+          <textarea class="obs-item" placeholder="Observações (opcional)"></textarea>
         </div>
 
-        <div class="campo">
-          <label>Unidade</label>
-          <input id="unidade" type="text">
+        <div class="item">
+          <div class="linha-item">
+            <span class="nome-item">Evaporadora</span>
+            <label class="switch">
+              <input type="checkbox" class="chk-item" data-nome="Evaporadora" onclick="toggleColor(this)">
+              <span class="slider"></span>
+            </label>
+          </div>
+          <textarea class="obs-item" placeholder="Observações (opcional)"></textarea>
         </div>
 
-        <div class="campo">
-          <label>Local</label>
-          <input id="local" type="text">
+        <div class="item">
+          <div class="linha-item">
+            <span class="nome-item">Condensadora</span>
+            <label class="switch">
+              <input type="checkbox" class="chk-item" data-nome="Condensadora" onclick="toggleColor(this)">
+              <span class="slider"></span>
+            </label>
+          </div>
+          <textarea class="obs-item" placeholder="Observações (opcional)"></textarea>
         </div>
 
-        <div class="campo">
-          <label>Marca</label>
-          <input id="marca" type="text">
+        <h3 style="margin-top: 14px; font-size:16px;">Medições e limpeza</h3>
+
+        <div class="item">
+          <div class="linha-item">
+            <span class="nome-item">Amperagem dentro do normal</span>
+            <label class="switch">
+              <input type="checkbox" class="chk-item" data-nome="Amperagem dentro do normal" onclick="toggleColor(this)">
+              <span class="slider"></span>
+            </label>
+          </div>
+          <textarea class="obs-item" placeholder="Observações (opcional)"></textarea>
         </div>
 
-        <div class="campo">
-          <label>BTUs</label>
-          <input id="btu" type="text">
+        <div class="item">
+          <div class="linha-item">
+            <span class="nome-item">Pressões do sistema dentro da faixa</span>
+            <label class="switch">
+              <input type="checkbox" class="chk-item" data-nome="Pressões do sistema dentro da faixa" onclick="toggleColor(this)">
+              <span class="slider"></span>
+            </label>
+          </div>
+          <textarea class="obs-item" placeholder="Observações (opcional)"></textarea>
         </div>
 
-        <div class="campo">
-          <label>Modelo</label>
-          <input id="modelo" type="text">
+        <div class="item">
+          <div class="linha-item">
+            <span class="nome-item">Refrigerante / gás em condição adequada</span>
+            <label class="switch">
+              <input type="checkbox" class="chk-item" data-nome="Refrigerante / gás em condição adequada" onclick="toggleColor(this)">
+              <span class="slider"></span>
+            </label>
+          </div>
+          <textarea class="obs-item" placeholder="Observações (opcional)"></textarea>
         </div>
 
-        <div class="campo">
-          <label>Data</label>
-          <input id="data" type="date">
+        <div class="item">
+          <div class="linha-item">
+            <span class="nome-item">Estado geral da máquina</span>
+            <label class="switch">
+              <input type="checkbox" class="chk-item" data-nome="Estado geral de limpeza satisfatório" onclick="toggleColor(this)">
+              <span class="slider"></span>
+            </label>
+          </div>
+          <textarea class="obs-item" placeholder="Observações (opcional)"></textarea>
         </div>
 
+        <div class="item">
+          <div class="linha-item">
+            <span class="nome-item">Limpeza da condensadora</span>
+            <label class="switch">
+              <input type="checkbox" class="chk-item" data-nome="Limpeza da condensadora" onclick="toggleColor(this)">
+              <span class="slider"></span>
+            </label>
+          </div>
+          <textarea class="obs-item" placeholder="Observações (opcional)"></textarea>
+        </div>
+
+        <button class="btn-obs" type="button" onclick="toggleObs()">+ Adicionar observações técnicas</button>
+
+        <div id="obsTecnicaBox">
+          <textarea id="observacoesTecnicas" placeholder="Escreva observações técnicas detalhadas..."></textarea>
+        </div>
+
+        <button class="btn-salvar" id="btnSalvarPmoc" type="submit">Salvar checklist</button>
       </div>
     </div>
-
-    <!-- POPs / Orientações gerais -->
-    <div class="card" id="popsSection">
-      <h2>POPs / Orientações gerais</h2>
-      <p style="font-size:13px; margin-top:4px;">
-        Abaixo estão os POPs gerais de higienização, instalação e testes.
-        Eles abrem em outra aba para consulta durante o checklist.
-      </p>
-
-      <div class="pops-links">
-        <!-- Ajuste os caminhos conforme você subir os PDFs no GitHub -->
-        <a href="docs/POP_Higienizacao_Ar_Condicionado_Split.pdf" target="_blank" class="btn-pop">
-          POP – Higienização Split
-        </a>
-
-        <a href="docs/POP_Instalacao_Ar_Condicionado_Split.pdf" target="_blank" class="btn-pop">
-          POP – Instalação Split
-        </a>
-
-        <a href="docs/POP_Teste_e_Troca_Capacitor.pdf" target="_blank" class="btn-pop">
-          POP – Teste e troca de capacitor
-        </a>
-
-        <!-- Opcional: fichas de monitoramento -->
-        <a href="docs/Fichas_de_Monitoramento.pdf" target="_blank" class="btn-pop">
-          Fichas de monitoramento
-        </a>
-
-        <a href="docs/Teste_Compressor_e_Motoventilador.pdf" target="_blank" class="btn-pop">
-          POP – Teste de compressor e moto-ventilador
-        </a>
-      </div>
-    </div>
-
-    <!-- CHECKLIST -->
-    <div class="card">
-      <h2>Checklist</h2>
-
-      <!-- Item 1 -->
-      <div class="item">
-        <div class="linha-item">
-          <span class="nome-item">Funcionamento geral</span>
-          <label class="switch">
-            <input type="checkbox" class="chk-item" data-nome="Funcionamento geral" onclick="toggleColor(this)">
-            <span class="slider"></span>
-          </label>
-        </div>
-        <textarea class="obs-item" placeholder="Observações (opcional)"></textarea>
-      </div>
-
-      <!-- Item 2 -->
-      <div class="item">
-        <div class="linha-item">
-          <span class="nome-item">Filtro de ar</span>
-          <label class="switch">
-            <input type="checkbox" class="chk-item" data-nome="Filtro de ar" onclick="toggleColor(this)">
-            <span class="slider"></span>
-          </label>
-        </div>
-        <textarea class="obs-item" placeholder="Observações (opcional)"></textarea>
-      </div>
-
-      <!-- Item 3 -->
-      <div class="item">
-        <div class="linha-item">
-          <span class="nome-item">Evaporadora</span>
-          <label class="switch">
-            <input type="checkbox" class="chk-item" data-nome="Evaporadora" onclick="toggleColor(this)">
-            <span class="slider"></span>
-          </label>
-        </div>
-        <textarea class="obs-item" placeholder="Observações (opcional)"></textarea>
-      </div>
-
-      <!-- Item 4 -->
-      <div class="item">
-        <div class="linha-item">
-          <span class="nome-item">Condensadora</span>
-          <label class="switch">
-            <input type="checkbox" class="chk-item" data-nome="Condensadora" onclick="toggleColor(this)">
-            <span class="slider"></span>
-          </label>
-        </div>
-        <textarea class="obs-item" placeholder="Observações (opcional)"></textarea>
-      </div>
-
-      <!-- ===== BLOCO: MEDIÇÕES E LIMPEZA ===== -->
-      <h3 style="margin-top: 14px; font-size:16px;">Medições e limpeza</h3>
-
-      <div class="item">
-        <div class="linha-item">
-          <span class="nome-item">Amperagem dentro do normal</span>
-          <label class="switch">
-            <input type="checkbox" class="chk-item" data-nome="Amperagem dentro do normal" onclick="toggleColor(this)">
-            <span class="slider"></span>
-          </label>
-        </div>
-        <textarea class="obs-item" placeholder="Observações (opcional)"></textarea>
-      </div>
-
-      <div class="item">
-        <div class="linha-item">
-          <span class="nome-item">Pressões do sistema dentro da faixa</span>
-          <label class="switch">
-            <input type="checkbox" class="chk-item" data-nome="Pressões do sistema dentro da faixa" onclick="toggleColor(this)">
-            <span class="slider"></span>
-          </label>
-        </div>
-        <textarea class="obs-item" placeholder="Observações (opcional)"></textarea>
-      </div>
-
-      <div class="item">
-        <div class="linha-item">
-          <span class="nome-item">Refrigerante / gás em condição adequada</span>
-          <label class="switch">
-            <input type="checkbox" class="chk-item" data-nome="Refrigerante / gás em condição adequada" onclick="toggleColor(this)">
-            <span class="slider"></span>
-          </label>
-        </div>
-        <textarea class="obs-item" placeholder="Observações (opcional)"></textarea>
-      </div>
-
-      <div class="item">
-        <div class="linha-item">
-          <span class="nome-item">Estado geral da máquina</span>
-          <label class="switch">
-            <input type="checkbox" class="chk-item" data-nome="Estado geral de limpeza satisfatório" onclick="toggleColor(this)">
-            <span class="slider"></span>
-          </label>
-        </div>
-        <textarea class="obs-item" placeholder="Observações (opcional)"></textarea>
-      </div>
-
-      <div class="item">
-        <div class="linha-item">
-          <span class="nome-item">Limpeza da condensadora</span>
-          <label class="switch">
-            <input type="checkbox" class="chk-item" data-nome="Estado geral de limpeza satisfatório" onclick="toggleColor(this)">
-            <span class="slider"></span>
-          </label>
-        </div>
-        <textarea class="obs-item" placeholder="Observações (opcional)"></textarea>
-      </div>
-      <!-- ===== FIM BLOCO ===== -->
-
-      <button class="btn-obs" onclick="toggleObs()">+ Adicionar observações técnicas</button>
-
-      <div id="obsTecnicaBox">
-        <textarea id="obsTecnicasGerais" placeholder="Escreva observações técnicas detalhadas..."></textarea>
-      </div>
-
-      <button class="btn-salvar" id="btnSalvarPmoc">Salvar checklist</button>
-
-    </div>
-
-  </div>
+  </form>
 
   <script>
-    // ========= CARREGAR UNIDADE VINDO DO MENU PMOC =========
+    // carregar unidade selecionada
     const unidadeSelecionadaStr = localStorage.getItem("pmocUnidadeSelecionada");
     if (unidadeSelecionadaStr) {
       try {
         const unidadeSel = JSON.parse(unidadeSelecionadaStr);
-
         const campoUnidade = document.getElementById("unidade");
         const campoLocal   = document.getElementById("local");
 
@@ -438,8 +416,6 @@
         if (campoLocal && !campoLocal.value) {
           campoLocal.value = unidadeSel.cidade || "";
         }
-
-        console.log("PMOC para a unidade:", unidadeSel);
       } catch (e) {
         console.warn("Não foi possível ler pmocUnidadeSelecionada:", e);
       }
@@ -450,12 +426,10 @@
       box.style.display = (box.style.display === "none" || box.style.display === "") ? "block" : "none";
     }
 
-    /* alterna entre verde (OK) e vermelho (Problema) */
     function toggleColor(el) {
       el.classList.toggle("problem");
     }
 
-    // ========= SCROLL PARA A SEÇÃO DE POPs QUANDO VIER COM #pops =========
     document.addEventListener("DOMContentLoaded", () => {
       if (window.location.hash === "#pops") {
         const popsSection = document.getElementById("popsSection");
@@ -465,51 +439,63 @@
       }
     });
 
-    // ========= SALVAR NO BACKEND =========
     const API_PMOC_URL = "https://aircontrolos-api.onrender.com/api/PmocRegistros";
+    const formPmoc = document.getElementById("formPmoc");
 
-    document.getElementById("btnSalvarPmoc").addEventListener("click", async function () {
-      // 1) Validar ID do aparelho
+    formPmoc.addEventListener("submit", async function (e) {
+      e.preventDefault();
+
       const aparelhoHdvIdStr = document.getElementById("aparelhoHdvId").value.trim();
       if (!aparelhoHdvIdStr) {
         alert("Informe o ID do aparelho (HDV).");
         return;
       }
-
       const aparelhoHdvId = parseInt(aparelhoHdvIdStr, 10);
       if (Number.isNaN(aparelhoHdvId)) {
         alert("O ID do aparelho (HDV) deve ser um número inteiro.");
         return;
       }
 
-      // 2) Montar o checklist (array de itens)
       const checkboxes = document.querySelectorAll(".chk-item");
       const observacoes = document.querySelectorAll(".obs-item");
 
       const itens = [];
       checkboxes.forEach((chk, index) => {
         const nome = chk.dataset.nome || `Item ${index + 1}`;
-        const problema = chk.classList.contains("problem");  // true = problema (vermelho)
+        const problema = chk.classList.contains("problem");
         const obs = observacoes[index].value.trim();
-
         itens.push({
           nome: nome,
-          ok: !problema,              // ok = true quando NÃO marcado como problema
+          ok: !problema,
           problema: problema,
           observacao: obs
         });
       });
 
-      // 3) Campos adicionais
-      const data = document.getElementById("data").value; // yyyy-MM-dd
-      const obsTecnicasGerais = document.getElementById("obsTecnicasGerais")?.value || "";
+      const data = document.getElementById("data").value;
+      const obsTecnicasGerais = document.getElementById("observacoesTecnicas")?.value || "";
 
-      // 4) Montar payload exatamente como a API espera
+      // pegar usuário logado para salvar quem fez o PMOC
+      let tecnicoEmail = "";
+      let tecnicoNome = "";
+      try {
+        const userStr = sessionStorage.getItem("air_user") || localStorage.getItem("air_user");
+        if (userStr) {
+          const user = JSON.parse(userStr);
+          if (user.email) tecnicoEmail = user.email;
+          if (user.nome)  tecnicoNome  = user.nome;
+        }
+      } catch (e) {
+        console.warn("Não foi possível obter usuário logado para PMOC:", e);
+      }
+
       const payload = {
-        aparelhoHdvId: aparelhoHdvId,           // INT
+        aparelhoHdvId: aparelhoHdvId,
         data: data || new Date().toISOString().substring(0, 10),
         checklistJson: JSON.stringify(itens),
-        observacoesTecnicas: obsTecnicasGerais
+        observacoesTecnicas: obsTecnicasGerais,
+        tecnicoEmail: tecnicoEmail,
+        tecnicoNome: tecnicoNome
       };
 
       console.log("Enviando payload PMOC:", payload);
@@ -517,9 +503,7 @@
       try {
         const resp = await fetch(API_PMOC_URL, {
           method: "POST",
-          headers: {
-            "Content-Type": "application/json"
-          },
+          headers: { "Content-Type": "application/json" },
           body: JSON.stringify(payload)
         });
 
@@ -531,13 +515,20 @@
         }
 
         alert("Checklist salvo com sucesso!");
-        // window.location.href = "dashboard.html";
+
+        // 🔥 LIMPA O FORM E VOLTA SWITCHES PARA VERDE
+        formPmoc.reset();
+        document.querySelectorAll(".chk-item").forEach(chk => {
+          chk.classList.remove("problem");
+        });
+        const box = document.getElementById("obsTecnicaBox");
+        if (box) box.style.display = "none";
+
       } catch (e) {
         console.error("Erro de rede ao salvar PMOC:", e);
         alert("Erro de comunicação com o servidor.");
       }
     });
   </script>
-
 </body>
 </html>
