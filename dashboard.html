@@ -194,10 +194,22 @@
   <!-- JS principal -->
   <script src="js/script.js"></script>
 
-  <!-- Controle de login e permissão -->
+  <!-- Controle de login e permissão e redirect pós-login -->
 <script>
   // Garante que o usuário esteja logado (usa função do script.js)
   requireLogin();
+
+  // Depois do login, verifica se existe um redirect salvo (ex: vindo de um QR Code)
+    (function () {
+      const redirect = sessionStorage.getItem("redirectAfterLogin");
+      if (redirect) {
+        // limpa para não redirecionar sempre
+        sessionStorage.removeItem("redirectAfterLogin");
+        // leva para a página original (por exemplo: pmoc-historico.html?aparelhoId=10)
+        window.location.href = redirect;
+        return; // evita continuar o script abaixo depois do redirect
+      }
+    })();
 
   // Lê o cargo salvo e padroniza
   const cargoBruto = sessionStorage.getItem("cargo") || role() || "";
