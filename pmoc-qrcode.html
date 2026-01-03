@@ -110,7 +110,8 @@
       <li><a href="pmoc.html">✅ Checklist PMOC</a></li>
       <li><a href="pmoc-historico.html">📂 Histórico PMOC</a></li>
       <li><a href="pmoc-menu.html">📌 PMOC por cidade / unidade</a></li>
-      <li><a href="pmoc-qrcode.html">🔳 QR Code PMOC</a></li>
+      <!-- IMPORTANTE: usar o MESMO nome do arquivo aqui -->
+      <li><a href="pmoc-qrcode.html">🔳 QR Codes PMOC</a></li>
     </ul>
   </nav>
 
@@ -130,44 +131,51 @@
     <section id="listaQRCodes" class="qr-grid"></section>
   </main>
 
+  <!-- Seu JS geral -->
   <script src="js/script.js"></script>
 
   <script>
-    // Lista de exemplo (depois dá pra trocar por dados reais da API de aparelhos)
+    // ============================
+    // 1) Lista DEMO (backup)
+    // ============================
     const aparelhosDemo = [
+      {
+        id: 2,
+        unidade: "Hospital Vicentino",
+        local: "Posto de Enfermagem",
+        descricao: "Split 9.000 BTU"
+      },
+      {
+        id: 5,
+        unidade: "Hospital Vicentino",
+        local: "Sala de Limpeza",
+        descricao: "Split 9.000 BTU"
+      },
       {
         id: 10,
         unidade: "Hospital Vicentino",
-        local: "3º andar - Enfermaria",
-        descricao: "Split 18.000 BTU"
+        local: "Faturamento 01",
+        descricao: "Split 9.000 BTU"
       },
       {
         id: 11,
         unidade: "Hospital Vicentino",
-        local: "Sala de Espera",
-        descricao: "Split 24.000 BTU"
-      },
-      {
-        id: 20,
-        unidade: "PS Central",
-        local: "Recepção",
-        descricao: "Split 12.000 BTU"
-      },
-      {
-        id: 30,
-        unidade: "Hospital Olavo",
-        local: "UTI",
-        descricao: "Cassete 36.000 BTU"
+        local: "Faturamento 02",
+        descricao: "Split 9.000 BTU"
       }
     ];
 
-    function montarQRCodes() {
+    // ============================
+    // 2) Montar QRCodes na tela
+    // ============================
+    function montarQRCodes(listaAparelhos) {
       const container = document.getElementById("listaQRCodes");
       container.innerHTML = "";
 
+      // pmoc-historico.html na raiz do app
       const baseUrl = `${window.location.origin}/pmoc-historico.html`;
 
-      aparelhosDemo.forEach(ap => {
+      listaAparelhos.forEach(ap => {
         const urlHistorico = `${baseUrl}?aparelhoId=${ap.id}`;
 
         const card = document.createElement("article");
@@ -181,7 +189,6 @@
 
         const qrBox = document.createElement("div");
         qrBox.className = "qr-box";
-        qrBox.id = `qr-${ap.id}`;
 
         const urlTexto = document.createElement("div");
         urlTexto.className = "qr-url";
@@ -194,6 +201,7 @@
 
         container.appendChild(card);
 
+        // Gera o QR de fato
         new QRCode(qrBox, {
           text: urlHistorico,
           width: 128,
@@ -202,7 +210,47 @@
       });
     }
 
-    document.addEventListener("DOMContentLoaded", montarQRCodes);
+    // ============================
+    // 3) Carregar aparelhos do banco (Hospital Vicentino)
+    // ============================
+    async function carregarAparelhosDoBanco() {
+      // !!! ATENÇÃO !!!
+      // Ajuste essa URL para a MESMA que você usa na tela "aparelhos-por-unidade.html"
+      // para listar os aparelhos do Hospital Vicentino.
+      const API_URL = "https://aircontrolos-api.onrender.com/api/AparelhosPorUnidade?unidade=Hospital Vicentino";
+
+      try {
+        const resp = await fetch(API_URL);
+        if (!resp.ok) {
+          throw new Error("Resposta não OK da API: " + resp.status);
+        }
+
+        const dados = await resp.json();
+
+        // Ajuste os nomes dos campos conforme vierem da sua API
+        const listaMapeada = dados.map(item => ({
+          id: item.id || item.aparelhoId || item.hdv || 0,
+          unidade: item.unidadeNome || "Hospital Vicentino",
+          local: item.local || item.ambiente || "-",
+          descricao: `${item.marca || ""} ${item.btu ? item.btu + " BTU" : ""}`.trim() || "Ar condicionado"
+        })).filter(ap => ap.id); // só mantém se tiver ID
+
+        if (!listaMapeada.length) {
+          console.warn("API não retornou aparelhos com ID, usando lista demo.");
+          montarQRCodes(aparelhosDemo);
+          return;
+        }
+
+        montarQRCodes(listaMapeada);
+      } catch (e) {
+        console.error("Erro ao carregar aparelhos do banco, usando lista demo:", e);
+        montarQRCodes(aparelhosDemo);
+      }
+    }
+
+    // Quando a página carregar, tenta buscar do banco;
+    // se der erro, cai na lista demo de cima.
+    document.addEventListener("DOMContentLoaded", carregarAparelhosDoBanco);
   </script>
 
   <!-- SW -->
@@ -214,5 +262,3 @@
   </script>
 </body>
 </html>
-
-
