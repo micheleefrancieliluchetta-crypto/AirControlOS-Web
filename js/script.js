@@ -65,8 +65,16 @@ if (loginForm) {
       localStorage.setItem("air_user", JSON.stringify(user));
       localStorage.setItem("userRole", cargoNorm);
 
-      window.location.href = "dashboard.html";
-
+      // 🔥 NOVO: se veio de um QR (ou outra página), volta pra lá
+      const redirectAfterLogin = sessionStorage.getItem("redirectAfterLogin");
+      if (redirectAfterLogin) {
+        sessionStorage.removeItem("redirectAfterLogin");
+        window.location.href = redirectAfterLogin;
+      } else {
+        // se não, vai pro dashboard mesmo
+        window.location.href = "dashboard.html";
+      }
+     
     } catch (err) {
       console.error(err);
       alert("Falha de conexão com o servidor.");
