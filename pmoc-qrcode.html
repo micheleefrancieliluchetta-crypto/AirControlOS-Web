@@ -5,23 +5,18 @@
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <title>QR Codes PMOC - AirControl OS</title>
 
-  <!-- seu CSS principal -->
+  <!-- Seu CSS principal -->
   <link rel="stylesheet" href="css/style.css">
 
   <!-- PWA -->
   <link rel="manifest" href="./manifest.webmanifest" />
   <meta name="theme-color" content="#1e90ff" />
-
   <link rel="apple-touch-icon" href="icons/icon-192.png" />
   <meta name="mobile-web-app-capable" content="yes">
   <meta name="apple-mobile-web-app-status-bar-style" content="default" />
 
-  <!-- Lib de QRCode (SEM integrity, pra não ser bloqueado) -->
-  <script
-    src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"
-    crossorigin="anonymous"
-    referrerpolicy="no-referrer">
-  </script>
+  <!-- Lib de QRCode (SEM integrity pra não bloquear) -->
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
 
   <style>
     .qrcode-header {
@@ -93,7 +88,7 @@
   </style>
 </head>
 <body>
-  <!-- TOPO COM VOLTAR -->
+  <!-- TOPO -->
   <header class="topbar">
     <button onclick="window.location.href='dashboard.html'" class="btn-voltar">←</button>
     <h1>QR Codes PMOC</h1>
@@ -131,120 +126,96 @@
     </div>
 
     <section id="listaQRCodes" class="qr-grid"></section>
+    <p id="msgQRCodes" style="margin-top:12px; font-size:13px; color:#555;"></p>
   </main>
 
-  <!-- seu JS principal -->
+  <!-- Seu JS geral (se existir coisas como logout(), etc.) -->
   <script src="js/script.js"></script>
 
   <script>
     const API_APARELHOS_URL = "https://aircontrolos-api.onrender.com/api/aparelhos-hdv";
 
-    // monta 1 card + QR para 1 aparelho
-    function criarCardAparelho(aparelho) {
+    async function carregarQRCodes() {
       const container = document.getElementById("listaQRCodes");
+      const msg = document.getElementById("msgQRCodes");
+      container.innerHTML = "";
+      msg.textContent = "";
 
-      // tenta achar um ID estável pra usar na URL
-      const id =
-        aparelho.aparelhoHdvId ??
-        aparelho.id ??
-        aparelho.unidadeExterna;
-
-      // monta descrição (marca / BTU / modelo)
-      const partesDesc = [];
-      if (aparelho.marca) partesDesc.push(aparelho.marca);
-      if (aparelho.btu) partesDesc.push(`${aparelho.btu} BTU`);
-      if (aparelho.modelo) partesDesc.push(aparelho.modelo);
-      const descricao = partesDesc.join(" ") || "Ar condicionado";
-
-      const unidadeNome =
-        aparelho.unidade ||
-        aparelho.unidadeHospital ||
-        "Hospital Vicentino";
-
-      const localNome = aparelho.local || "-";
-
-      const baseUrl = `${window.location.origin}/pmoc-historico.html`;
-      const urlHistorico = `${baseUrl}?aparelhoId=${encodeURIComponent(id)}`;
-
-      const card = document.createElement("article");
-      card.className = "qr-card";
-
-      const titulo = document.createElement("h3");
-      titulo.textContent = `Aparelho #${id} - ${descricao}`;
-
-      const info = document.createElement("p");
-      info.textContent = `Unidade: ${unidadeNome} • Local: ${localNome}`;
-
-      const qrBox = document.createElement("div");
-      qrBox.className = "qr-box";
-
-      const urlTexto = document.createElement("div");
-      urlTexto.className = "qr-url";
-      urlTexto.textContent = urlHistorico;
-
-      card.appendChild(titulo);
-      card.appendChild(info);
-      card.appendChild(qrBox);
-      card.appendChild(urlTexto);
-
-      container.appendChild(card);
-
-      // gera o QR de fato
-      try {
-        new QRCode(qrBox, {
-          text: urlHistorico,
-          width: 128,
-          height: 128
-        });
-      } catch (e) {
-        console.error("Erro ao gerar QRCode para aparelho", id, e);
-        qrBox.textContent = "Erro ao carregar biblioteca de QR Code.";
+      // segurança: ver se a lib foi carregada
+      if (typeof QRCode === "undefined") {
+        msg.textContent = "Erro ao carregar biblioteca de QR Code.";
+        return;
       }
-    }
-
-    async function carregarAparelhosDoBanco() {
-      const container = document.getElementById("listaQRCodes");
-      container.innerHTML = "<p>Carregando aparelhos...</p>";
 
       try {
         const resp = await fetch(API_APARELHOS_URL);
-        if (!resp.ok) throw new Error("Erro ao buscar aparelhos HDV");
+        if (!resp.ok) throw new Error("Erro HTTP ao buscar aparelhos.");
 
         const dados = await resp.json();
 
-        // se houver campo de unidade/hospital, filtra só Vicentino
-        let lista = dados;
-        lista = lista.filter(a => {
-          const texto = [
-            a.unidade,
-            a.unidadeHospital,
-            a.hospital,
-            a.cliente
-          ]
-            .filter(Boolean)
-            .join(" ")
-            .toLowerCase();
-
-          return texto.includes("vicentino");
-        });
-
-        if (!lista || lista.length === 0) {
-          container.innerHTML = "<p>Nenhum aparelho encontrado para o Hospital Vicentino.</p>";
+        if (!dados || dados.length === 0) {
+          msg.textContent = "Nenhum aparelho encontrado na base de dados.";
           return;
         }
 
-        container.innerHTML = "";
-        lista.forEach(criarCardAparelho);
+        const baseUrl = `${window.location.origin}/pmoc-historico.html`;
+
+        dados.forEach(ap => {
+          // tenta adivinhar o campo ID
+          const id = ap.id ?? ap.aparelhoHdvId ?? ap.aparelhoId;
+          if (!id) {
+            return; // sem id não dá pra gerar URL
+          }
+
+          const descricao =
+            (ap.marca ? ap.marca + " " : "") +
+            (ap.btu ? ap.btu + " BTU" : "Ar condicionado");
+
+          const unidadeTexto = "Hospital Vicentino"; // por enquanto fixo
+          const localTexto = ap.local || "-";
+
+          const urlHistorico = `${baseUrl}?aparelhoId=${id}`;
+
+          const card = document.createElement("article");
+          card.className = "qr-card";
+
+          const titulo = document.createElement("h3");
+          titulo.textContent = `Aparelho #${id} - ${descricao}`;
+
+          const info = document.createElement("p");
+          info.textContent = `Unidade: ${unidadeTexto} • Local: ${localTexto}`;
+
+          const qrBox = document.createElement("div");
+          qrBox.className = "qr-box";
+
+          const urlTexto = document.createElement("div");
+          urlTexto.className = "qr-url";
+          urlTexto.textContent = urlHistorico;
+
+          card.appendChild(titulo);
+          card.appendChild(info);
+          card.appendChild(qrBox);
+          card.appendChild(urlTexto);
+          container.appendChild(card);
+
+          new QRCode(qrBox, {
+            text: urlHistorico,
+            width: 128,
+            height: 128
+          });
+        });
+
+        msg.textContent = `${container.children.length} QR Code(s) gerado(s).`;
       } catch (e) {
         console.error(e);
-        container.innerHTML = "<p>Erro ao carregar aparelhos para gerar QR Codes.</p>";
+        msg.textContent = "Erro ao carregar aparelhos para gerar QR Codes.";
       }
     }
 
-    document.addEventListener("DOMContentLoaded", carregarAparelhosDoBanco);
+    document.addEventListener("DOMContentLoaded", carregarQRCodes);
   </script>
 
-  <!-- SW -->
+  <!-- Service Worker -->
   <script>
     if ('serviceWorker' in navigator) {
       navigator.serviceWorker
