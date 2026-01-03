@@ -64,6 +64,7 @@
 
     .qr-box {
       margin: 10px auto 4px;
+      min-height: 128px; /* garante espaço pro QR aparecer */
     }
 
     .qr-url {
@@ -110,7 +111,7 @@
       <li><a href="pmoc.html">✅ Checklist PMOC</a></li>
       <li><a href="pmoc-historico.html">📂 Histórico PMOC</a></li>
       <li><a href="pmoc-menu.html">📌 PMOC por cidade / unidade</a></li>
-      <!-- IMPORTANTE: usar o MESMO nome do arquivo aqui -->
+      <!-- IMPORTANTE: MESMO NOME DO ARQUIVO -->
       <li><a href="pmoc-qrcode.html">🔳 QR Codes PMOC</a></li>
     </ul>
   </nav>
@@ -129,41 +130,38 @@
     </div>
 
     <section id="listaQRCodes" class="qr-grid"></section>
+
+    <p id="msgQRCodes" style="font-size:13px; color:#666; margin-top:16px;"></p>
   </main>
 
-  <!-- Seu JS geral -->
   <script src="js/script.js"></script>
 
   <script>
     // ============================
-    // 1) Lista DEMO (backup)
+    // 1) Fallback DEMO (caso API caia)
     // ============================
     const aparelhosDemo = [
+      {
+        id: 10,
+        unidade: "Hospital Vicentino",
+        local: "3º andar - Enfermaria",
+        descricao: "Split 18.000 BTU"
+      },
+      {
+        id: 11,
+        unidade: "Hospital Vicentino",
+        local: "Sala de Espera",
+        descricao: "Split 24.000 BTU"
+      },
       {
         id: 2,
         unidade: "Hospital Vicentino",
         local: "Posto de Enfermagem",
         descricao: "Split 9.000 BTU"
-      },
-      {
-        id: 5,
-        unidade: "Hospital Vicentino",
-        local: "Sala de Limpeza",
-        descricao: "Split 9.000 BTU"
-      },
-      {
-        id: 10,
-        unidade: "Hospital Vicentino",
-        local: "Faturamento 01",
-        descricao: "Split 9.000 BTU"
-      },
-      {
-        id: 11,
-        unidade: "Hospital Vicentino",
-        local: "Faturamento 02",
-        descricao: "Split 9.000 BTU"
       }
     ];
+
+    const msgQRCodes = document.getElementById("msgQRCodes");
 
     // ============================
     // 2) Montar QRCodes na tela
@@ -172,7 +170,11 @@
       const container = document.getElementById("listaQRCodes");
       container.innerHTML = "";
 
-      // pmoc-historico.html na raiz do app
+      if (!listaAparelhos || !listaAparelhos.length) {
+        msgQRCodes.textContent = "Nenhum aparelho encontrado para gerar QR Codes.";
+        return;
+      }
+
       const baseUrl = `${window.location.origin}/pmoc-historico.html`;
 
       listaAparelhos.forEach(ap => {
@@ -201,55 +203,71 @@
 
         container.appendChild(card);
 
-        // Gera o QR de fato
-        new QRCode(qrBox, {
-          text: urlHistorico,
-          width: 128,
-          height: 128
-        });
+        // Se por algum motivo a lib não carregar, mostra mensagem no lugar
+        if (typeof QRCode === "undefined") {
+          qrBox.textContent = "Erro ao carregar biblioteca de QR Code.";
+        } else {
+          new QRCode(qrBox, {
+            text: urlHistorico,
+            width: 128,
+            height: 128
+          });
+        }
       });
+
+      msgQRCodes.textContent = `${listaAparelhos.length} QR Code(s) gerado(s).`;
     }
 
     // ============================
-    // 3) Carregar aparelhos do banco (Hospital Vicentino)
+    // 3) Carregar aparelhos do banco
+    //    usando a mesma API de
+    //    aparelhos-por-unidade.html
     // ============================
-    async function carregarAparelhosDoBanco() {
-      // !!! ATENÇÃO !!!
-      // Ajuste essa URL para a MESMA que você usa na tela "aparelhos-por-unidade.html"
-      // para listar os aparelhos do Hospital Vicentino.
-      const API_URL = "https://aircontrolos-api.onrender.com/api/AparelhosPorUnidade?unidade=Hospital Vicentino";
+    const API_APARELHOS = "https://aircontrolos-api.onrender.com/api/aparelhos-hdv";
 
+    async function carregarAparelhosDoBanco() {
       try {
-        const resp = await fetch(API_URL);
-        if (!resp.ok) {
-          throw new Error("Resposta não OK da API: " + resp.status);
-        }
+        const resp = await fetch(API_APARELHOS);
+        if (!resp.ok) throw new Error("Resposta não OK: " + resp.status);
 
         const dados = await resp.json();
 
-        // Ajuste os nomes dos campos conforme vierem da sua API
-        const listaMapeada = dados.map(item => ({
-          id: item.id || item.aparelhoId || item.hdv || 0,
-          unidade: item.unidadeNome || "Hospital Vicentino",
-          local: item.local || item.ambiente || "-",
-          descricao: `${item.marca || ""} ${item.btu ? item.btu + " BTU" : ""}`.trim() || "Ar condicionado"
-        })).filter(ap => ap.id); // só mantém se tiver ID
+        // Mapeia por unidadeExterna (HDV) => 1 QR por máquina
+        const mapa = new Map();
 
-        if (!listaMapeada.length) {
-          console.warn("API não retornou aparelhos com ID, usando lista demo.");
+        dados.forEach(item => {
+          const hdv = item.unidadeExterna; // mesmo campo usado na tabela
+          if (!hdv || hdv === "-" ) return; // sem ID, sem QR
+
+          if (!mapa.has(hdv)) {
+            const descricao =
+              `${item.marca || ""} ${item.btu ? item.btu + " BTU" : ""}`.trim() || "Ar condicionado";
+
+            mapa.set(hdv, {
+              id: hdv, // esse é o aparelhoId que vai para pmoc-historico.html
+              unidade: "Hospital Vicentino", // hoje só tem essa, depois dá pra puxar da API se tiver
+              local: item.local || "-",
+              descricao
+            });
+          }
+        });
+
+        const lista = Array.from(mapa.values()).sort((a, b) => a.id - b.id);
+
+        if (!lista.length) {
+          console.warn("API retornou, mas não foi possível montar lista. Usando demo.");
           montarQRCodes(aparelhosDemo);
           return;
         }
 
-        montarQRCodes(listaMapeada);
+        montarQRCodes(lista);
       } catch (e) {
         console.error("Erro ao carregar aparelhos do banco, usando lista demo:", e);
+        msgQRCodes.textContent = "Erro ao carregar aparelhos da API. Mostrando exemplo.";
         montarQRCodes(aparelhosDemo);
       }
     }
 
-    // Quando a página carregar, tenta buscar do banco;
-    // se der erro, cai na lista demo de cima.
     document.addEventListener("DOMContentLoaded", carregarAparelhosDoBanco);
   </script>
 
