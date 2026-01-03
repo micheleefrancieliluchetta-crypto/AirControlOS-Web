@@ -95,7 +95,7 @@
     <button onclick="logout()">Sair</button>
   </header>
 
-  <!-- MENU LATERAL (mesmo menu das outras telas) -->
+  <!-- MENU LATERAL -->
   <nav class="sidebar">
     <ul>
       <li><a href="dashboard.html">🏠 Dashboard</a></li>
@@ -131,7 +131,7 @@
     <section id="listaQRCodes" class="qr-grid"></section>
   </main>
 
-  <!-- SEU script principal (menu, logout, etc.) -->
+  <!-- Script principal (menu, logout, etc.) -->
   <script src="js/script.js"></script>
 
   <script>
@@ -151,8 +151,6 @@
         }
 
         const dados = await resp.json();
-
-        // 👉 Por enquanto: gera QR para TODOS os aparelhos retornados
         const aparelhos = Array.isArray(dados) ? dados : [];
 
         if (!aparelhos.length) {
@@ -161,12 +159,12 @@
         }
 
         const baseUrlHistorico = `${window.location.origin}/pmoc-historico.html`;
+        let totalGerados = 0;
 
         aparelhos.forEach(ap => {
-          // Melhor chute para o ID do aparelho (ajusta depois se o nome for outro)
-          const aparelhoId = ap.id ?? ap.aparelhoHdvId ?? ap.aparelhoId;
+          // 👉 Usa a UNIDADE EXTERNA como ID HDV do aparelho
+          const aparelhoId = ap.unidadeExterna;
 
-          // Texto do título
           const desc =
             ap.modelo ||
             ap.descricao ||
@@ -174,8 +172,6 @@
 
           const unidadeExt = ap.unidadeExterna ?? "-";
           const local = ap.local ?? "-";
-
-          const urlHistorico = `${baseUrlHistorico}?aparelhoId=${encodeURIComponent(aparelhoId)}`;
 
           const card = document.createElement("article");
           card.className = "qr-card";
@@ -191,7 +187,6 @@
 
           const urlTexto = document.createElement("div");
           urlTexto.className = "qr-url";
-          urlTexto.textContent = urlHistorico;
 
           card.appendChild(titulo);
           card.appendChild(info);
@@ -200,19 +195,35 @@
 
           container.appendChild(card);
 
-          // Só gera o QR se tiver um ID
-          if (aparelhoId != null && typeof QRCode !== "undefined") {
-            new QRCode(qrBox, {
-              text: urlHistorico,
-              width: 128,
-              height: 128
-            });
+          // Só gera QR se tiver unidadeExterna válida (número, não "-")
+          if (
+            aparelhoId !== null &&
+            aparelhoId !== undefined &&
+            aparelhoId !== "-" &&
+            aparelhoId !== ""
+          ) {
+            const urlHistorico =
+              `${baseUrlHistorico}?aparelhoId=${encodeURIComponent(aparelhoId)}`;
+
+            urlTexto.textContent = urlHistorico;
+
+            if (typeof QRCode !== "undefined") {
+              new QRCode(qrBox, {
+                text: urlHistorico,
+                width: 128,
+                height: 128
+              });
+              totalGerados++;
+            } else {
+              qrBox.textContent = "Erro ao carregar biblioteca de QR Code.";
+            }
           } else {
-            qrBox.textContent = "Não foi possível gerar QR (ID inexistente).";
+            qrBox.textContent = "Não foi possível gerar QR (sem ID HDV).";
+            urlTexto.textContent = "";
           }
         });
 
-        infoQuantidade.textContent = `${aparelhos.length} QR Code(s) gerado(s).`;
+        infoQuantidade.textContent = `${totalGerados} QR Code(s) gerado(s).`;
       } catch (e) {
         console.error(e);
         infoQuantidade.textContent = "Erro ao carregar aparelhos para gerar QR Codes.";
