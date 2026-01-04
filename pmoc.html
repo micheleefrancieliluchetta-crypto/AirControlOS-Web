@@ -404,9 +404,14 @@
   </form>
 
   <script>
-    // carregar unidade selecionada
-    const unidadeSelecionadaStr = localStorage.getItem("pmocUnidadeSelecionada");
-    if (unidadeSelecionadaStr) {
+    const API_PMOC_URL = "https://aircontrolos-api.onrender.com/api/PmocRegistros";
+    const formPmoc = document.getElementById("formPmoc");
+
+    // pré-preenche unidade/local vindos do menu
+    (function carregarUnidadeSelecionada() {
+      const unidadeSelecionadaStr = localStorage.getItem("pmocUnidadeSelecionada");
+      if (!unidadeSelecionadaStr) return;
+
       try {
         const unidadeSel = JSON.parse(unidadeSelecionadaStr);
         const campoUnidade = document.getElementById("unidade");
@@ -421,7 +426,7 @@
       } catch (e) {
         console.warn("Não foi possível ler pmocUnidadeSelecionada:", e);
       }
-    }
+    })();
 
     function toggleObs() {
       const box = document.getElementById("obsTecnicaBox");
@@ -440,9 +445,6 @@
         }
       }
     });
-
-    const API_PMOC_URL = "https://aircontrolos-api.onrender.com/api/PmocRegistros";
-    const formPmoc = document.getElementById("formPmoc");
 
     // 🎯 BOTÃO SALVAR PMOC
     document.getElementById("btnSalvarPmoc").addEventListener("click", async function () {
@@ -478,7 +480,6 @@
       });
 
       // 3) Campos adicionais
-      const data = document.getElementById("data").value; // yyyy-MM-dd
       const obsTecnicasGerais = document.getElementById("obsTecnicasGerais")?.value || "";
 
       // 4) Pega o nome do usuário logado
@@ -493,14 +494,12 @@
         console.warn("Não foi possível ler usuário logado:", e);
       }
 
-      // 5) Monta o payload que vai pra API
+      // 5) Monta o payload que vai pra API (alinhado com o DTO do back-end)
       const payload = {
         aparelhoHdvId: aparelhoHdvId,
-        data: data || new Date().toISOString().substring(0, 10),
-        checklistJson: JSON.stringify(itens),      // nome IGUAL ao DTO
+        itensJson: JSON.stringify(itens),          // mesmo nome do DTO
         observacoesTecnicas: obsTecnicasGerais,
         tecnicoNome: tecnicoNome                   // salva o nome de quem fez
-        // tecnicoEmail o back-end resolve sozinho (token / valor padrão)
       };
 
       console.log("Enviando payload PMOC:", payload);
