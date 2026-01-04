@@ -65,13 +65,13 @@ if (loginForm) {
       localStorage.setItem("air_user", JSON.stringify(user));
       localStorage.setItem("userRole", cargoNorm);
 
-      // 🔥 NOVO: se veio de um QR (ou outra página), volta pra lá
-      const redirectAfterLogin = sessionStorage.getItem("redirectAfterLogin");
-      if (redirectAfterLogin) {
+      // 🔹 Se tiver uma URL guardada (ex: pmoc-historico.html?aparelhoId=10),
+      // volta pra ela. Senão, vai pro dashboard normal.
+      const redirect = sessionStorage.getItem("redirectAfterLogin");
+      if (redirect) {
         sessionStorage.removeItem("redirectAfterLogin");
-        window.location.href = redirectAfterLogin;
+        window.location.href = redirect;
       } else {
-        // se não, vai pro dashboard mesmo
         window.location.href = "dashboard.html";
       }
      
