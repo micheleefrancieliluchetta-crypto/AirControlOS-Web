@@ -87,6 +87,7 @@
       font-weight: 600;
     }
 
+    /* SWITCH */
     .switch {
       position: relative;
       display: inline-block;
@@ -107,7 +108,7 @@
       left: 0;
       right: 0;
       bottom: 0;
-      background-color: #37d67a;
+      background-color: #37d67a; /* verde padrão */
       transition: 0.2s;
       border-radius: 999px;
     }
@@ -124,6 +125,7 @@
       border-radius: 50%;
     }
 
+    /* vermelho quando "problema" */
     .switch input.problem + .slider {
       background-color: #ff4d4d !important;
     }
@@ -392,9 +394,10 @@
         <button class="btn-obs" type="button" onclick="toggleObs()">+ Adicionar observações técnicas</button>
 
         <div id="obsTecnicaBox">
-          <textarea id="observacoesTecnicas" placeholder="Escreva observações técnicas detalhadas..."></textarea>
+          <textarea id="obsTecnicasGerais" placeholder="Escreva observações técnicas detalhadas..."></textarea>
         </div>
 
+        <!-- type="button" pra NÃO submeter o <form> automático -->
         <button class="btn-salvar" id="btnSalvarPmoc" type="button">Salvar checklist</button>
       </div>
     </div>
@@ -441,10 +444,8 @@
     const API_PMOC_URL = "https://aircontrolos-api.onrender.com/api/PmocRegistros";
     const formPmoc = document.getElementById("formPmoc");
 
-    // === NOVO LISTENER NO BOTÃO ===
-    document.getElementById("btnSalvarPmoc").addEventListener("click", async function (e) {
-      e.preventDefault();
-
+    // 🎯 BOTÃO SALVAR PMOC
+    document.getElementById("btnSalvarPmoc").addEventListener("click", async function () {
       // 1) Validar ID do aparelho
       const aparelhoHdvIdStr = document.getElementById("aparelhoHdvId").value.trim();
       if (!aparelhoHdvIdStr) {
@@ -478,7 +479,7 @@
 
       // 3) Campos adicionais
       const data = document.getElementById("data").value; // yyyy-MM-dd
-      const obsTecnicasGerais = document.getElementById("observacoesTecnicas")?.value || "";
+      const obsTecnicasGerais = document.getElementById("obsTecnicasGerais")?.value || "";
 
       // 4) Pega o nome do usuário logado
       let tecnicoNome = "";
@@ -488,17 +489,18 @@
           const u = JSON.parse(userStr);
           tecnicoNome = u.nome || u.email || "";
         }
-      } catch (e2) {
-        console.warn("Não foi possível ler usuário logado:", e2);
+      } catch (e) {
+        console.warn("Não foi possível ler usuário logado:", e);
       }
 
       // 5) Monta o payload que vai pra API
       const payload = {
         aparelhoHdvId: aparelhoHdvId,
         data: data || new Date().toISOString().substring(0, 10),
-        checklistJson: JSON.stringify(itens),        // mesmo nome do DTO
+        checklistJson: JSON.stringify(itens),      // nome IGUAL ao DTO
         observacoesTecnicas: obsTecnicasGerais,
-        tecnicoNome: tecnicoNome                     // vai pro banco
+        tecnicoNome: tecnicoNome                   // salva o nome de quem fez
+        // tecnicoEmail o back-end resolve sozinho (token / valor padrão)
       };
 
       console.log("Enviando payload PMOC:", payload);
@@ -521,7 +523,7 @@
 
         alert("Checklist salvo com sucesso!");
 
-        // LIMPA O FORM E VOLTA SWITCHES PARA VERDE
+        // 🔥 LIMPA O FORM E VOLTA SWITCHES PARA VERDE
         formPmoc.reset();
         document.querySelectorAll(".chk-item").forEach(chk => {
           chk.classList.remove("problem");
@@ -529,8 +531,8 @@
         const box = document.getElementById("obsTecnicaBox");
         if (box) box.style.display = "none";
 
-      } catch (e3) {
-        console.error("Erro de rede ao salvar PMOC:", e3);
+      } catch (e) {
+        console.error("Erro de rede ao salvar PMOC:", e);
         alert("Erro de comunicação com o servidor.");
       }
     });
