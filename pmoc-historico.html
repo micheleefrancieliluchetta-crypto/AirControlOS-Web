@@ -84,20 +84,22 @@
   <!-- SCRIPT PRINCIPAL (o mesmo do resto do app) -->
   <script src="js/script.js"></script>
 
-  <!-- PERMISSÃO ADMIN (VERSÃO COM REDIRECT JÁ RESOLVIDO ACIMA) -->
+  <!-- PERMISSÃO / LOGIN (usa helpers do script.js) -->
   <script>
     (function () {
-      const cargo = sessionStorage.getItem("cargo");
-      if (!cargo) {
-        // se chegou aqui sem cargo é porque o primeiro script ainda não rodou ou o usuário limpou storage
+      // 1) Se não estiver logado em lugar nenhum (nem session nem local),
+      // guarda a URL e manda pro login.
+      if (!isLogged()) {
         const redirectUrl = window.location.pathname + window.location.search;
         sessionStorage.setItem("redirectAfterLogin", redirectUrl);
-        alert("Faça login para continuar.");
+        alert("Faça login para acessar o histórico PMOC.");
         window.location.href = "index.html";
         return;
       }
 
-      if (cargo.toLowerCase() !== "admin") {
+      // 2) Se estiver logado, checa o cargo
+      const cargo = (role() || "").toLowerCase();
+      if (cargo !== "admin") {
         alert("Somente administradores podem acessar esta página.");
         window.location.href = "dashboard.html";
       }
@@ -219,5 +221,6 @@
   </script>
 </body>
 </html>
+
 
 
