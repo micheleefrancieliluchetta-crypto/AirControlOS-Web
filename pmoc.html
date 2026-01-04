@@ -288,7 +288,6 @@
       <div class="card">
         <h2>Checklist</h2>
 
-        <!-- Itens (mesmos que você já tinha) -->
         <div class="item">
           <div class="linha-item">
             <span class="nome-item">Funcionamento geral</span>
@@ -396,7 +395,7 @@
           <textarea id="observacoesTecnicas" placeholder="Escreva observações técnicas detalhadas..."></textarea>
         </div>
 
-        <button class="btn-salvar" id="btnSalvarPmoc" type="submit">Salvar checklist</button>
+        <button class="btn-salvar" id="btnSalvarPmoc" type="button">Salvar checklist</button>
       </div>
     </div>
   </form>
@@ -442,28 +441,33 @@
     const API_PMOC_URL = "https://aircontrolos-api.onrender.com/api/PmocRegistros";
     const formPmoc = document.getElementById("formPmoc");
 
-    formPmoc.addEventListener("submit", async function (e) {
+    // === NOVO LISTENER NO BOTÃO ===
+    document.getElementById("btnSalvarPmoc").addEventListener("click", async function (e) {
       e.preventDefault();
 
+      // 1) Validar ID do aparelho
       const aparelhoHdvIdStr = document.getElementById("aparelhoHdvId").value.trim();
       if (!aparelhoHdvIdStr) {
         alert("Informe o ID do aparelho (HDV).");
         return;
       }
+
       const aparelhoHdvId = parseInt(aparelhoHdvIdStr, 10);
       if (Number.isNaN(aparelhoHdvId)) {
         alert("O ID do aparelho (HDV) deve ser um número inteiro.");
         return;
       }
 
+      // 2) Montar o checklist (array de itens)
       const checkboxes = document.querySelectorAll(".chk-item");
       const observacoes = document.querySelectorAll(".obs-item");
 
       const itens = [];
       checkboxes.forEach((chk, index) => {
         const nome = chk.dataset.nome || `Item ${index + 1}`;
-        const problema = chk.classList.contains("problem");
+        const problema = chk.classList.contains("problem");  // true = problema (vermelho)
         const obs = observacoes[index].value.trim();
+
         itens.push({
           nome: nome,
           ok: !problema,
@@ -472,30 +476,29 @@
         });
       });
 
-      const data = document.getElementById("data").value;
+      // 3) Campos adicionais
+      const data = document.getElementById("data").value; // yyyy-MM-dd
       const obsTecnicasGerais = document.getElementById("observacoesTecnicas")?.value || "";
 
-      // pegar usuário logado para salvar quem fez o PMOC
-      let tecnicoEmail = "";
+      // 4) Pega o nome do usuário logado
       let tecnicoNome = "";
       try {
         const userStr = sessionStorage.getItem("air_user") || localStorage.getItem("air_user");
         if (userStr) {
-          const user = JSON.parse(userStr);
-          if (user.email) tecnicoEmail = user.email;
-          if (user.nome)  tecnicoNome  = user.nome;
+          const u = JSON.parse(userStr);
+          tecnicoNome = u.nome || u.email || "";
         }
-      } catch (e) {
-        console.warn("Não foi possível obter usuário logado para PMOC:", e);
+      } catch (e2) {
+        console.warn("Não foi possível ler usuário logado:", e2);
       }
 
+      // 5) Monta o payload que vai pra API
       const payload = {
         aparelhoHdvId: aparelhoHdvId,
         data: data || new Date().toISOString().substring(0, 10),
-        checklistJson: JSON.stringify(itens),
+        checklistJson: JSON.stringify(itens),        // mesmo nome do DTO
         observacoesTecnicas: obsTecnicasGerais,
-        tecnicoEmail: tecnicoEmail,
-        tecnicoNome: tecnicoNome
+        tecnicoNome: tecnicoNome                     // vai pro banco
       };
 
       console.log("Enviando payload PMOC:", payload);
@@ -503,7 +506,9 @@
       try {
         const resp = await fetch(API_PMOC_URL, {
           method: "POST",
-          headers: { "Content-Type": "application/json" },
+          headers: {
+            "Content-Type": "application/json"
+          },
           body: JSON.stringify(payload)
         });
 
@@ -516,7 +521,7 @@
 
         alert("Checklist salvo com sucesso!");
 
-        // 🔥 LIMPA O FORM E VOLTA SWITCHES PARA VERDE
+        // LIMPA O FORM E VOLTA SWITCHES PARA VERDE
         formPmoc.reset();
         document.querySelectorAll(".chk-item").forEach(chk => {
           chk.classList.remove("problem");
@@ -524,8 +529,8 @@
         const box = document.getElementById("obsTecnicaBox");
         if (box) box.style.display = "none";
 
-      } catch (e) {
-        console.error("Erro de rede ao salvar PMOC:", e);
+      } catch (e3) {
+        console.error("Erro de rede ao salvar PMOC:", e3);
         alert("Erro de comunicação com o servidor.");
       }
     });
