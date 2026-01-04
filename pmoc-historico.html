@@ -8,40 +8,77 @@
   <!-- CSS principal do app -->
   <link rel="stylesheet" href="css/style.css">
 
-  <style>
-  .lista-itens-pmoc {
-    list-style: none;
-    padding-left: 0;
-    margin: 0;
-  }
-  .lista-itens-pmoc li {
-    margin-bottom: 6px;
-    font-size: 14px;
-  }
-  .pmoc-item-obs {
-    color: #444;
-    font-style: italic;
-  }
-</style>
-
-  <!-- PWA -->
+  <!-- PWA básico -->
   <link rel="manifest" href="./manifest.webmanifest" />
   <meta name="theme-color" content="#1e90ff" />
-  <link rel="apple-touch-icon" href="icons/icon-192.png" />
+  <link rel="apple-touch-icon" href="icons/empresa/icon-192.png" />
   <meta name="mobile-web-app-capable" content="yes">
   <meta name="apple-mobile-web-app-status-bar-style" content="default" />
+
+  <!-- Estilos extras só para os cards do histórico PMOC -->
+  <style>
+    /* card de cada registro */
+    .card-os {
+      background: #fff;
+      border-radius: 12px;
+      padding: 14px 16px;
+      margin-bottom: 12px;
+      box-shadow: 0 2px 6px rgba(0,0,0,0.06);
+      font-size: 14px;
+    }
+    .card-os h3 {
+      margin: 0 0 4px 0;
+      font-size: 16px;
+    }
+    .card-os h4 {
+      margin: 10px 0 4px 0;
+      font-size: 14px;
+    }
+    .pmoc-header {
+      display: flex;
+      flex-wrap: wrap;
+      justify-content: space-between;
+      gap: 4px;
+    }
+    .pmoc-data {
+      margin: 0;
+      font-size: 13px;
+      color: #555;
+    }
+
+    /* lista bonitinha dos itens do checklist */
+    .lista-itens-pmoc {
+      list-style: none;
+      padding-left: 0;
+      margin: 0;
+    }
+    .lista-itens-pmoc li {
+      margin-bottom: 6px;
+      font-size: 13px;
+      line-height: 1.4;
+    }
+    .pmoc-item-obs {
+      color: #444;
+      font-style: italic;
+      font-size: 12px;
+    }
+
+    @media (max-width: 768px) {
+      .main-content {
+        padding-bottom: 32px;
+      }
+    }
+  </style>
 </head>
 
 <body>
-
-  <!-- TOPO COM VOLTAR -->
+  <!-- TOPO -->
   <header class="topbar">
     <button onclick="window.location.href='dashboard.html'" class="btn-voltar">←</button>
     <h1>Histórico PMOC</h1>
-    <button onclick="logout()">Sair</button>
   </header>
 
-  <!-- MENU LATERAL -->
+  <!-- MENU LATERAL (opcional – se a pessoa não estiver logada, continua funcionando só como links) -->
   <nav class="sidebar">
     <ul>
       <li><a href="dashboard.html">🏠 Dashboard</a></li>
@@ -65,7 +102,7 @@
     <!-- FILTRO -->
     <section class="form-os" style="margin-bottom: 16px;">
       <label for="aparelhoIdInput">ID do aparelho (AparelhoHdvId):</label>
-      <input type="number" id="aparelhoIdInput" placeholder="Ex: 10">
+      <input type="number" id="aparelhoIdInput" placeholder="Ex: 2, 3, 10">
 
       <button type="button" class="tecnico-btn" id="btnBuscar">
         Buscar histórico
@@ -73,7 +110,7 @@
 
       <p id="msgInfo" style="font-size: 13px; color: #555; margin-top: 8px;">
         Dica: você pode acessar com
-        <code>?aparelhoId=10</code> na URL para carregar automaticamente.
+        <code>?aparelhoId=10</code> na URL (via QR Code) para carregar automaticamente.
       </p>
     </section>
 
@@ -81,32 +118,10 @@
     <section id="listaPmoc"></section>
   </main>
 
-  <!-- SCRIPT PRINCIPAL (o mesmo do resto do app) -->
+  <!-- Script geral (logout, etc). Não tem mais nenhum bloqueio de login aqui dentro. -->
   <script src="js/script.js"></script>
 
-  <!-- PERMISSÃO / LOGIN (usa helpers do script.js) -->
-  <script>
-    (function () {
-      // 1) Se não estiver logado em lugar nenhum (nem session nem local),
-      // guarda a URL e manda pro login.
-      if (!isLogged()) {
-        const redirectUrl = window.location.pathname + window.location.search;
-        sessionStorage.setItem("redirectAfterLogin", redirectUrl);
-        alert("Faça login para acessar o histórico PMOC.");
-        window.location.href = "index.html";
-        return;
-      }
-
-      // 2) Se estiver logado, checa o cargo
-      const cargo = (role() || "").toLowerCase();
-      if (cargo !== "admin") {
-        alert("Somente administradores podem acessar esta página.");
-        window.location.href = "dashboard.html";
-      }
-    })();
-  </script>
-
-  <!-- LÓGICA DE HISTÓRICO PMOC -->
+  <!-- LÓGICA DO HISTÓRICO PMOC (SEM EXIGIR LOGIN) -->
   <script>
     const API_PMOC_BASE = "https://aircontrolos-api.onrender.com/api/PmocRegistros";
 
@@ -115,7 +130,7 @@
     const listaPmoc = document.getElementById("listaPmoc");
     const msgInfo = document.getElementById("msgInfo");
 
-    // Clique no botão "Buscar histórico"
+    // botão "Buscar histórico"
     btnBuscar.addEventListener("click", () => {
       const id = parseInt(inputAparelho.value, 10);
       if (!id) {
@@ -125,93 +140,120 @@
       carregarHistorico(id);
     });
 
-    // Se vier ?aparelhoId=10 na URL, já carrega automático
-    (function init() {
+    // enter dentro do campo também busca
+    inputAparelho.addEventListener("keyup", (e) => {
+      if (e.key === "Enter") {
+        btnBuscar.click();
+      }
+    });
+
+    // se vier ?aparelhoId=10 na URL (via QR), carrega direto
+    (function initFromQuery() {
       const params = new URLSearchParams(window.location.search);
       const id = params.get("aparelhoId");
       if (id) {
         inputAparelho.value = id;
-        carregarHistorico(id);
+        carregarHistorico(parseInt(id, 10));
       }
     })();
 
     async function carregarHistorico(id) {
-  listaPmoc.innerHTML = "";
-  msgInfo.textContent = `Carregando histórico do aparelho ${id}...`;
+      listaPmoc.innerHTML = "";
+      msgInfo.textContent = `Carregando histórico do aparelho ${id}...`;
 
-  try {
-    const resp = await fetch(`${API_PMOC_BASE}/por-aparelho/${id}`);
-    if (!resp.ok) {
-      throw new Error(resp.status);
-    }
-
-    const registros = await resp.json();
-
-    if (!registros.length) {
-      msgInfo.textContent = "Nenhum registro encontrado para este aparelho.";
-      return;
-    }
-
-    msgInfo.textContent = `${registros.length} registro(s) encontrado(s).`;
-
-    registros.forEach(reg => {
-      const card = document.createElement("div");
-      card.className = "card-os";
-
-      const data = reg.data
-        ? new Date(reg.data).toLocaleString("pt-BR")
-        : "(sem data)";
-
-      // pega técnico (nome se tiver, senão email)
-      const tecnico = reg.tecnicoNome || reg.tecnicoEmail || "-";
-
-      // monta lista bonitinha dos itens
-      let itensHtml = "<p>(itens não disponíveis)</p>";
-      const rawItens = reg.checklistJson || reg.itensJson;
-      if (rawItens) {
-        try {
-          const itens = JSON.parse(rawItens);
-          if (Array.isArray(itens) && itens.length) {
-            itensHtml = '<ul class="lista-itens-pmoc">';
-            itens.forEach(item => {
-              const status = item.problema ? "🔴 Problema" : "✅ OK";
-              const obs = item.observacao || item.observacoes || "";
-              itensHtml += `
-                <li>
-                  <strong>${item.nome || "-"}</strong> – ${status}
-                  ${obs ? `<br><span class="pmoc-item-obs">${obs}</span>` : ""}
-                </li>`;
-            });
-            itensHtml += "</ul>";
-          }
-        } catch (e) {
-          console.warn("Falha ao interpretar itensJson/checklistJson:", e);
+      try {
+        const resp = await fetch(`${API_PMOC_BASE}/por-aparelho/${id}`);
+        if (!resp.ok) {
+          throw new Error(resp.status);
         }
+
+        const registros = await resp.json();
+
+        if (!Array.isArray(registros) || !registros.length) {
+          msgInfo.textContent = "Nenhum registro encontrado para este aparelho.";
+          return;
+        }
+
+        // ordena do mais recente pro mais antigo
+        registros.sort((a, b) => new Date(b.data) - new Date(a.data));
+
+        msgInfo.textContent = `${registros.length} registro(s) encontrado(s).`;
+        listaPmoc.innerHTML = "";
+
+        registros.forEach(reg => {
+          const card = document.createElement("div");
+          card.className = "card-os";
+
+          const dataStr = reg.data
+            ? new Date(reg.data).toLocaleString("pt-BR")
+            : "(sem data)";
+
+          // técnico: se vier nome, mostra; se vier só email "feio", podemos esconder
+          const tecnicoNome = reg.tecnicoNome || "";
+          const tecnicoEmail = reg.tecnicoEmail || "";
+          let linhaTecnico = "";
+          if (tecnicoNome) {
+            linhaTecnico = `<p><strong>Técnico:</strong> ${tecnicoNome}</p>`;
+          } else if (tecnicoEmail && tecnicoEmail !== "pmoc@aircontrolos") {
+            linhaTecnico = `<p><strong>Técnico:</strong> ${tecnicoEmail}</p>`;
+          }
+
+          // monta lista bonitinha dos itens
+          let itensHtml = "<p>(itens não disponíveis)</p>";
+          const rawItens = reg.checklistJson || reg.itensJson;
+          if (rawItens) {
+            try {
+              const itens = JSON.parse(rawItens);
+              if (Array.isArray(itens) && itens.length) {
+                itensHtml = '<ul class="lista-itens-pmoc">';
+                itens.forEach(item => {
+                  const status = item.problema ? "🔴 Problema" : "✅ OK";
+                  const nomeItem = item.nome || "-";
+                  const obs = item.observacao || item.observacoes || "";
+
+                  itensHtml += `
+                    <li>
+                      <strong>${nomeItem}</strong> – ${status}
+                      ${obs ? `<br><span class="pmoc-item-obs">${obs}</span>` : ""}
+                    </li>`;
+                });
+                itensHtml += "</ul>";
+              }
+            } catch (e) {
+              console.warn("Falha ao interpretar itens do checklist:", e);
+            }
+          }
+
+          card.innerHTML = `
+            <div class="pmoc-header">
+              <h3>Registro #${reg.id}</h3>
+              <p class="pmoc-data"><strong>Data:</strong> ${dataStr}</p>
+            </div>
+            ${linhaTecnico}
+            <p><strong>Aparelho ID:</strong> ${reg.aparelhoHdvId}</p>
+
+            <h4>Itens verificados</h4>
+            ${itensHtml}
+
+            <h4>Observações técnicas</h4>
+            <p>${reg.observacoesTecnicas || "(sem observações)"}</p>
+          `;
+
+          listaPmoc.appendChild(card);
+        });
+
+        // no celular, rola automaticamente até o primeiro card
+        listaPmoc.scrollIntoView({ behavior: "smooth", block: "start" });
+
+      } catch (e) {
+        console.error(e);
+        msgInfo.textContent = "Erro ao buscar dados.";
+        alert("Erro ao comunicar com o servidor.");
       }
+    }
+  </script>
 
-      card.innerHTML = `
-        <h3>Registro #${reg.id}</h3>
-        <p><strong>Data:</strong> ${data}</p>
-        <p><strong>Técnico:</strong> ${tecnico}</p>
-        <p><strong>Aparelho ID:</strong> ${reg.aparelhoHdvId}</p>
-        <hr>
-        <h4>Itens</h4>
-        ${itensHtml}
-        <h4>Observações técnicas</h4>
-        <p>${reg.observacoesTecnicas || "(sem observações)"}</p>
-      `;
-
-      listaPmoc.appendChild(card);
-    });
-
-  } catch (e) {
-    console.error(e);
-    msgInfo.textContent = "Erro ao buscar dados.";
-    alert("Erro ao comunicar com o servidor.");
-  }
-}
-
-  <!-- SERVICE WORKER -->
+  <!-- SERVICE WORKER (opcional, se você estiver usando PWA aqui também) -->
   <script>
     if ("serviceWorker" in navigator) {
       navigator.serviceWorker
@@ -221,6 +263,3 @@
   </script>
 </body>
 </html>
-
-
-
