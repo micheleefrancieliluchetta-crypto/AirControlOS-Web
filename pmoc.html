@@ -290,7 +290,6 @@
       <div class="card">
         <h2>Checklist</h2>
 
-        <!-- 1 -->
         <div class="item">
           <div class="linha-item">
             <span class="nome-item">Funcionamento geral</span>
@@ -302,7 +301,6 @@
           <textarea class="obs-item" placeholder="Observações (opcional)"></textarea>
         </div>
 
-        <!-- 2 -->
         <div class="item">
           <div class="linha-item">
             <span class="nome-item">Filtro de ar</span>
@@ -314,7 +312,6 @@
           <textarea class="obs-item" placeholder="Observações (opcional)"></textarea>
         </div>
 
-        <!-- 3 -->
         <div class="item">
           <div class="linha-item">
             <span class="nome-item">Evaporadora</span>
@@ -326,7 +323,6 @@
           <textarea class="obs-item" placeholder="Observações (opcional)"></textarea>
         </div>
 
-        <!-- 4 -->
         <div class="item">
           <div class="linha-item">
             <span class="nome-item">Condensadora</span>
@@ -340,7 +336,6 @@
 
         <h3 style="margin-top: 14px; font-size:16px;">Medições e limpeza</h3>
 
-        <!-- 5 -->
         <div class="item">
           <div class="linha-item">
             <span class="nome-item">Amperagem dentro do normal</span>
@@ -352,7 +347,6 @@
           <textarea class="obs-item" placeholder="Observações (opcional)"></textarea>
         </div>
 
-        <!-- 6 -->
         <div class="item">
           <div class="linha-item">
             <span class="nome-item">Pressões do sistema dentro da faixa</span>
@@ -364,7 +358,6 @@
           <textarea class="obs-item" placeholder="Observações (opcional)"></textarea>
         </div>
 
-        <!-- 7 -->
         <div class="item">
           <div class="linha-item">
             <span class="nome-item">Refrigerante / gás em condição adequada</span>
@@ -376,7 +369,6 @@
           <textarea class="obs-item" placeholder="Observações (opcional)"></textarea>
         </div>
 
-        <!-- 8 -->
         <div class="item">
           <div class="linha-item">
             <span class="nome-item">Estado geral da máquina</span>
@@ -388,7 +380,6 @@
           <textarea class="obs-item" placeholder="Observações (opcional)"></textarea>
         </div>
 
-        <!-- 9 -->
         <div class="item">
           <div class="linha-item">
             <span class="nome-item">Limpeza da condensadora</span>
@@ -413,9 +404,25 @@
   </form>
 
   <script>
-    // carregar unidade selecionada
-    const unidadeSelecionadaStr = localStorage.getItem("pmocUnidadeSelecionada");
-    if (unidadeSelecionadaStr) {
+    // ===================== CONFIG =====================
+    const API_PMOC_URL = "https://aircontrolos-api.onrender.com/api/PmocRegistros/salvar";
+
+    // ===================== FUNÇÕES DE UI =====================
+    function toggleObs() {
+      const box = document.getElementById("obsTecnicaBox");
+      if (!box) return;
+      box.style.display = (box.style.display === "none" || box.style.display === "") ? "block" : "none";
+    }
+
+    function toggleColor(el) {
+      el.classList.toggle("problem");
+    }
+
+    // ===================== CARREGAR UNIDADE =====================
+    (function carregarUnidadeSelecionada() {
+      const unidadeSelecionadaStr = localStorage.getItem("pmocUnidadeSelecionada");
+      if (!unidadeSelecionadaStr) return;
+
       try {
         const unidadeSel = JSON.parse(unidadeSelecionadaStr);
         const campoUnidade = document.getElementById("unidade");
@@ -430,31 +437,26 @@
       } catch (e) {
         console.warn("Não foi possível ler pmocUnidadeSelecionada:", e);
       }
-    }
+    })();
 
-    function toggleObs() {
-      const box = document.getElementById("obsTecnicaBox");
-      box.style.display = (box.style.display === "none" || box.style.display === "") ? "block" : "none";
-    }
-
-    function toggleColor(el) {
-      el.classList.toggle("problem");
-    }
-
+    // ===================== DOM READY =====================
     document.addEventListener("DOMContentLoaded", () => {
+      // rolagem automática pros POPs se vier com hash
       if (window.location.hash === "#pops") {
         const popsSection = document.getElementById("popsSection");
         if (popsSection) {
           popsSection.scrollIntoView({ behavior: "smooth", block: "start" });
         }
       }
+
+      const btnSalvar = document.getElementById("btnSalvarPmoc");
+      if (btnSalvar) {
+        btnSalvar.addEventListener("click", salvarChecklistPmoc);
+      }
     });
 
-    const API_PMOC_URL = const API_PMOC_URL = "https://aircontrolos-api.onrender.com/api/PmocRegistros/salvar";
-    const formPmoc = document.getElementById("formPmoc");
-
-    // 🎯 BOTÃO SALVAR PMOC
-    document.getElementById("btnSalvarPmoc").addEventListener("click", async function () {
+    // ===================== SALVAR CHECKLIST =====================
+    async function salvarChecklistPmoc() {
       // 1) Validar ID do aparelho
       const aparelhoHdvIdStr = document.getElementById("aparelhoHdvId").value.trim();
       if (!aparelhoHdvIdStr) {
@@ -469,14 +471,14 @@
       }
 
       // 2) Montar o checklist (array de itens)
-      const checkboxes = document.querySelectorAll(".chk-item");
+      const checkboxes  = document.querySelectorAll(".chk-item");
       const observacoes = document.querySelectorAll(".obs-item");
 
       const itens = [];
       checkboxes.forEach((chk, index) => {
-        const nome = chk.dataset.nome || `Item ${index + 1}`;
+        const nome     = chk.dataset.nome || `Item ${index + 1}`;
         const problema = chk.classList.contains("problem");  // true = problema (vermelho)
-        const obs = observacoes[index].value.trim();
+        const obs      = observacoes[index].value.trim();
 
         itens.push({
           nome: nome,
@@ -487,8 +489,8 @@
       });
 
       // 3) Campos adicionais
-      const data = document.getElementById("data").value; // yyyy-MM-dd
-      const obsTecnicasGerais = document.getElementById("obsTecnicasGerais")?.value || "";
+      const dataCampo          = document.getElementById("data").value; // yyyy-MM-dd
+      const obsTecnicasGerais  = document.getElementById("obsTecnicasGerais")?.value || "";
 
       // 4) Pega o nome do usuário logado
       let tecnicoNome = "";
@@ -505,11 +507,10 @@
       // 5) Monta o payload que vai pra API
       const payload = {
         aparelhoHdvId: aparelhoHdvId,
-        data: data || new Date().toISOString().substring(0, 10),
-        checklistJson: JSON.stringify(itens),      // nome IGUAL ao DTO novo
+        data: dataCampo || null,
+        checklistJson: JSON.stringify(itens),   // nome IGUAL ao DTO
         observacoesTecnicas: obsTecnicasGerais,
-        tecnicoNome: tecnicoNome                   // salva o nome de quem fez
-        // tecnicoEmail o back-end resolve sozinho (token / valor padrão)
+        tecnicoNome: tecnicoNome               // salva o nome de quem fez
       };
 
       console.log("Enviando payload PMOC:", payload);
@@ -533,10 +534,13 @@
         alert("Checklist salvo com sucesso!");
 
         // 🔥 LIMPA O FORM E VOLTA SWITCHES PARA VERDE
-        formPmoc.reset();
+        const formPmoc = document.getElementById("formPmoc");
+        if (formPmoc) formPmoc.reset();
+
         document.querySelectorAll(".chk-item").forEach(chk => {
           chk.classList.remove("problem");
         });
+
         const box = document.getElementById("obsTecnicaBox");
         if (box) box.style.display = "none";
 
@@ -544,9 +548,7 @@
         console.error("Erro de rede ao salvar PMOC:", e);
         alert("Erro de comunicação com o servidor.");
       }
-    });
+    }
   </script>
 </body>
 </html>
-
-
