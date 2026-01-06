@@ -398,28 +398,16 @@
         </div>
 
         <!-- type="button" pra NÃO submeter o <form> automático -->
-        <button class="btn-salvar" id="btnSalvarPmoc" type="button">Salvar checklist</button>
+        <button class="btn-salvar" type="button" onclick="salvarChecklistPmoc(event)">Salvar checklist</button>
       </div>
     </div>
   </form>
 
   <script>
-    // ===================== CONFIG =====================
     const API_PMOC_URL = "https://aircontrolos-api.onrender.com/api/PmocRegistros";
 
-    // ===================== FUNÇÕES DE UI =====================
-    function toggleObs() {
-      const box = document.getElementById("obsTecnicaBox");
-      if (!box) return;
-      box.style.display = (box.style.display === "none" || box.style.display === "") ? "block" : "none";
-    }
-
-    function toggleColor(el) {
-      el.classList.toggle("problem");
-    }
-
-    // ===================== CARREGAR UNIDADE =====================
-    (function carregarUnidadeSelecionada() {
+    // carregar unidade selecionada
+    (function carregarUnidade() {
       const unidadeSelecionadaStr = localStorage.getItem("pmocUnidadeSelecionada");
       if (!unidadeSelecionadaStr) return;
 
@@ -439,24 +427,25 @@
       }
     })();
 
-    // ===================== DOM READY =====================
+    function toggleObs() {
+      const box = document.getElementById("obsTecnicaBox");
+      box.style.display = (box.style.display === "none" || box.style.display === "") ? "block" : "none";
+    }
+
+    function toggleColor(el) {
+      el.classList.toggle("problem");
+    }
+
     document.addEventListener("DOMContentLoaded", () => {
-      // rolagem automática pros POPs se vier com hash
       if (window.location.hash === "#pops") {
         const popsSection = document.getElementById("popsSection");
         if (popsSection) {
           popsSection.scrollIntoView({ behavior: "smooth", block: "start" });
         }
       }
-
-      const btnSalvar = document.getElementById("btnSalvarPmoc");
-      if (btnSalvar) {
-        btnSalvar.addEventListener("click", salvarChecklistPmoc);
-      }
     });
 
-    // ===================== SALVAR CHECKLIST =====================
-    async function salvarChecklistPmoc() {
+    async function salvarChecklistPmoc(e) {
       // 1) Validar ID do aparelho
       const aparelhoHdvIdStr = document.getElementById("aparelhoHdvId").value.trim();
       if (!aparelhoHdvIdStr) {
@@ -470,15 +459,15 @@
         return;
       }
 
-      // 2) Montar o checklist (array de itens)
-      const checkboxes  = document.querySelectorAll(".chk-item");
+      // 2) Montar o checklist
+      const checkboxes = document.querySelectorAll(".chk-item");
       const observacoes = document.querySelectorAll(".obs-item");
 
       const itens = [];
       checkboxes.forEach((chk, index) => {
-        const nome     = chk.dataset.nome || `Item ${index + 1}`;
-        const problema = chk.classList.contains("problem");  // true = problema (vermelho)
-        const obs      = observacoes[index].value.trim();
+        const nome = chk.dataset.nome || `Item ${index + 1}`;
+        const problema = chk.classList.contains("problem");
+        const obs = observacoes[index].value.trim();
 
         itens.push({
           nome: nome,
@@ -489,8 +478,8 @@
       });
 
       // 3) Campos adicionais
-      const dataCampo          = document.getElementById("data").value; // yyyy-MM-dd
-      const obsTecnicasGerais  = document.getElementById("obsTecnicasGerais")?.value || "";
+      const data = document.getElementById("data").value;
+      const obsTecnicasGerais = document.getElementById("obsTecnicasGerais")?.value || "";
 
       // 4) Pega o nome do usuário logado
       let tecnicoNome = "";
@@ -500,17 +489,17 @@
           const u = JSON.parse(userStr);
           tecnicoNome = u.nome || u.email || "";
         }
-      } catch (e) {
-        console.warn("Não foi possível ler usuário logado:", e);
+      } catch (err) {
+        console.warn("Não foi possível ler usuário logado:", err);
       }
 
-      // 5) Monta o payload que vai pra API
+      // 5) Monta payload
       const payload = {
         aparelhoHdvId: aparelhoHdvId,
-        data: dataCampo || null,
-        checklistJson: JSON.stringify(itens),   // nome IGUAL ao DTO
+        data: data || null,
+        checklistJson: JSON.stringify(itens),
         observacoesTecnicas: obsTecnicasGerais,
-        tecnicoNome: tecnicoNome               // salva o nome de quem fez
+        tecnicoNome: tecnicoNome
       };
 
       console.log("Enviando payload PMOC:", payload);
@@ -533,23 +522,20 @@
 
         alert("Checklist salvo com sucesso!");
 
-        // 🔥 LIMPA O FORM E VOLTA SWITCHES PARA VERDE
+        // limpa o form
         const formPmoc = document.getElementById("formPmoc");
-        if (formPmoc) formPmoc.reset();
-
+        formPmoc.reset();
         document.querySelectorAll(".chk-item").forEach(chk => {
           chk.classList.remove("problem");
         });
-
         const box = document.getElementById("obsTecnicaBox");
         if (box) box.style.display = "none";
 
-      } catch (e) {
-        console.error("Erro de rede ao salvar PMOC:", e);
+      } catch (err) {
+        console.error("Erro de rede ao salvar PMOC:", err);
         alert("Erro de comunicação com o servidor.");
       }
     }
   </script>
 </body>
 </html>
-
