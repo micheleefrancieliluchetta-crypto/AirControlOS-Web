@@ -495,12 +495,12 @@
 
       // 5) Monta payload
       const payload = {
-        aparelhoHdvId: aparelhoHdvId,
-        data: data || null,
-        checklistJson: JSON.stringify(itens),
-        observacoesTecnicas: obsTecnicasGerais,
-        tecnicoNome: tecnicoNome
-      };
+      aparelhoHdvId: aparelhoHdvId,
+      data: data || new Date().toISOString().substring(0, 10),
+      checklistJson: JSON.stringify(itens),
+      observacoesTecnicas: obsTecnicasGerais,
+      tecnicoNome: tecnicoNome
+  };
 
       console.log("Enviando payload PMOC:", payload);
 
@@ -539,3 +539,4 @@
   </script>
 </body>
 </html>
+
