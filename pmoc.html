@@ -461,7 +461,7 @@
 
       const itens = [];
       checkboxes.forEach((chk, index) => {
-        const nome = chk.dataset.nome || Item ${index + 1};
+        const nome = chk.dataset.nome || `Item ${index + 1}`;
         const problema = chk.classList.contains("problem");
         const obs = observacoes[index].value.trim();
         itens.push({
@@ -532,6 +532,7 @@
   </script>
 </body>
 </html>
+
 
 
 
