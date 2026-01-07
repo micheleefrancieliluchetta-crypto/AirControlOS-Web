@@ -404,117 +404,141 @@
   </form>
 
   <script>
-    const API_PMOC_URL = "https://aircontrolos-api.onrender.com/api/PmocRegistros";
+  // URL da API
+  const API_PMOC_URL = "https://aircontrolos-api.onrender.com/api/PmocRegistros";
 
-    // carregar unidade selecionada
-    (function carregarUnidade() {
-      const unidadeSelecionadaStr = localStorage.getItem("pmocUnidadeSelecionada");
-      if (!unidadeSelecionadaStr) return;
+  // Carrega unidade salva (pra preencher campos Unidade / Local)
+  (function carregarUnidade() {
+    const unidadeSelecionadaStr = localStorage.getItem("pmocUnidadeSelecionada");
+    if (!unidadeSelecionadaStr) return;
 
-      try {
-        const unidadeSel = JSON.parse(unidadeSelecionadaStr);
-        const campoUnidade = document.getElementById("unidade");
-        const campoLocal   = document.getElementById("local");
+    try {
+      const unidadeSel = JSON.parse(unidadeSelecionadaStr);
+      const campoUnidade = document.getElementById("unidade");
+      const campoLocal   = document.getElementById("local");
 
-        if (campoUnidade && !campoUnidade.value) {
-          campoUnidade.value = unidadeSel.nome || "";
-        }
-        if (campoLocal && !campoLocal.value) {
-          campoLocal.value = unidadeSel.cidade || "";
-        }
-      } catch (e) {
-        console.warn("Não foi possível ler pmocUnidadeSelecionada:", e);
+      if (campoUnidade && !campoUnidade.value) {
+        campoUnidade.value = unidadeSel.nome || "";
       }
-    })();
+      if (campoLocal && !campoLocal.value) {
+        campoLocal.value = unidadeSel.cidade || "";
+      }
+    } catch (e) {
+      console.warn("Não foi possível ler pmocUnidadeSelecionada:", e);
+    }
+  })();
 
-    function toggleObs() {
-      const box = document.getElementById("obsTecnicaBox");
-      box.style.display = (box.style.display === "none" || box.style.display === "") ? "block" : "none";
+  // Mostrar / esconder observações técnicas gerais
+  function toggleObs() {
+    const box = document.getElementById("obsTecnicaBox");
+    if (!box) return;
+    box.style.display =
+      box.style.display === "none" || box.style.display === "" ? "block" : "none";
+  }
+
+  // Marca/desmarca item como problema (muda cor do switch pelo CSS input.problem + .slider)
+  function toggleColor(el) {
+    el.classList.toggle("problem");
+  }
+
+  // Se abrir com #pops, rola direto pra sessão dos POPs
+  document.addEventListener("DOMContentLoaded", () => {
+    if (window.location.hash === "#pops") {
+      const popsSection = document.getElementById("popsSection");
+      if (popsSection) {
+        popsSection.scrollIntoView({ behavior: "smooth", block: "start" });
+      }
+    }
+  });
+
+  // -------- SALVAR CHECKLIST --------
+  async function salvarChecklistPmoc(e) {
+    // 1) Validar ID do aparelho
+    const aparelhoHdvInput = document.getElementById("aparelhoHdvId");
+    const aparelhoHdvIdStr = (aparelhoHdvInput?.value || "").trim();
+
+    if (!aparelhoHdvIdStr) {
+      alert("Informe o ID do aparelho (HDV).");
+      return;
     }
 
-    function toggleColor(el) {
-      el.classList.toggle("problem");
+    const aparelhoHdvId = parseInt(aparelhoHdvIdStr, 10);
+    if (Number.isNaN(aparelhoHdvId)) {
+      alert("O ID do aparelho (HDV) deve ser um número inteiro.");
+      return;
     }
 
-    document.addEventListener("DOMContentLoaded", () => {
-      if (window.location.hash === "#pops") {
-        const popsSection = document.getElementById("popsSection");
-        if (popsSection) {
-          popsSection.scrollIntoView({ behavior: "smooth", block: "start" });
-        }
-      }
+    // 2) Montar itens do checklist
+    const checkboxes  = document.querySelectorAll(".chk-item");
+    const observacoes = document.querySelectorAll(".obs-item");
+
+    const itens = [];
+    checkboxes.forEach((chk, index) => {
+      const nome      = chk.dataset.nome || `Item ${index + 1}`;
+      const problema  = chk.classList.contains("problem");
+      const obs       = (observacoes[index]?.value || "").trim();
+
+      itens.push({
+        nome: nome,
+        ok: !problema,
+        problema: problema,
+        observacao: obs
+      });
     });
 
-    async function salvarChecklistPmoc(e) {
-      // 1) Validar ID do aparelho
-      const aparelhoHdvIdStr = document.getElementById("aparelhoHdvId").value.trim();
-      if (!aparelhoHdvIdStr) {
-        alert("Informe o ID do aparelho (HDV).");
-        return;
-      }
+    // 3) Campos extras
+    const dataField  = document.getElementById("data");
+    const dataValor  = dataField?.value || "";
+    const obsTecText = document.getElementById("obsTecnicasGerais");
+    const obsTec     = obsTecText?.value || "";
 
-      const aparelhoHdvId = parseInt(aparelhoHdvIdStr, 10);
-      if (Number.isNaN(aparelhoHdvId)) {
-        alert("O ID do aparelho (HDV) deve ser um número inteiro.");
-        return;
-      }
+    // 4) Montar payload do POST
+    const payload = {
+      aparelhoHdvId: aparelhoHdvId,
+      data: dataValor || new Date().toISOString().substring(0, 10),
+      checklistJson: JSON.stringify(itens),
+      observacoesTecnicas: obsTec
+    };
 
-      // 2) Montar o checklist
-      const checkboxes  = document.querySelectorAll(".chk-item");
-      const observacoes = document.querySelectorAll(".obs-item");
+    console.log("Enviando payload PMOC:", payload);
 
-      const itens = [];
-      checkboxes.forEach((chk, index) => {
-        const nome = chk.dataset.nome || `Item ${index + 1}`;
-        const problema = chk.classList.contains("problem");
-        const obs = observacoes[index].value.trim();
-
-        itens.push({
-          nome: nome,
-          ok: !problema,
-          problema: problema,
-          observacao: obs
-        });
+    try {
+      const resp = await fetch(API_PMOC_URL, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json"
+        },
+        body: JSON.stringify(payload)
       });
 
-      // 3) Campos adicionais
-      const data = document.getElementById("data").value;
-      const obsTecnicasGerais =
-        document.getElementById("obsTecnicasGerais")?.value || "";
-
-      // 4) Monta payload
-      const payload = {
-      aparelhoHdvId: aparelhoHdvId,
-      data: data || new Date().toISOString().substring(0, 10),
-      checklistJson: JSON.stringify(itens),
-      observacoesTecnicas: obsTecnicasGerais,
-      tecnicoNome: tecnicoNome,    // se quiser, pode mandar vazio ""
-      tecnicoEmail: tecnicoEmail   // idem
-     };
-
-      console.log("Enviando payload PMOC:", payload);
-
-      try {
-        const resp = await fetch(API_PMOC_URL, {
-          method: "POST",
-          headers: {"Content-Type": "application/json },
-          body: JSON.stringify(payload)
-        });
-
-        if (!resp.ok) {
-          const erroTxt = await resp.text();
-          console.error("Erro da API:", erroTxt);
-          alert("Erro ao salvar checklist no servidor.");
-          return;
-        }
-
-        alert("Checklist salvo com sucesso!");
-        } catch (err) {
-        console.error("Erro de rede ao salvar PMOC:", err);
-        alert("Erro de comunicação com o servidor.");
+      if (!resp.ok) {
+        const txt = await resp.text();
+        console.error("Erro da API:", txt);
+        alert("Erro ao salvar checklist no servidor.");
+        return;
       }
-    }
-  </script>
-</body>
-</html>
 
+      // SUCESSO
+      alert("Checklist salvo com sucesso!");
+
+      // Limpar formulário
+      const formPmoc = document.getElementById("formPmoc");
+      if (formPmoc) {
+        formPmoc.reset();
+      }
+
+      document.querySelectorAll(".chk-item").forEach(chk => {
+        chk.classList.remove("problem");
+      });
+
+      const box = document.getElementById("obsTecnicaBox");
+      if (box) {
+        box.style.display = "none";
+      }
+
+    } catch (err) {
+      console.error("Erro de rede ao salvar PMOC:", err);
+      alert("Erro de comunicação com o servidor.");
+    }
+  }
+</script>
