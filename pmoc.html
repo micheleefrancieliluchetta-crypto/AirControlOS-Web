@@ -484,20 +484,20 @@
 
       // 4) Monta payload
       const payload = {
-        aparelhoHdvId: aparelhoHdvId,
-        data: data || new Date().toISOString().substring(0, 10),
-        checklistJson: JSON.stringify(itens),
-        observacoesTecnicas: obsTecnicasGerais
-      };
+      aparelhoHdvId: aparelhoHdvId,
+      data: data || new Date().toISOString().substring(0, 10),
+      checklistJson: JSON.stringify(itens),
+      observacoesTecnicas: obsTecnicasGerais,
+      tecnicoNome: tecnicoNome,    // se quiser, pode mandar vazio ""
+      tecnicoEmail: tecnicoEmail   // idem
+     };
 
       console.log("Enviando payload PMOC:", payload);
 
       try {
         const resp = await fetch(API_PMOC_URL, {
           method: "POST",
-          headers: {
-            "Content-Type": "application/json"
-          },
+          headers: {"Content-Type": "application/json },
           body: JSON.stringify(payload)
         });
 
@@ -509,17 +509,7 @@
         }
 
         alert("Checklist salvo com sucesso!");
-
-        // limpa o form
-        const formPmoc = document.getElementById("formPmoc");
-        formPmoc.reset();
-        document.querySelectorAll(".chk-item").forEach(chk => {
-          chk.classList.remove("problem");
-        });
-        const box = document.getElementById("obsTecnicaBox");
-        if (box) box.style.display = "none";
-
-      } catch (err) {
+        } catch (err) {
         console.error("Erro de rede ao salvar PMOC:", err);
         alert("Erro de comunicação com o servidor.");
       }
@@ -527,3 +517,4 @@
   </script>
 </body>
 </html>
+
