@@ -87,7 +87,6 @@
       font-weight: 600;
     }
 
-    /* SWITCH */
     .switch {
       position: relative;
       display: inline-block;
@@ -108,7 +107,7 @@
       left: 0;
       right: 0;
       bottom: 0;
-      background-color: #37d67a; /* verde padrão */
+      background-color: #37d67a;
       transition: 0.2s;
       border-radius: 999px;
     }
@@ -125,7 +124,6 @@
       border-radius: 50%;
     }
 
-    /* vermelho quando "problema" */
     .switch input.problem + .slider {
       background-color: #ff4d4d !important;
     }
@@ -290,6 +288,7 @@
       <div class="card">
         <h2>Checklist</h2>
 
+        <!-- Itens (mesmos que você já tinha) -->
         <div class="item">
           <div class="linha-item">
             <span class="nome-item">Funcionamento geral</span>
@@ -394,23 +393,18 @@
         <button class="btn-obs" type="button" onclick="toggleObs()">+ Adicionar observações técnicas</button>
 
         <div id="obsTecnicaBox">
-          <textarea id="obsTecnicasGerais" placeholder="Escreva observações técnicas detalhadas..."></textarea>
+          <textarea id="observacoesTecnicas" placeholder="Escreva observações técnicas detalhadas..."></textarea>
         </div>
 
-        <!-- NÃO submete o <form> automático -->
-        <button class="btn-salvar" type="button" onclick="salvarChecklistPmoc()">Salvar checklist</button>
+        <button class="btn-salvar" id="btnSalvarPmoc" type="submit">Salvar checklist</button>
       </div>
     </div>
   </form>
 
   <script>
-    const API_PMOC_URL = "https://aircontrolos-web.vercel.app";
-
     // carregar unidade selecionada
-    (function carregarUnidade() {
-      const unidadeSelecionadaStr = localStorage.getItem("pmocUnidadeSelecionada");
-      if (!unidadeSelecionadaStr) return;
-
+    const unidadeSelecionadaStr = localStorage.getItem("pmocUnidadeSelecionada");
+    if (unidadeSelecionadaStr) {
       try {
         const unidadeSel = JSON.parse(unidadeSelecionadaStr);
         const campoUnidade = document.getElementById("unidade");
@@ -425,7 +419,7 @@
       } catch (e) {
         console.warn("Não foi possível ler pmocUnidadeSelecionada:", e);
       }
-    })();
+    }
 
     function toggleObs() {
       const box = document.getElementById("obsTecnicaBox");
@@ -445,48 +439,63 @@
       }
     });
 
-    async function salvarChecklistPmoc() {
-      // 1) Validar ID do aparelho
+    const API_PMOC_URL = "https://aircontrolos-api.onrender.com/api/PmocRegistros";
+    const formPmoc = document.getElementById("formPmoc");
+
+    formPmoc.addEventListener("submit", async function (e) {
+      e.preventDefault();
+
       const aparelhoHdvIdStr = document.getElementById("aparelhoHdvId").value.trim();
       if (!aparelhoHdvIdStr) {
         alert("Informe o ID do aparelho (HDV).");
         return;
       }
-
       const aparelhoHdvId = parseInt(aparelhoHdvIdStr, 10);
       if (Number.isNaN(aparelhoHdvId)) {
         alert("O ID do aparelho (HDV) deve ser um número inteiro.");
         return;
       }
 
-      // 2) Montar o checklist
-      const checkboxes  = document.querySelectorAll(".chk-item");
+      const checkboxes = document.querySelectorAll(".chk-item");
       const observacoes = document.querySelectorAll(".obs-item");
 
       const itens = [];
       checkboxes.forEach((chk, index) => {
-        const nome     = chk.dataset.nome || `Item ${index + 1}`;
+        const nome = chk.dataset.nome || Item ${index + 1};
         const problema = chk.classList.contains("problem");
-        const obs      = observacoes[index].value.trim();
-
+        const obs = observacoes[index].value.trim();
         itens.push({
-          nome,
+          nome: nome,
           ok: !problema,
-          problema,
+          problema: problema,
           observacao: obs
         });
       });
 
-      // 3) Campos adicionais
       const data = document.getElementById("data").value;
-      const obsTecnicasGerais = document.getElementById("obsTecnicasGerais")?.value || "";
+      const obsTecnicasGerais = document.getElementById("observacoesTecnicas")?.value || "";
 
-      // 4) Payload simples (sem técnico)
+      // pegar usuário logado para salvar quem fez o PMOC
+      let tecnicoEmail = "";
+      let tecnicoNome = "";
+      try {
+        const userStr = sessionStorage.getItem("air_user") || localStorage.getItem("air_user");
+        if (userStr) {
+          const user = JSON.parse(userStr);
+          if (user.email) tecnicoEmail = user.email;
+          if (user.nome)  tecnicoNome  = user.nome;
+        }
+      } catch (e) {
+        console.warn("Não foi possível obter usuário logado para PMOC:", e);
+      }
+
       const payload = {
-        aparelhoHdvId,
+        aparelhoHdvId: aparelhoHdvId,
         data: data || new Date().toISOString().substring(0, 10),
         checklistJson: JSON.stringify(itens),
-        observacoesTecnicas: obsTecnicasGerais
+        observacoesTecnicas: obsTecnicasGerais,
+        tecnicoEmail: tecnicoEmail,
+        tecnicoNome: tecnicoNome
       };
 
       console.log("Enviando payload PMOC:", payload);
@@ -494,9 +503,7 @@
       try {
         const resp = await fetch(API_PMOC_URL, {
           method: "POST",
-          headers: {
-            "Content-Type": "application/json"
-          },
+          headers: { "Content-Type": "application/json" },
           body: JSON.stringify(payload)
         });
 
@@ -509,8 +516,7 @@
 
         alert("Checklist salvo com sucesso!");
 
-        // limpa o form
-        const formPmoc = document.getElementById("formPmoc");
+        // 🔥 LIMPA O FORM E VOLTA SWITCHES PARA VERDE
         formPmoc.reset();
         document.querySelectorAll(".chk-item").forEach(chk => {
           chk.classList.remove("problem");
@@ -518,12 +524,11 @@
         const box = document.getElementById("obsTecnicaBox");
         if (box) box.style.display = "none";
 
-      } catch (err) {
-        console.error("Erro de rede ao salvar PMOC:", err);
+      } catch (e) {
+        console.error("Erro de rede ao salvar PMOC:", e);
         alert("Erro de comunicação com o servidor.");
       }
-    }
+    });
   </script>
 </body>
 </html>
-
