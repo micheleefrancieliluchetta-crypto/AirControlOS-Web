@@ -391,7 +391,7 @@
         <div class="linha-item">
           <span class="nome-item">Estado geral da máquina</span>
           <label class="switch">
-            <input type="checkbox" class="chk-item" data-nome="Estado geral de limpeza satisfatório" onclick="toggleColor(this)">
+            <input type="checkbox" class="chk-item" data-nome="Estado geral da máquina" onclick="toggleColor(this)">
             <span class="slider"></span>
           </label>
         </div>
@@ -402,7 +402,7 @@
         <div class="linha-item">
           <span class="nome-item">Limpeza da condensadora</span>
           <label class="switch">
-            <input type="checkbox" class="chk-item" data-nome="Estado geral de limpeza satisfatório" onclick="toggleColor(this)">
+            <input type="checkbox" class="chk-item" data-nome="Limpeza da condensadora" onclick="toggleColor(this)">
             <span class="slider"></span>
           </label>
         </div>
@@ -410,13 +410,13 @@
       </div>
       <!-- ===== FIM BLOCO ===== -->
 
-      <button class="btn-obs" onclick="toggleObs()">+ Adicionar observações técnicas</button>
+      <button class="btn-obs" type="button" onclick="toggleObs()">+ Adicionar observações técnicas</button>
 
       <div id="obsTecnicaBox">
         <textarea id="obsTecnicasGerais" placeholder="Escreva observações técnicas detalhadas..."></textarea>
       </div>
 
-      <button class="btn-salvar" id="btnSalvarPmoc">Salvar checklist</button>
+      <button class="btn-salvar" id="btnSalvarPmoc" type="button">Salvar checklist</button>
 
     </div>
 
@@ -430,7 +430,7 @@
         const unidadeSel = JSON.parse(unidadeSelecionadaStr);
 
         const campoUnidade = document.getElementById("unidade");
-        const campoLocal   = document.getElementById("local");
+        const campoLocal = document.getElementById("local");
 
         if (campoUnidade && !campoUnidade.value) {
           campoUnidade.value = unidadeSel.nome || "";
@@ -450,7 +450,7 @@
       box.style.display = (box.style.display === "none" || box.style.display === "") ? "block" : "none";
     }
 
-    /* alterna entre verde (OK) e vermelho (Problema) */
+    // alterna entre verde (OK) e vermelho (Problema)
     function toggleColor(el) {
       el.classList.toggle("problem");
     }
@@ -469,52 +469,65 @@
     const API_PMOC_URL = "https://aircontrolos-api.onrender.com/api/PmocRegistros";
 
     document.getElementById("btnSalvarPmoc").addEventListener("click", async function () {
-      // 1) Validar ID do aparelho
-      const aparelhoHdvIdStr = document.getElementById("aparelhoHdvId").value.trim();
-      if (!aparelhoHdvIdStr) {
-        alert("Informe o ID do aparelho (HDV).");
-        return;
-      }
-
-      const aparelhoHdvId = parseInt(aparelhoHdvIdStr, 10);
-      if (Number.isNaN(aparelhoHdvId)) {
-        alert("O ID do aparelho (HDV) deve ser um número inteiro.");
-        return;
-      }
-
-      // 2) Montar o checklist (array de itens)
-      const checkboxes = document.querySelectorAll(".chk-item");
-      const observacoes = document.querySelectorAll(".obs-item");
-
-      const itens = [];
-      checkboxes.forEach((chk, index) => {
-        const nome = chk.dataset.nome || Item ${index + 1};
-        const problema = chk.classList.contains("problem");  // true = problema (vermelho)
-        const obs = observacoes[index].value.trim();
-
-        itens.push({
-          nome: nome,
-          ok: !problema,              // ok = true quando NÃO marcado como problema
-          problema: problema,
-          observacao: obs
-        });
-      });
-
-      // 3) Campos adicionais
-      const data = document.getElementById("data").value; // yyyy-MM-dd
-      const obsTecnicasGerais = document.getElementById("obsTecnicasGerais")?.value || "";
-
-      // 4) Montar payload exatamente como a API espera
-      const payload = {
-        aparelhoHdvId: aparelhoHdvId,           // INT
-        data: data || new Date().toISOString().substring(0, 10),
-        checklistJson: JSON.stringify(itens),
-        observacoesTecnicas: obsTecnicasGerais
-      };
-
-      console.log("Enviando payload PMOC:", payload);
+      // trava duplo clique
+      const btn = document.getElementById("btnSalvarPmoc");
+      btn.disabled = true;
+      btn.textContent = "Salvando...";
 
       try {
+        // 1) Validar ID do aparelho
+        const aparelhoHdvIdStr = document.getElementById("aparelhoHdvId").value.trim();
+        if (!aparelhoHdvIdStr) {
+          alert("Informe o ID do aparelho (HDV).");
+          return;
+        }
+
+        const aparelhoHdvId = parseInt(aparelhoHdvIdStr, 10);
+        if (Number.isNaN(aparelhoHdvId)) {
+          alert("O ID do aparelho (HDV) deve ser um número inteiro.");
+          return;
+        }
+
+        // 2) Montar o checklist (array de itens)
+        const checkboxes = document.querySelectorAll(".chk-item");
+        const observacoes = document.querySelectorAll(".obs-item");
+
+        const itens = [];
+        checkboxes.forEach((chk, index) => {
+          const nome = chk.dataset.nome || `Item ${index + 1}`; // ✅ corrigido
+          const problema = chk.classList.contains("problem");  // true = problema (vermelho)
+          const obs = (observacoes[index]?.value || "").trim();
+
+          itens.push({
+            nome,
+            ok: !problema,              // ok = true quando NÃO marcado como problema
+            problema,
+            observacao: obs
+          });
+        });
+
+        // 3) Campos adicionais
+        const data = document.getElementById("data").value; // yyyy-MM-dd
+        const obsTecnicasGerais = document.getElementById("obsTecnicasGerais")?.value || "";
+
+        // 4) Montar payload exatamente como a API espera
+        const payload = {
+          aparelhoHdvId: aparelhoHdvId, // INT
+          data: data || new Date().toISOString().substring(0, 10),
+          checklistJson: JSON.stringify(itens),
+          observacoesTecnicas: obsTecnicasGerais,
+
+          // (opcional) se você quiser no futuro salvar mais campos sem quebrar:
+          // patrimonio: document.getElementById("patrimonio").value?.trim() || "",
+          // unidade: document.getElementById("unidade").value?.trim() || "",
+          // local: document.getElementById("local").value?.trim() || "",
+          // marca: document.getElementById("marca").value?.trim() || "",
+          // btu: document.getElementById("btu").value?.trim() || "",
+          // modelo: document.getElementById("modelo").value?.trim() || ""
+        };
+
+        console.log("Enviando payload PMOC:", payload);
+
         const resp = await fetch(API_PMOC_URL, {
           method: "POST",
           headers: {
@@ -531,12 +544,34 @@
         }
 
         alert("Checklist salvo com sucesso!");
+
+        // limpa o form (sem apagar campos de unidade/local preenchidos do storage)
+        const formInputs = ["aparelhoHdvId", "patrimonio", "marca", "btu", "modelo", "data"];
+        formInputs.forEach(id => {
+          const el = document.getElementById(id);
+          if (el) el.value = "";
+        });
+
+        document.querySelectorAll(".obs-item").forEach(t => t.value = "");
+        document.querySelectorAll(".chk-item").forEach(chk => chk.classList.remove("problem"));
+
+        const box = document.getElementById("obsTecnicaBox");
+        if (box) box.style.display = "none";
+        const obsGeral = document.getElementById("obsTecnicasGerais");
+        if (obsGeral) obsGeral.value = "";
+
         // window.location.href = "dashboard.html";
       } catch (e) {
         console.error("Erro de rede ao salvar PMOC:", e);
         alert("Erro de comunicação com o servidor.");
+      } finally {
+        // reativa botão
+        const btn = document.getElementById("btnSalvarPmoc");
+        btn.disabled = false;
+        btn.textContent = "Salvar checklist";
       }
     });
   </script>
 
 </body>
+</html>
