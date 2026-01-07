@@ -159,10 +159,10 @@
 
     async function carregarHistorico(id) {
       listaPmoc.innerHTML = "";
-      msgInfo.textContent = `Carregando histórico do aparelho ${id}...`;
+      msgInfo.textContent = Carregando histórico do aparelho ${id}...;
 
       try {
-        const resp = await fetch(`${API_PMOC_BASE}/por-aparelho/${id}`);
+        const resp = await fetch(${API_PMOC_BASE}/por-aparelho/${id});
         if (!resp.ok) {
           throw new Error(resp.status);
         }
@@ -177,7 +177,7 @@
         // ordena do mais recente pro mais antigo
         registros.sort((a, b) => new Date(b.data) - new Date(a.data));
 
-        msgInfo.textContent = `${registros.length} registro(s) encontrado(s).`;
+        msgInfo.textContent = ${registros.length} registro(s) encontrado(s).;
         listaPmoc.innerHTML = "";
 
         registros.forEach(reg => {
@@ -193,9 +193,9 @@
           const tecnicoEmail = reg.tecnicoEmail || "";
           let linhaTecnico = "";
           if (tecnicoNome) {
-            linhaTecnico = `<p><strong>Técnico:</strong> ${tecnicoNome}</p>`;
+            linhaTecnico = <p><strong>Técnico:</strong> ${tecnicoNome}</p>;
           } else if (tecnicoEmail && tecnicoEmail !== "pmoc@aircontrolos") {
-            linhaTecnico = `<p><strong>Técnico:</strong> ${tecnicoEmail}</p>`;
+            linhaTecnico = <p><strong>Técnico:</strong> ${tecnicoEmail}</p>;
           }
 
           // monta lista bonitinha dos itens
@@ -214,7 +214,7 @@
                   itensHtml += `
                     <li>
                       <strong>${nomeItem}</strong> – ${status}
-                      ${obs ? `<br><span class="pmoc-item-obs">${obs}</span>` : ""}
+                      ${obs ? <br><span class="pmoc-item-obs">${obs}</span> : ""}
                     </li>`;
                 });
                 itensHtml += "</ul>";
