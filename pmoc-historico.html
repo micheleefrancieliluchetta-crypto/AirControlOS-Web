@@ -162,7 +162,11 @@
       msgInfo.textContent = 'Carregando histórico do aparelho ${id}...';
 
       try {
-        const resp = await fetch('${API_PMOC_BASE}/por-aparelho/${id}');
+         // ATENÇÃO: usa CRASE ` ... ` e NÃO aspas simples/duplas
+       const url = `${API_PMOC_BASE}/por-aparelho/${id}`;
+       console.log("URL histórico PMOC:", url);
+        
+        const resp = await fetch(url);
         
         if (!resp.ok) {
           throw new Error(resp.status);
@@ -172,6 +176,7 @@
 
         if (!Array.isArray(registros) || !registros.length) {
           msgInfo.textContent = "Nenhum registro encontrado para este aparelho.";
+          listaPmoc.innerHTML = "";
           return;
         }
 
@@ -203,6 +208,7 @@
           // monta lista bonitinha dos itens
           let itensHtml = "<p>(itens não disponíveis)</p>";
           const rawItens = reg.checklistJson || reg.itensJson;
+         
           if (rawItens) {
             try {
               const itens = JSON.parse(rawItens);
@@ -265,6 +271,7 @@
   </script>
 </body>
 </html>
+
 
 
 
