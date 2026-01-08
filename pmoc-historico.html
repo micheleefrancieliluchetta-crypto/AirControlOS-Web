@@ -162,7 +162,7 @@
       msgInfo.textContent = 'Carregando histórico do aparelho ${id}...';
 
       try {
-        const resp = await fetch(${API_PMOC_BASE}/por-aparelho/${id});
+        const resp = await fetch('${API_PMOC_BASE}/por-aparelho/${id}');
         if (!resp.ok) {
           throw new Error(resp.status);
         }
@@ -263,4 +263,5 @@
   </script>
 </body>
 </html>
+
 
