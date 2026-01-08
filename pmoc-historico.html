@@ -177,7 +177,7 @@
         // ordena do mais recente pro mais antigo
         registros.sort((a, b) => new Date(b.data) - new Date(a.data));
 
-        msgInfo.textContent = ${registros.length} registro(s) encontrado(s).;
+        msgInfo.textContent = '${registros.length} registro(s) encontrado(s).';
         listaPmoc.innerHTML = "";
 
         registros.forEach(reg => {
@@ -263,5 +263,6 @@
   </script>
 </body>
 </html>
+
 
 
