@@ -192,10 +192,11 @@
           const tecnicoNome = reg.tecnicoNome || "";
           const tecnicoEmail = reg.tecnicoEmail || "";
           let linhaTecnico = "";
+          
           if (tecnicoNome) {
-            linhaTecnico = <p><strong>Técnico:</strong> ${tecnicoNome}</p>;
+            linhaTecnico = '<p><strong>Técnico:</strong> ${tecnicoNome}</p>';
           } else if (tecnicoEmail && tecnicoEmail !== "pmoc@aircontrolos") {
-            linhaTecnico = <p><strong>Técnico:</strong> ${tecnicoEmail}</p>;
+            linhaTecnico = '<p><strong>Técnico:</strong> ${tecnicoEmail}</p>';
           }
 
           // monta lista bonitinha dos itens
@@ -263,6 +264,7 @@
   </script>
 </body>
 </html>
+
 
 
 
