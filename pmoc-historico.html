@@ -159,7 +159,7 @@
 
     async function carregarHistorico(id) {
       listaPmoc.innerHTML = "";
-      msgInfo.textContent = Carregando histórico do aparelho ${id}...;
+      msgInfo.textContent = 'Carregando histórico do aparelho ${id}...';
 
       try {
         const resp = await fetch(${API_PMOC_BASE}/por-aparelho/${id});
@@ -263,3 +263,4 @@
   </script>
 </body>
 </html>
+
