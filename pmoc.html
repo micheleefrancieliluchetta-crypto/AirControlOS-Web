@@ -508,7 +508,7 @@
       observacoesTecnicas: obsTec
     };
 
-    console.log("Enviando payload PMOC:", payload);
+    console.log("Data que será enviada:", payload.data);
 
     try {
       const resp = await fetch(API_PMOC_URL, {
@@ -550,4 +550,5 @@
     }
   }
 </script>
+
 
