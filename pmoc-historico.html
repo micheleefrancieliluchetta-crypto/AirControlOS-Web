@@ -123,159 +123,143 @@
 
   <!-- LÓGICA DO HISTÓRICO PMOC (SEM EXIGIR LOGIN) -->
   <script>
-    const API_PMOC_BASE = "https://aircontrolos-api.onrender.com/api/PmocRegistros";
+  const API_PMOC_BASE = "https://aircontrolos-api.onrender.com/api/PmocRegistros";
 
-    const inputAparelho = document.getElementById("aparelhoIdInput");
-    const btnBuscar = document.getElementById("btnBuscar");
-    const listaPmoc = document.getElementById("listaPmoc");
-    const msgInfo = document.getElementById("msgInfo");
+  const inputAparelho = document.getElementById("aparelhoIdInput");
+  const btnBuscar = document.getElementById("btnBuscar");
+  const listaPmoc = document.getElementById("listaPmoc");
+  const msgInfo = document.getElementById("msgInfo");
 
-    // botão "Buscar histórico"
-    btnBuscar.addEventListener("click", () => {
-      const id = parseInt(inputAparelho.value, 10);
-      if (!id) {
-        alert("Informe um ID válido.");
+  btnBuscar.addEventListener("click", () => {
+    const id = parseInt(inputAparelho.value, 10);
+    if (!id) {
+      alert("Informe um ID válido.");
+      return;
+    }
+    carregarHistorico(id);
+  });
+
+  inputAparelho.addEventListener("keyup", (e) => {
+    if (e.key === "Enter") {
+      btnBuscar.click();
+    }
+  });
+
+  (function initFromQuery() {
+    const params = new URLSearchParams(window.location.search);
+    const id = params.get("aparelhoId");
+    if (id) {
+      inputAparelho.value = id;
+      carregarHistorico(parseInt(id, 10));
+    }
+  })();
+
+  async function carregarHistorico(id) {
+    listaPmoc.innerHTML = "";
+    msgInfo.textContent = `Carregando histórico do aparelho ${id}...`;
+
+    try {
+      const url = `${API_PMOC_BASE}/por-aparelho/${id}`;
+      console.log("URL histórico PMOC:", url);
+      
+      const resp = await fetch(url);
+      if (!resp.ok) throw new Error(resp.status);
+
+      const registros = await resp.json();
+
+      if (!Array.isArray(registros) || !registros.length) {
+        msgInfo.textContent = "Nenhum registro encontrado para este aparelho.";
+        listaPmoc.innerHTML = "";
         return;
       }
-      carregarHistorico(id);
-    });
 
-    // enter dentro do campo também busca
-    inputAparelho.addEventListener("keyup", (e) => {
-      if (e.key === "Enter") {
-        btnBuscar.click();
-      }
-    });
+      registros.sort((a, b) => new Date(b.data) - new Date(a.data));
 
-    // se vier ?aparelhoId=10 na URL (via QR), carrega direto
-    (function initFromQuery() {
-      const params = new URLSearchParams(window.location.search);
-      const id = params.get("aparelhoId");
-      if (id) {
-        inputAparelho.value = id;
-        carregarHistorico(parseInt(id, 10));
-      }
-    })();
-
-    async function carregarHistorico(id) {
+      msgInfo.textContent = `${registros.length} registro(s) encontrado(s).`;
       listaPmoc.innerHTML = "";
-      msgInfo.textContent = 'Carregando histórico do aparelho ${id}...';
 
-      try {
-         // ATENÇÃO: usa CRASE ` ... ` e NÃO aspas simples/duplas
-       const url = `${API_PMOC_BASE}/por-aparelho/${id}`;
-       console.log("URL histórico PMOC:", url);
-        
-        const resp = await fetch(url);
-        
-        if (!resp.ok) {
-          throw new Error(resp.status);
-        }
+      registros.forEach(reg => {
+        const card = document.createElement("div");
+        card.className = "card-os";
 
-        const registros = await resp.json();
-
-        if (!Array.isArray(registros) || !registros.length) {
-          msgInfo.textContent = "Nenhum registro encontrado para este aparelho.";
-          listaPmoc.innerHTML = "";
-          return;
-        }
-
-        // ordena do mais recente pro mais antigo
-        registros.sort((a, b) => new Date(b.data) - new Date(a.data));
-
-        msgInfo.textContent = '${registros.length} registro(s) encontrado(s).';
-        listaPmoc.innerHTML = "";
-
-        registros.forEach(reg => {
-          const card = document.createElement("div");
-          card.className = "card-os";
-
-          const dataStr = reg.data
-            ? new Date(reg.data).toLocaleDateString("pt-BR")  // só a data
-            : "(sem data)";
-
-          // técnico: se vier nome, mostra; se vier só email "feio", podemos esconder
-          const tecnicoNome = reg.tecnicoNome || "";
-          const tecnicoEmail = reg.tecnicoEmail || "";
-          let linhaTecnico = "";
-          
-          if (tecnicoNome) {
-            linhaTecnico = '<p><strong>Técnico:</strong> ${tecnicoNome}</p>';
-          } else if (tecnicoEmail && tecnicoEmail !== "pmoc@aircontrolos") {
-            linhaTecnico = '<p><strong>Técnico:</strong> ${tecnicoEmail}</p>';
-          }
-
-          // monta lista bonitinha dos itens
-          let itensHtml = "<p>(itens não disponíveis)</p>";
-          const rawItens = reg.checklistJson || reg.itensJson;
-         
-          if (rawItens) {
-            try {
-              const itens = JSON.parse(rawItens);
-              if (Array.isArray(itens) && itens.length) {
-                itensHtml = '<ul class="lista-itens-pmoc">';
-                itens.forEach(item => {
-                  const status = item.problema ? "🔴 Problema" : "✅ OK";
-                  const nomeItem = item.nome || "-";
-                  const obs = item.observacao || item.observacoes || "";
-
-                  itensHtml += `
-                    <li>
-                      <strong>${nomeItem}</strong> – ${status}
-                      ${obs ? '<br><span class="pmoc-item-obs">${obs}</span> ': ""}
-                    </li>`;
-                });
-                itensHtml += "</ul>";
-              }
-            } catch (e) {
-              console.warn("Falha ao interpretar itens do checklist:", e);
-            }
-          }
-
-          card.innerHTML = `
-            <div class="pmoc-header">
-              <h3>Registro #${reg.id}</h3>
-              <p class="pmoc-data"><strong>Data:</strong> ${dataStr}</p>
-            </div>
-            ${linhaTecnico}
-            <p><strong>Aparelho ID:</strong> ${reg.aparelhoHdvId}</p>
-
-            <h4>Itens verificados</h4>
-            ${itensHtml}
-
-            <h4>Observações técnicas</h4>
-            <p>${reg.observacoesTecnicas || "(sem observações)"}</p>
-          `;
-
-          listaPmoc.appendChild(card);
+        const dataHora = new Date(reg.data);
+        const dataFormatada = dataHora.toLocaleDateString("pt-BR");
+        const horaFormatada = dataHora.toLocaleTimeString("pt-BR", {
+          hour: "2-digit",
+          minute: "2-digit",
         });
 
-        // no celular, rola automaticamente até o primeiro card
-        listaPmoc.scrollIntoView({ behavior: "smooth", block: "start" });
+        const tecnicoNome = reg.tecnicoNome || "";
+        const tecnicoEmail = reg.tecnicoEmail || "";
+        let linhaTecnico = "";
 
-      } catch (e) {
-        console.error(e);
-        msgInfo.textContent = "Erro ao buscar dados.";
-        alert("Erro ao comunicar com o servidor.");
-      }
+        if (tecnicoNome) {
+          linhaTecnico = `<p><strong>Técnico:</strong> ${tecnicoNome}</p>`;
+        } else if (tecnicoEmail && tecnicoEmail !== "pmoc@aircontrolos") {
+          linhaTecnico = `<p><strong>Técnico:</strong> ${tecnicoEmail}</p>`;
+        } else {
+          linhaTecnico = `<p><strong>Técnico:</strong> Desconhecido</p>`;
+        }
+
+        let itensHtml = "<p>(itens não disponíveis)</p>";
+        const rawItens = reg.checklistJson || reg.itensJson;
+
+        if (rawItens) {
+          try {
+            const itens = JSON.parse(rawItens);
+            if (Array.isArray(itens) && itens.length) {
+              itensHtml = '<ul class="lista-itens-pmoc">';
+              itens.forEach(item => {
+                const status = item.problema ? "🔴 Problema" : "✅ OK";
+                const nomeItem = item.nome || "-";
+                const obs = item.observacao || item.observacoes || "";
+
+                itensHtml += `
+                  <li>
+                    <strong>${nomeItem}</strong> – ${status}
+                    ${obs ? `<br><span class="pmoc-item-obs">${obs}</span>` : ""}
+                  </li>`;
+              });
+              itensHtml += "</ul>";
+            }
+          } catch (e) {
+            console.warn("Falha ao interpretar itens do checklist:", e);
+          }
+        }
+
+        card.innerHTML = `
+          <div class="pmoc-header">
+            <h3>Registro #${reg.id}</h3>
+            <p class="pmoc-data"><strong>Data:</strong> ${dataFormatada} – ${horaFormatada}</p>
+          </div>
+          ${linhaTecnico}
+          <p><strong>Aparelho ID:</strong> ${reg.aparelhoHdvId}</p>
+
+          <h4>Itens verificados</h4>
+          ${itensHtml}
+
+          <h4>Observações técnicas</h4>
+          <p>${reg.observacoesTecnicas || "(sem observações)"}</p>
+        `;
+
+        listaPmoc.appendChild(card);
+      });
+
+      listaPmoc.scrollIntoView({ behavior: "smooth", block: "start" });
+
+    } catch (e) {
+      console.error(e);
+      msgInfo.textContent = "Erro ao buscar dados.";
+      alert("Erro ao comunicar com o servidor.");
     }
-  </script>
+  }
+</script>
 
-  <!-- SERVICE WORKER (opcional, se você estiver usando PWA aqui também) -->
-  <script>
-    if ("serviceWorker" in navigator) {
-      navigator.serviceWorker
-        .register("./service-worker.js", { scope: "./" })
-        .catch(console.error);
-    }
-  </script>
-</body>
-</html>
-
-
-
-
-
-
-
-
+<!-- SERVICE WORKER opcional -->
+<script>
+  if ("serviceWorker" in navigator) {
+    navigator.serviceWorker
+      .register("./service-worker.js", { scope: "./" })
+      .catch(console.error);
+  }
+</script>
