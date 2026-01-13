@@ -191,7 +191,7 @@
           card.className = "card-os";
 
           const dataStr = reg.data
-            ? new Date(reg.data).toLocaleString("pt-BR")
+            ? new Date(reg.data).toLocaleDateString("pt-BR")  // só a data
             : "(sem data)";
 
           // técnico: se vier nome, mostra; se vier só email "feio", podemos esconder
@@ -271,6 +271,7 @@
   </script>
 </body>
 </html>
+
 
 
 
