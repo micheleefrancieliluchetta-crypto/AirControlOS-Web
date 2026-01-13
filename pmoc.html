@@ -492,13 +492,15 @@
     const obsTecText = document.getElementById("obsTecnicasGerais");
     const obsTec     = obsTecText?.value || "";
 
-    // 4) Montar payload do POST
-    const payload = {
-    aparelhoHdvId: aparelhoHdvId,
-    data: dataValor || new Date().toISOString(),  // envia data padrão ISO UTC
-    checklistJson: JSON.stringify(itens),
-    observacoesTecnicas: obsTec
-    };
+       // 4) Montar payload do POST
+       const payload = {
+            aparelhoHdvId: aparelhoHdvId,
+            data: dataValor || new Date().toISOString(), // exemplo: "2026-01-13T13:25:00.000Z"
+            checklistJson: JSON.stringify(itens),
+            observacoesTecnicas: obsTec,
+            tecnicoNome: tecnicoNome,
+            tecnicoEmail: tecnicoEmail
+       };
 
     console.log("Data que será enviada:", payload.data);
 
@@ -542,6 +544,7 @@
     }
   }
 </script>
+
 
 
 
