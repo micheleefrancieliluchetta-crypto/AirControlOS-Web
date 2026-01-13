@@ -182,12 +182,13 @@
         const card = document.createElement("div");
         card.className = "card-os";
 
-        const dataHora = new Date(reg.data);
-        const dataFormatada = dataHora.toLocaleDateString("pt-BR");
-        const horaFormatada = dataHora.toLocaleTimeString("pt-BR", {
-          hour: "2-digit",
-          minute: "2-digit",
-        });
+        const dataHoraUTC = new Date(reg.data);
+        const dataHoraLocal = new Date(dataHoraUTC.getTime() - 3 * 60 * 60 * 1000); // Ajuste UTC-3
+        const dataFormatada = dataHoraLocal.toLocaleDateString("pt-BR");
+        const horaFormatada = dataHoraLocal.toLocaleTimeString("pt-BR", {
+         hour: "2-digit",
+         minute: "2-digit",
+       });
 
         const tecnicoNome = reg.tecnicoNome || "";
         const tecnicoEmail = reg.tecnicoEmail || "";
@@ -263,3 +264,4 @@
       .catch(console.error);
   }
 </script>
+
