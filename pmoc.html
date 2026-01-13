@@ -255,6 +255,11 @@
         </div>
       </div>
 
+         <div class="campo">
+            <label>Nome do técnico</label>
+            <input id="nomeTecnicoInput" type="text" placeholder="Digite seu nome">
+      </div>
+
       <!-- POPs -->
       <div class="card" id="popsSection">
         <h2>POPs / Orientações gerais</h2>
@@ -492,18 +497,20 @@
     const obsTecText = document.getElementById("obsTecnicasGerais");
     const obsTec     = obsTecText?.value || "";
 
-    const tecnicoNome  = localStorage.getItem("usuarioNome")  || "Técnico";
-    const tecnicoEmail = localStorage.getItem("usuarioEmail") || "sem@email.com";
+    // 3.1) Nome do técnico preenchido manualmente
+     const nomeTecnicoInput = document.getElementById("nomeTecnicoInput");
+     const tecnicoNome = (nomeTecnicoInput?.value || "").trim() || localStorage.getItem("usuarioNome") || "Técnico";
+     const tecnicoEmail = localStorage.getItem("usuarioEmail") || "sem@email.com";
 
-       // 4) Montar payload do POST
-       const payload = {
-            aparelhoHdvId: aparelhoHdvId,
-            data: new Date().toISOString(), // sempre usa data e hora atual
-            checklistJson: JSON.stringify(itens),
-            observacoesTecnicas: obsTec,
-            tecnicoNome: tecnicoNome,
-            tecnicoEmail: tecnicoEmail
-         };
+    // 4) Montar payload do POST
+    const payload = {
+    aparelhoHdvId: aparelhoHdvId,
+    data: new Date().toISOString(), // sempre usa data e hora atual
+    checklistJson: JSON.stringify(itens),
+    observacoesTecnicas: obsTec,
+    tecnicoNome: tecnicoNome,
+    tecnicoEmail: tecnicoEmail
+    };
 
     console.log("Data que será enviada:", payload.data);
 
@@ -547,6 +554,7 @@
     }
   }
 </script>
+
 
 
 
