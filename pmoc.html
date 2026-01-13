@@ -492,15 +492,18 @@
     const obsTecText = document.getElementById("obsTecnicasGerais");
     const obsTec     = obsTecText?.value || "";
 
+    const tecnicoNome  = localStorage.getItem("usuarioNome")  || "Técnico";
+    const tecnicoEmail = localStorage.getItem("usuarioEmail") || "tecnico@exemplo.com";
+
        // 4) Montar payload do POST
        const payload = {
             aparelhoHdvId: aparelhoHdvId,
-            data: dataValor || new Date().toISOString(), // exemplo: "2026-01-13T13:25:00.000Z"
+            data: new Date().toISOString(), // Garantido em UTC
             checklistJson: JSON.stringify(itens),
             observacoesTecnicas: obsTec,
             tecnicoNome: tecnicoNome,
             tecnicoEmail: tecnicoEmail
-       };
+         };
 
     console.log("Data que será enviada:", payload.data);
 
@@ -544,6 +547,7 @@
     }
   }
 </script>
+
 
 
 
