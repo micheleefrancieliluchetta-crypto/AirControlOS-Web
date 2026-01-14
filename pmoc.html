@@ -449,9 +449,7 @@ document.addEventListener("DOMContentLoaded", () => {
   const campoDataHora = document.getElementById("dataHoraAtual");
   if (campoDataHora) {
     const agora = new Date();
-    const offset = agora.getTimezoneOffset();
-    const localDate = new Date(agora.getTime() - offset * 60000);
-    campoDataHora.value = localDate.toISOString().slice(0, 16); // yyyy-MM-ddTHH:mm
+    campoDataHora.value = agora.toISOString(); // UTC com Z no final
   }
 });
 
@@ -568,6 +566,7 @@ document.addEventListener("DOMContentLoaded", () => {
     }
   }
 </script>
+
 
 
 
