@@ -446,6 +446,17 @@
       box.style.display === "none" || box.style.display === "" ? "block" : "none";
   }
 
+  // Preencher automaticamente a data e hora atual no formato local (corrigido)
+document.addEventListener("DOMContentLoaded", () => {
+  const campoDataHora = document.getElementById("dataHoraAtual");
+  if (campoDataHora) {
+    const agora = new Date();
+    const offset = agora.getTimezoneOffset();
+    const localDate = new Date(agora.getTime() - offset * 60000);
+    campoDataHora.value = localDate.toISOString().slice(0, 16); // yyyy-MM-ddTHH:mm
+  }
+});
+
   // Marca/desmarca item como problema (muda cor do switch pelo CSS input.problem + .slider)
   function toggleColor(el) {
     el.classList.toggle("problem");
@@ -559,3 +570,4 @@
     }
   }
 </script>
+
