@@ -510,7 +510,7 @@
     // 4) Montar payload do POST
     const payload = {
     aparelhoHdvId: aparelhoHdvId,
-    data: new Date().toISOString(), // sempre usa data e hora atual
+    data: document.getElementById("dataHoraAtual")?.value || new Date().toLocaleString("pt-BR"),
     checklistJson: JSON.stringify(itens),
     observacoesTecnicas: obsTec,
     tecnicoNome: tecnicoNome,
@@ -559,12 +559,3 @@
     }
   }
 </script>
-
-
-
-
-
-
-
-
-
