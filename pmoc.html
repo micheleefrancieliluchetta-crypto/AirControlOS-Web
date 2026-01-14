@@ -508,12 +508,13 @@
     // 4) Montar payload do POST
     const payload = {
     aparelhoHdvId: aparelhoHdvId,
-    data: new Date().toLocaleString("sv-SE").replace(" ", "T"), 
+    // Esta linha abaixo gera o formato correto que o PostgreSQL/Render aceita:
+    data: new Date().toISOString(), 
     checklistJson: JSON.stringify(itens),
     observacoesTecnicas: obsTec,
     tecnicoNome: tecnicoNome,
     tecnicoEmail: tecnicoEmail
-   };
+    };
 
     console.log("Data que será enviada:", payload.data);
 
@@ -557,6 +558,7 @@
     }
   }
 </script>
+
 
 
 
