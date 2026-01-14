@@ -248,17 +248,15 @@
             <input id="modelo" type="text">
           </div>
 
+          <!-- Campo oculto para armazenar data/hora do checklist -->
+          <input id="dataHoraAtual" type="hidden">
+
           <div class="campo">
             <label>Data</label>
             <input id="data" type="date">
           </div>
         </div>
       </div>
-
-        <div class="campo">
-          <label>Data e hora do preenchimento</label>
-          <input id="dataHoraAtual" type="datetime-local" readonly />
-        </div>
 
          <div class="campo">
             <label>Nome do técnico</label>
@@ -570,4 +568,5 @@ document.addEventListener("DOMContentLoaded", () => {
     }
   }
 </script>
+
 
