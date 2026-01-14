@@ -248,6 +248,11 @@
             <input id="modelo" type="text">
           </div>
 
+          <div class="campo">
+            <label>Nome do técnico</label>
+            <input id="nomeTecnicoInput" type="text" placeholder="Digite seu nome">
+          </div>
+
           <!-- Campo oculto para armazenar data/hora do checklist -->
           <input id="dataHoraAtual" type="hidden">
 
@@ -255,13 +260,8 @@
             <label>Data</label>
             <input id="data" type="date">
           </div>
-          
-          <div class="campo">
-            <label>Nome do técnico</label>
-            <input id="nomeTecnicoInput" type="text" placeholder="Digite seu nome">
           </div>
         </div>
-      </div>
 
       <!-- POPs -->
       <div class="card" id="popsSection">
@@ -449,8 +449,10 @@ document.addEventListener("DOMContentLoaded", () => {
   const campoDataHora = document.getElementById("dataHoraAtual");
   if (campoDataHora) {
     const agora = new Date();
-    campoDataHora.value = agora.toISOString(); // UTC com Z no final
-  }
+    const offset = agora.getTimezoneOffset();
+    const localDate = new Date(agora.getTime() - offset * 60000);
+    campoDataHora.value = localDate.toISOString().slice(0, 16); // yyyy-MM-ddTHH:mm
+   }
 });
 
   // Marca/desmarca item como problema (muda cor do switch pelo CSS input.problem + .slider)
@@ -566,6 +568,7 @@ document.addEventListener("DOMContentLoaded", () => {
     }
   }
 </script>
+
 
 
 
