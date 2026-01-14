@@ -448,11 +448,8 @@
 document.addEventListener("DOMContentLoaded", () => {
   const campoDataHora = document.getElementById("dataHoraAtual");
   if (campoDataHora) {
-    const agora = new Date();
-    const offset = agora.getTimezoneOffset();
-    const localDate = new Date(agora.getTime() - offset * 60000);
-    campoDataHora.value = localDate.toISOString().slice(0, 16); // yyyy-MM-ddTHH:mm
-   }
+    campoDataHora.value = new Date().toISOString(); // Envia data no formato UTC correto
+  }
 });
 
   // Marca/desmarca item como problema (muda cor do switch pelo CSS input.problem + .slider)
@@ -519,7 +516,7 @@ document.addEventListener("DOMContentLoaded", () => {
     // 4) Montar payload do POST
     const payload = {
     aparelhoHdvId: aparelhoHdvId,
-    data: document.getElementById("dataHoraAtual")?.value || new Date().toLocaleString("pt-BR"),
+    data: document.getElementById("dataHoraAtual")?.value || new Date().toLocaleString(),
     checklistJson: JSON.stringify(itens),
     observacoesTecnicas: obsTec,
     tecnicoNome: tecnicoNome,
@@ -568,6 +565,7 @@ document.addEventListener("DOMContentLoaded", () => {
     }
   }
 </script>
+
 
 
 
