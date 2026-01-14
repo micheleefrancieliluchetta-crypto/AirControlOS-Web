@@ -444,14 +444,6 @@
       box.style.display === "none" || box.style.display === "" ? "block" : "none";
   }
 
-  // Preencher automaticamente a data e hora atual no formato local (corrigido)
-document.addEventListener("DOMContentLoaded", () => {
-  const campoDataHora = document.getElementById("dataHoraAtual");
-  if (campoDataHora) {
-    campoDataHora.value = new Date().toISOString(); // Envia data no formato UTC correto
-  }
-});
-
   // Marca/desmarca item como problema (muda cor do switch pelo CSS input.problem + .slider)
   function toggleColor(el) {
     el.classList.toggle("problem");
@@ -516,12 +508,12 @@ document.addEventListener("DOMContentLoaded", () => {
     // 4) Montar payload do POST
     const payload = {
     aparelhoHdvId: aparelhoHdvId,
-    data: document.getElementById("dataHoraAtual")?.value || new Date().toLocaleString(),
+    data: new Date().toLocaleString("sv-SE").replace(" ", "T"), 
     checklistJson: JSON.stringify(itens),
     observacoesTecnicas: obsTec,
     tecnicoNome: tecnicoNome,
     tecnicoEmail: tecnicoEmail
-    };
+   };
 
     console.log("Data que será enviada:", payload.data);
 
@@ -565,6 +557,7 @@ document.addEventListener("DOMContentLoaded", () => {
     }
   }
 </script>
+
 
 
 
