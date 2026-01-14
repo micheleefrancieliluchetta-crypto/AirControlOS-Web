@@ -184,15 +184,15 @@
 
        const dataHora = new Date(reg.data);
 
-        // Corrigir e formatar com fuso horário fixo do Brasil
-        const formatador = new Intl.DateTimeFormat("pt-BR", {
-              timeZone: "America/Sao_Paulo",
-              year: "numeric",
-              month: "2-digit",
-              day: "2-digit",
-              hour: "2-digit",
-              minute: "2-digit"
-      });
+      const formatador = new Intl.DateTimeFormat("pt-BR", {
+      // Remova ou comente a linha do timeZone se você seguir o passo 1
+      // timeZone: "America/Sao_Paulo", 
+          day: "2-digit",
+          month: "2-digit",
+          year: "numeric",
+          hour: "2-digit",
+          minute: "2-digit"
+     });
 
        const [dataFormatada, horaFormatada] = formatador.format(dataHora).split(", ");
 
@@ -270,5 +270,6 @@
       .catch(console.error);
   }
 </script>
+
 
 
