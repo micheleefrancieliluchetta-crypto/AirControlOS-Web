@@ -508,14 +508,12 @@
     // 4) Montar payload do POST
     const payload = {
     aparelhoHdvId: aparelhoHdvId,
-    // Esta linha abaixo gera o formato correto que o PostgreSQL/Render aceita:
-    data: new Date().toISOString(), 
+    data: new Date().toISOString(), // <--- MUDE PARA ISSO. Remove o erro de "Kind=Unspecified"
     checklistJson: JSON.stringify(itens),
     observacoesTecnicas: obsTec,
     tecnicoNome: tecnicoNome,
     tecnicoEmail: tecnicoEmail
     };
-
     console.log("Data que será enviada:", payload.data);
 
     try {
@@ -558,6 +556,7 @@
     }
   }
 </script>
+
 
 
 
