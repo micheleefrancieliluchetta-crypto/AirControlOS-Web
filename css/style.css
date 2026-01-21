@@ -1,177 +1,311 @@
-/* =========================
-   RESET & VARIÁVEIS
-========================= */
-* { margin: 0; padding: 0; box-sizing: border-box; }
-
-:root{
-  --azul: #1e90ff;
-  --azul-2: #00bcd4;
-  --azul-escuro: #0b2a61;
-  --cinza-bg: #f2f2f2;
-  --cinza-linha: #cfd8dc;
-  --verde: #00a86b;
-  --verde-2: #2ecc71;
-  --laranja: #ff5722;
-  --laranja-2: #ff7043;
-  --sombra: 0 2px 10px rgba(0,0,0,.08);
+/* ========== RESET & VARIÁVEIS ========== */
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
 }
 
-html, body { height: 100%; }
+:root {
+  --preto: #111111;
+  --amarelo: #ffc107;
+  --amarelo-claro: #ffecb3;
+  --azul-escuro: #1e3a8a;
+  --branco: #ffffff;
+  --cinza-bg: #f9f9f9;
+  --sombra: 0 4px 12px rgba(0, 0, 0, 0.15);
+}
+
+/* ================= BODY ================= */
 body {
-  font-family: "Segoe UI", system-ui, -apple-system, Arial, sans-serif;
-  background: linear-gradient(90deg, var(--azul), var(--azul-2));
-  color: #111;
-  /* libera scroll vertical e só esconde horizontal */
+  font-family: "Segoe UI", sans-serif;
+  background: linear-gradient(135deg, var(--amarelo), var(--azul-escuro));
+  color: var(--preto);
   overflow-x: hidden;
 }
 
-/* quando estiver na landing/login (body com class="login-bg"), libera o scroll vertical */
 body.login-bg {
   overflow-y: auto;
 }
 
+/* ========== LOGIN HEADER ========== */
 .login-header {
-  background: #fff;
+  background: var(--branco);
   padding: 30px 40px;
-  border-radius: 14px;
-  box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+  border-radius: 16px;
+  box-shadow: var(--sombra);
   display: flex;
   flex-direction: column;
   align-items: center;
   gap: 20px;
 }
-.login-header h1 { color: var(--azul-escuro); font-size: 36px; }
-.login-inline { display: flex; flex-direction: column; gap: 12px; width: 100%; }
+
+.login-header h1 {
+  color: var(--azul-escuro);
+  font-size: 32px;
+  font-weight: 800;
+}
+
+.login-inline {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  width: 100%;
+}
+
 .login-inline input {
-  padding: 10px; border: 1px solid #ccc; border-radius: 8px;
-  font-size: 1rem; width: 260px;
+  padding: 12px;
+  border: 1px solid #ccc;
+  border-radius: 8px;
+  font-size: 1rem;
+  width: 100%;
 }
+
 .login-inline button {
-  padding: 10px; border: 0; border-radius: 8px;
-  background: var(--azul); color: #fff; font-weight: 700; cursor: pointer;
+  padding: 12px;
+  border: none;
+  border-radius: 8px;
+  background: var(--amarelo);
+  color: var(--preto);
+  font-weight: 700;
+  cursor: pointer;
+  transition: all 0.2s;
 }
-.login-inline button:hover { background: var(--azul-2); }
+
+.login-inline button:hover {
+  background: var(--amarelo-claro);
+}
 
 /* =========================
-   TOPBAR + SIDEBAR
+   TOPBAR + SIDEBAR (MAXI)
 ========================= */
-.topbar{
-  position:fixed; top:0; left:200px; right:0; height:60px;
-  background:var(--azul); color:#fff;
-  display:flex; align-items:center; justify-content:space-between;
-  padding:15px 20px; z-index:10; box-shadow: var(--sombra);
-}
-.topbar h1{ font-size:1.5rem; font-weight:700; }
 
-/* --- reforço p/ títulos longos quando BRAND = 'fl' --- */
-.topbar h1#appName{
+.topbar {
+  position: fixed;
+  top: 0;
+  left: 200px;
+  right: 0;
+  height: 60px;
+  background: var(--azul-escuro);
+  color: var(--branco);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 15px 20px;
+  z-index: 10;
+  box-shadow: var(--sombra);
+}
+
+.topbar h1 {
+  font-size: 1.5rem;
+  font-weight: 800;
+  letter-spacing: 0.5px;
+}
+
+/* reforço para títulos longos */
+.topbar h1#appName {
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
   max-width: 60vw;
 }
 
-.topbar button{
-  padding:8px 15px; border:none; border-radius:8px;
-  background:#fff; color:var(--azul); font-weight:700; cursor:pointer;
-}
-.topbar button:hover{ background:#eaeff3; }
-
-.sidebar{
-  position:fixed;
-  top:0;
-  left:0;
-  width:200px;
-  height:100vh;           /* ⬅ altura da tela inteira */
-  background:var(--cinza-bg);
-  padding-top:80px;
-  box-shadow: 2px 0 8px rgba(0,0,0,.06);
-
-  overflow-y: auto;       /* ⬅ ativa a rolagem vertical */
-  overflow-x: hidden;     /* ⬅ evita barra horizontal */
+.topbar button {
+  padding: 8px 16px;
+  border: none;
+  border-radius: 8px;
+  background: var(--amarelo);
+  color: var(--preto);
+  font-weight: 700;
+  cursor: pointer;
+  transition: background 0.2s;
 }
 
-.sidebar ul{
-  list-style:none;
-  padding:0 10px;
+.topbar button:hover {
+  background: var(--amarelo-claro);
 }
 
-.sidebar li{
-  margin:10px 0;               /* menos espaço entre itens */
+/* SIDEBAR ESCURA COM LETRAS CLARAS */
+.sidebar {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 200px;
+  height: 100vh;
+  background: var(--preto);
+  padding-top: 80px;
+  box-shadow: 2px 0 10px rgba(0, 0, 0, 0.3);
+  overflow-y: auto;
+  overflow-x: hidden;
 }
 
-.sidebar a{
-  display:block;
-  text-decoration:none;
-  color:#333;
-  font-weight:700;
-  font-size:0.9rem;            /* ⬅ texto menor */
-  line-height:1.2;             /* ⬅ linhas mais juntinhas */
-  padding:8px 10px;            /* ⬅ menos “gordura” dentro do botão */
-  border-radius:10px;
+.sidebar ul {
+  list-style: none;
+  padding: 0 12px;
+}
+
+.sidebar li {
+  margin: 10px 0;
+}
+
+.sidebar a {
+  display: block;
+  text-decoration: none;
+  color: var(--branco);
+  font-weight: 600;
+  font-size: 0.92rem;
+  line-height: 1.3;
+  padding: 10px 12px;
+  border-radius: 8px;
+  transition: background 0.2s, color 0.2s;
 }
 
 .sidebar a span,
-.sidebar a i{
-  font-size:1rem;
+.sidebar a i {
+  font-size: 1rem;
 }
 
-.sidebar a:hover, .sidebar a.active{
-  background:#d9ecff; color:var(--azul);
+.sidebar a:hover,
+.sidebar a.active {
+  background: var(--amarelo);
+  color: var(--preto);
 }
 
 /* =========================
    ÁREA PRINCIPAL
 ========================= */
-.main-content{
-  position:relative;
-  margin-left:200px; margin-top:80px;
-  width:calc(100% - 200px); height:calc(100% - 80px);
-  padding:30px; overflow:auto;
+.main-content {
+  position: relative;
+  margin-left: 200px;
+  margin-top: 80px;
+  width: calc(100% - 200px);
+  height: calc(100% - 80px);
+  padding: 30px;
+  overflow: auto;
+  background: #f9fafb;
 }
 
 /* =========================
    FORMULÁRIOS / ELEMENTOS
 ========================= */
-.form-os{
-  background:#fff; padding:25px; border-radius:14px;
-  box-shadow: var(--sombra); max-width: 1100px; margin: 0 auto;
+.form-os {
+  background: #ffffff;
+  padding: 25px;
+  border-radius: 14px;
+  box-shadow: var(--sombra);
+  max-width: 1100px;
+  margin: 0 auto;
 }
-.form-os label{ display:block; margin-top:14px; font-weight:700; }
-.form-os input, .form-os select, .form-os textarea{
-  width:100%; margin-top:6px; padding:12px;
-  border:1px solid #ccc; border-radius:8px; font-size:1rem; background:#fff;
+
+.form-os label {
+  display: block;
+  margin-top: 14px;
+  font-weight: 700;
+  color: var(--azul-escuro);
 }
-.form-os button{
-  margin-top:20px; width:100%;
-  padding:14px; border:0; border-radius:10px; cursor:pointer;
-  background:var(--azul); color:#fff; font-weight:800; box-shadow: var(--sombra);
+
+.form-os input,
+.form-os select,
+.form-os textarea {
+  width: 100%;
+  margin-top: 6px;
+  padding: 12px;
+  border: 1px solid #ccc;
+  border-radius: 8px;
+  font-size: 1rem;
+  background: #ffffff;
 }
-.form-os button:hover{ background:var(--azul-2); }
+
+/* Botão principal (MAXI) */
+.form-os button {
+  margin-top: 20px;
+  width: 100%;
+  padding: 14px;
+  border: 0;
+  border-radius: 10px;
+  cursor: pointer;
+  background: var(--amarelo);
+  color: var(--preto);
+  font-weight: 800;
+  box-shadow: var(--sombra);
+  transition: background 0.2s;
+}
+
+.form-os button:hover {
+  background: var(--amarelo-claro);
+}
 
 /* Botões especiais */
-.cliente-btn{ background:var(--verde); }
-.cliente-btn:hover{ background:var(--verde-2); }
-.tecnico-btn{ background:var(--laranja); }
-.tecnico-btn:hover{ background:var(--laranja-2); }
-.outline{
-  background:#fff; color:var(--azul);
-  border:1px solid var(--azul);
-  padding:10px 14px; border-radius:8px; cursor:pointer;
+.cliente-btn {
+  background: var(--verde);
+  color: #fff;
 }
-.outline:hover{ background:#eaf4ff; }
-.danger{
-  background:#e53935; color:#fff; border:0; padding:8px 12px;
-  border-radius:8px; cursor:pointer;
+.cliente-btn:hover {
+  background: var(--verde-2);
 }
-.danger:hover{ background:#ff4d4a; }
+
+.tecnico-btn {
+  background: var(--laranja);
+  color: #fff;
+}
+.tecnico-btn:hover {
+  background: var(--laranja-2);
+}
+
+/* Botão com contorno */
+.outline {
+  background: #fff;
+  color: var(--azul-escuro);
+  border: 1px solid var(--azul-escuro);
+  padding: 10px 14px;
+  border-radius: 8px;
+  cursor: pointer;
+  font-weight: 700;
+}
+.outline:hover {
+  background: #f0f4ff;
+}
+
+/* Botão de perigo */
+.danger {
+  background: #e53935;
+  color: #fff;
+  border: 0;
+  padding: 8px 12px;
+  border-radius: 8px;
+  cursor: pointer;
+  font-weight: 700;
+}
+.danger:hover {
+  background: #ff4d4a;
+}
 
 /* Seções internas e grids */
-.section{ margin-bottom:22px; }
-.section h3{ margin-bottom:10px; }
-.grid-2{ display:grid; grid-template-columns:1fr 1fr; gap:12px; }
-.grid-3{ display:grid; grid-template-columns:1fr 1fr 1fr; gap:12px; }
-.align-end{ display:flex; align-items:flex-end; }
+.section {
+  margin-bottom: 22px;
+}
+
+.section h3 {
+  margin-bottom: 10px;
+  font-size: 1.3rem;
+  color: var(--azul-escuro);
+}
+
+.grid-2 {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 12px;
+}
+
+.grid-3 {
+  display: grid;
+  grid-template-columns: 1fr 1fr 1fr;
+  gap: 12px;
+}
+
+.align-end {
+  display: flex;
+  align-items: flex-end;
+}
 
 /* =========================
    DASHBOARD – CARDS / TOOLBAR
