@@ -1106,7 +1106,8 @@ body.page-calendario {
 .login-hero {
   flex: 1;
   padding: 32px 32px 32px 32px;
-  background: linear-gradient(135deg, #1d4ed8, #2563eb);
+  /* NOVO FUNDO NO PADRÃO DO APP */
+  background: linear-gradient(135deg, var(--amarelo), var(--azul-escuro));
   color: #f9fafb;
   display: flex;
   flex-direction: column;
