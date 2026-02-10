@@ -1,7 +1,7 @@
 {
-  "name": "AirControl OS",
-  "short_name": "AirControl",
-  "description": "Sistema de Ordens de Serviço e Gestão Técnica — AirControl OS",
+  "name": "Sistemas Maxi",
+  "short_name": "Sistemas Maxi",
+  "description": "Sistema de Ordens de Serviço e Gestão Técnica — Sistemas Maxi",
   "start_url": "./index.html",
   "display": "standalone",
   "background_color": "#ffffff",
