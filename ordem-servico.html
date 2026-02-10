@@ -163,6 +163,22 @@
       <!-- Peças / Trocas -->
       <section class="section">
         <h3>Peças / Trocas</h3>
+
+        <!-- 🔹 NOVO BLOCO: seleção de peça + quantidade -->
+        <div class="grid-3" style="margin-bottom:8px;">
+          <div>
+            <label for="pecaId">Peça utilizada</label>
+            <select id="pecaId" name="pecaId">
+              <option value="">Carregando peças...</option>
+            </select>
+          </div>
+          <div>
+            <label for="qtdPeca">Quantidade</label>
+            <input id="qtdPeca" type="number" min="1" value="1" />
+          </div>
+        </div>
+        <!-- 🔹 FIM DO BLOCO NOVO -->
+
         <div class="table-wrapper" style="max-width:none;">
           <table class="os-table">
             <thead>
@@ -207,9 +223,7 @@
     </form>
   </main>
 
-  <!-- 🔹 AQUI ENTRA O MODELO ESCONDIDO DA FICHA CORRETIVA (DUAS VIAS) -->
-  <!-- Ele fica fora do <main>, mas dentro do <body>, logo antes dos scripts -->
-  <!-- As imagens "img/maxi.png" e "img/prefeitura-sv.png" você já coloca na pasta img/ -->
+  <!-- 🔹 MODELO ESCONDIDO DA FICHA CORRETIVA (DUAS VIAS) -->
   <div id="printCorretiva" class="pagina-a4" style="display:none;">
 
     <!-- primeira via -->
@@ -313,7 +327,7 @@
   </div>
   <!-- 🔹 FIM DO MODELO DA FICHA CORRETIVA -->
 
-  <!-- Bibliotecas de PDF (se ainda não tiver em outra página) -->
+  <!-- Bibliotecas de PDF -->
   <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
 
   <!-- JS principal -->
@@ -323,7 +337,7 @@
     // Garante login
     requireLogin();
 
-    // Mesma lógica de esconder menus de admin se quiser
+    // Esconde menus se não for Admin (mesma lógica que você já tinha)
     const cargoAtual = sessionStorage.getItem("cargo") || role();
     if (!cargoAtual) {
       window.location.href = "index.html";
@@ -335,6 +349,45 @@
       const linkAbrir = document.querySelector('a[href="abrir-os.html"]');
       if (linkAbrir) linkAbrir.style.display = "none";
     }
+
+    // 🔹 NOVA FUNÇÃO: carregar lista de peças do backend
+    async function carregarPecas() {
+      const select = document.getElementById("pecaId");
+      if (!select) return;
+
+      select.innerHTML = '<option value="">Carregando peças...</option>';
+
+      try {
+        // API_BASE já deve estar definida em js/script.js
+        const resp = await fetch(`${API_BASE}/api/pecas`);
+
+        if (!resp.ok) {
+          throw new Error("Erro HTTP: " + resp.status);
+        }
+
+        const pecas = await resp.json();
+
+        if (!Array.isArray(pecas) || pecas.length === 0) {
+          select.innerHTML = '<option value="">Nenhuma peça cadastrada</option>';
+          return;
+        }
+
+        select.innerHTML = '<option value="">Selecione uma peça...</option>';
+
+        pecas.forEach(p => {
+          const opt = document.createElement("option");
+          opt.value = p.id;
+          opt.textContent = `${p.nome} (${p.codigo})`;
+          select.appendChild(opt);
+        });
+      } catch (erro) {
+        console.error("Erro ao carregar peças:", erro);
+        select.innerHTML = '<option value="">Erro ao carregar peças</option>';
+      }
+    }
+
+    // Chama assim que essa página carregar
+    carregarPecas();
   </script>
 
   <!-- Service Worker -->
