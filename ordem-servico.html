@@ -164,7 +164,7 @@
       <section class="section">
         <h3>Peças / Trocas</h3>
 
-        <!-- 🔹 NOVO BLOCO: seleção de peça + quantidade -->
+        <!-- seleção de peça + quantidade -->
         <div class="grid-3" style="margin-bottom:8px;">
           <div>
             <label for="pecaId">Peça utilizada</label>
@@ -177,7 +177,6 @@
             <input id="qtdPeca" type="number" min="1" value="1" />
           </div>
         </div>
-        <!-- 🔹 FIM DO BLOCO NOVO -->
 
         <div class="table-wrapper" style="max-width:none;">
           <table class="os-table">
@@ -196,7 +195,7 @@
         </button>
       </section>
 
-           <!-- Fotos -->
+      <!-- Fotos -->
       <section class="section">
         <h3>Fotos</h3>
 
@@ -237,7 +236,7 @@
     </form>
   </main>
 
-  <!-- 🔹 MODELO ESCONDIDO DA FICHA CORRETIVA (DUAS VIAS) -->
+  <!-- MODELO ESCONDIDO DA FICHA CORRETIVA (DUAS VIAS) -->
   <div id="printCorretiva" class="pagina-a4" style="display:none;">
 
     <!-- primeira via -->
@@ -289,7 +288,7 @@
       </div>
     </div>
 
-    <!-- segunda via (igual à primeira) -->
+    <!-- segunda via -->
     <div class="bloco-corretiva">
       <div class="cabecalho-maxi">
         <img src="img/maxi.png" alt="MAXI">
@@ -339,7 +338,7 @@
     </div>
 
   </div>
-  <!-- 🔹 FIM DO MODELO DA FICHA CORRETIVA -->
+  <!-- FIM DO MODELO DA FICHA CORRETIVA -->
 
   <!-- Bibliotecas de PDF -->
   <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
@@ -351,7 +350,7 @@
     // Garante login
     requireLogin();
 
-    // Esconde menus se não for Admin (mesma lógica que você já tinha)
+    // Esconde menus se não for Admin
     const cargoAtual = sessionStorage.getItem("cargo") || role();
     if (!cargoAtual) {
       window.location.href = "index.html";
@@ -364,7 +363,7 @@
       if (linkAbrir) linkAbrir.style.display = "none";
     }
 
-    // 🔹 NOVA FUNÇÃO: carregar lista de peças do backend
+    // Carregar lista de peças do backend
     async function carregarPecas() {
       const select = document.getElementById("pecaId");
       if (!select) return;
@@ -372,7 +371,7 @@
       select.innerHTML = '<option value="">Carregando peças...</option>';
 
       try {
-        // API_BASE já deve estar definida em js/script.js
+        // API_BASE é definida em js/script.js
         const resp = await fetch(`${API_BASE}/api/pecas`);
 
         if (!resp.ok) {
@@ -388,7 +387,7 @@
 
         select.innerHTML = '<option value="">Selecione uma peça...</option>';
 
-        pecas.forEach(p => {
+        pecas.forEach((p) => {
           const opt = document.createElement("option");
           opt.value = p.id;
           opt.textContent = `${p.nome} (${p.codigo})`;
@@ -406,10 +405,11 @@
 
   <!-- Service Worker -->
   <script>
-    if ('serviceWorker' in navigator && location.protocol.startsWith('http')) {
-      navigator.serviceWorker.register('./service-worker.js', { scope: './' })
-        .then(reg => console.log('Service Worker registrado:', reg.scope))
-        .catch(err => console.error('Erro ao registrar o Service Worker:', err));
+    if ("serviceWorker" in navigator && location.protocol.startsWith("http")) {
+      navigator.serviceWorker
+        .register("./service-worker.js", { scope: "./" })
+        .then((reg) => console.log("Service Worker registrado:", reg.scope))
+        .catch((err) => console.error("Erro ao registrar o Service Worker:", err));
     }
   </script>
 </body>
