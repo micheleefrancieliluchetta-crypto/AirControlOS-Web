@@ -398,9 +398,43 @@ if (formOrdem) {
   // --- Peças / trocas ---
   const pecasBody = document.getElementById("pecasBody");
   const btnAddPeca = document.getElementById("btnAddPeca");
+  const selectPecaEl = document.getElementById("pecaId");
+  const qtdPecaEl = document.getElementById("qtdPeca");
+
   function addPecaRow(data = {}) {
     if (!pecasBody) return;
+
+    // Valores iniciais (quando reusando / carregando)
+    let item = data.item || "";
+    let qtd = data.qtd || "";
+    let pecaId = data.pecaId || null;
+
+    // Se não veio de "data", tenta pegar do select + quantidade
+    if (!data.item && selectPecaEl && qtdPecaEl) {
+      const opt = selectPecaEl.selectedOptions[0];
+      const selId = opt?.value || "";
+      const selTexto = opt?.textContent || "";
+
+      if (!selId) {
+        alert("Selecione uma peça antes de adicionar.");
+        return;
+      }
+
+      pecaId = selId;
+      item = selTexto;
+      qtd = qtdPecaEl.value || "1";
+
+      if (!qtd || Number(qtd) <= 0) {
+        qtd = "1";
+        qtdPecaEl.value = "1";
+      }
+    }
+
     const tr = document.createElement("tr");
+    if (pecaId) {
+      tr.dataset.pecaId = String(pecaId);
+    }
+
     tr.innerHTML = `
       <td><input class="pc-item" placeholder="Item / peça"></td>
       <td style="width:120px;"><input class="pc-qtd" type="number" min="0" placeholder="Qtd."></td>
@@ -408,11 +442,16 @@ if (formOrdem) {
         <button type="button" class="danger" onclick="this.closest('tr').remove()">Remover</button>
       </td>
     `;
-    tr.querySelector(".pc-item").value = data.item || "";
-    tr.querySelector(".pc-qtd").value = data.qtd || "";
+
+    tr.querySelector(".pc-item").value = item || "";
+    tr.querySelector(".pc-qtd").value  = qtd || "";
+
     pecasBody.appendChild(tr);
   }
-  if (btnAddPeca) btnAddPeca.addEventListener("click", () => addPecaRow());
+
+  if (btnAddPeca) {
+    btnAddPeca.addEventListener("click", () => addPecaRow());
+  }
 
   // === Fotos (preview + buffers para IndexedDB) ===
   const beforeInput = document.getElementById("fotosAntes");
@@ -603,7 +642,8 @@ if (formOrdem) {
         (pecasBody ? Array.from(pecasBody.querySelectorAll("tr")) : []).forEach((tr) => {
           pecas.push({
             item: tr.querySelector(".pc-item")?.value || "",
-            qtd:  tr.querySelector(".pc-qtd")?.value  || ""
+            qtd:  tr.querySelector(".pc-qtd")?.value  || "",
+            pecaId: tr.dataset.pecaId ? parseInt(tr.dataset.pecaId, 10) : null
           });
         });
 
@@ -1122,7 +1162,7 @@ window.abrirModal = async function (id) {
       await renderFotos("detFotosDepois", os.fotosDepoisIds, os.fotosDepois);
 
       const mapEl = document.getElementById("detMap");
-        if (mapEl) {
+      if (mapEl) {
         // se já existir um mapa, destrói
         if (detMapInstance) {
           detMapInstance.remove();
@@ -1446,3 +1486,4 @@ async function salvarChecklistPmoc(ev) {
     alert("Erro ao salvar checklist PMOC:\n" + (e.message || e));
   }
 }
+
