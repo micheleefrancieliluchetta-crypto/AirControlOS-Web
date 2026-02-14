@@ -1,0 +1,268 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Peças - Sistemas Maxi</title>
+
+  <link rel="stylesheet" href="css/style.css" />
+
+  <!-- BRAND TOGGLE -->
+  <link id="app-manifest" rel="manifest" href="manifest.webmanifest" />
+  <link id="apple-icon" rel="apple-touch-icon" href="icons/empresa/icon-192.png" />
+  <link id="favicon" rel="icon" href="icons/empresa/icon-192.png" />
+  <meta name="theme-color" content="#1e90ff" />
+  <meta name="mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-capable" content="yes" />
+  <meta name="apple-mobile-web-app-status-bar-style" content="default" />
+  <script>
+    const BRAND = localStorage.getItem('brand') || 'empresa';
+    document.addEventListener('DOMContentLoaded', () => {
+      document.getElementById('apple-icon').href = `icons/${BRAND}/icon-192.png`;
+      document.getElementById('favicon').href    = `icons/${BRAND}/icon-192.png`;
+    });
+  </script>
+</head>
+<body>
+  <!-- Topbar -->
+  <header class="topbar">
+    <h1>Sistemas Maxi</h1>
+    <div style="display:flex; gap:10px; align-items:center;">
+      <span id="userBadge" style="font-weight:600;"></span>
+      <button onclick="logout()">Sair</button>
+    </div>
+  </header>
+
+  <!-- Sidebar -->
+  <nav class="sidebar">
+    <ul>
+      <li><a href="dashboard.html">🏠 Dashboard</a></li>
+      <li><a href="ordem-servico.html">📝 Ordem de Serviço - Manutenção Corretiva</a></li>
+      <li><a href="calendario.html">📝 Agenda</a></li>
+      <li><a href="local.html">📍 Locais / Unidades</a></li>
+      <li><a href="tecnico.html">🧑‍🔧 Técnicos</a></li>
+      <li><a href="usuarios.html">👤 Usuários - Acesso ao Sistema</a></li>
+      <li><a href="aparelhos-por-unidade.html">🏥 Aparelhos por unidade</a></li>
+      <li><a href="pecas.html" class="active">🛠️ Peças / Catálogo</a></li>
+      <li><a href="pmoc.html">✅ Checklist PMOC - Manutenção Preventiva</a></li>
+      <li><a href="pmoc-historico.html">📂 Histórico PMOC por Aparelho</a></li>
+      <li><a href="pmoc-qrcode.html">🔳 QR Code PMOC</a></li>
+    </ul>
+  </nav>
+
+  <!-- Conteúdo -->
+  <main class="main-content">
+    <h2>Catálogo de Peças</h2>
+
+    <!-- Formulário de nova peça -->
+    <section class="section">
+      <h3>Cadastrar nova peça</h3>
+      <form id="formPeca" class="form-os" autocomplete="off">
+        <div class="grid-3">
+          <div>
+            <label for="pecaNome">Nome da peça *</label>
+            <input id="pecaNome" required placeholder="Ex.: Compressor 24.000 BTU" />
+          </div>
+          <div>
+            <label for="pecaCodigo">Código (opcional)</label>
+            <input id="pecaCodigo" placeholder="Ex.: CMP-24000" />
+          </div>
+          <div>
+            <label for="pecaObs">Observação (opcional)</label>
+            <input id="pecaObs" placeholder="Marca, modelo, voltagem..." />
+          </div>
+        </div>
+        <button type="submit" style="margin-top:10px;">Salvar peça</button>
+      </form>
+    </section>
+
+    <!-- Lista de peças -->
+    <section class="section">
+      <h3>Peças cadastradas</h3>
+      <div class="table-wrapper" style="max-width:none;">
+        <table class="os-table">
+          <thead>
+            <tr>
+              <th>Nome</th>
+              <th>Código</th>
+              <th>Observação</th>
+              <th style="width:90px;">Ações</th>
+            </tr>
+          </thead>
+          <tbody id="tbodyPecas">
+            <tr>
+              <td colspan="4">Carregando peças...</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    </section>
+  </main>
+
+  <!-- JS principal -->
+  <script src="js/script.js"></script>
+
+  <script>
+    // Garante login
+    requireLogin();
+
+    // Esconde menus se não for Admin (igual às outras telas)
+    const cargoAtual = sessionStorage.getItem("cargo") || role();
+    if (!cargoAtual) {
+      window.location.href = "index.html";
+    }
+    if (cargoAtual !== "Admin") {
+      const linkTecnico = document.querySelector('a[href="tecnico.html"]');
+      if (linkTecnico) linkTecnico.style.display = "none";
+
+      const linkUsuarios = document.querySelector('a[href="usuarios.html"]');
+      if (linkUsuarios) linkUsuarios.style.display = "none";
+    }
+
+    const tbodyPecas = document.getElementById("tbodyPecas");
+    const formPeca  = document.getElementById("formPeca");
+
+    // Carregar peças do backend
+    async function carregarPecasCatalogo() {
+      tbodyPecas.innerHTML = `
+        <tr><td colspan="4">Carregando peças...</td></tr>
+      `;
+
+      try {
+        const token = localStorage.getItem("token");
+        const resp = await fetch(`${API_BASE}/api/pecas`, {
+          headers: {
+            "Authorization": token ? `Bearer ${token}` : ""
+          }
+        });
+
+        if (!resp.ok) {
+          throw new Error("Erro HTTP: " + resp.status);
+        }
+
+        const pecas = await resp.json();
+
+        if (!Array.isArray(pecas) || pecas.length === 0) {
+          tbodyPecas.innerHTML = `
+            <tr><td colspan="4">Nenhuma peça cadastrada.</td></tr>
+          `;
+          return;
+        }
+
+        tbodyPecas.innerHTML = "";
+        pecas.forEach(p => {
+          const tr = document.createElement("tr");
+          const codigo = p.codigo || "";
+          const obs    = p.observacao || p.descricao || "";
+
+          tr.innerHTML = `
+            <td>${p.nome}</td>
+            <td>${codigo}</td>
+            <td>${obs}</td>
+            <td>
+              <button type="button" data-id="${p.id}" style="padding:4px 8px;">
+                Excluir
+              </button>
+            </td>
+          `;
+          tbodyPecas.appendChild(tr);
+        });
+      } catch (erro) {
+        console.error("Erro ao carregar peças:", erro);
+        tbodyPecas.innerHTML = `
+          <tr><td colspan="4">Erro ao carregar peças.</td></tr>
+        `;
+      }
+    }
+
+    // Enviar nova peça
+    formPeca.addEventListener("submit", async (e) => {
+      e.preventDefault();
+
+      const nome  = document.getElementById("pecaNome").value.trim();
+      const codigo = document.getElementById("pecaCodigo").value.trim();
+      const obs    = document.getElementById("pecaObs").value.trim();
+
+      if (!nome) {
+        alert("Informe o nome da peça.");
+        return;
+      }
+
+      try {
+        const token = localStorage.getItem("token");
+        const resp = await fetch(`${API_BASE}/api/pecas`, {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+            "Authorization": token ? `Bearer ${token}` : ""
+          },
+          body: JSON.stringify({
+            nome: nome,
+            codigo: codigo,
+            observacao: obs
+          })
+        });
+
+        if (!resp.ok) {
+          const txt = await resp.text();
+          console.error("Erro ao salvar peça:", txt);
+          alert("Erro ao salvar peça. Veja o console do navegador.");
+          return;
+        }
+
+        formPeca.reset();
+        carregarPecasCatalogo();
+      } catch (erro) {
+        console.error("Erro ao salvar peça:", erro);
+        alert("Erro ao salvar peça.");
+      }
+    });
+
+    // Exclusão de peça (delegação de evento na tabela)
+    tbodyPecas.addEventListener("click", async (ev) => {
+      const btn = ev.target.closest("button[data-id]");
+      if (!btn) return;
+
+      const id = btn.dataset.id;
+      if (!id) return;
+
+      if (!confirm("Deseja realmente excluir esta peça do catálogo?")) return;
+
+      try {
+        const token = localStorage.getItem("token");
+        const resp = await fetch(`${API_BASE}/api/pecas/${id}`, {
+          method: "DELETE",
+          headers: {
+            "Authorization": token ? `Bearer ${token}` : ""
+          }
+        });
+
+        if (!resp.ok) {
+          const txt = await resp.text();
+          console.error("Erro ao excluir peça:", txt);
+          alert("Erro ao excluir peça.");
+          return;
+        }
+
+        carregarPecasCatalogo();
+      } catch (erro) {
+        console.error("Erro ao excluir peça:", erro);
+        alert("Erro ao excluir peça.");
+      }
+    });
+
+    // Carrega ao abrir a tela
+    carregarPecasCatalogo();
+  </script>
+
+  <!-- Service Worker (opcional, igual às outras páginas) -->
+  <script>
+    if ("serviceWorker" in navigator && location.protocol.startsWith("http")) {
+      navigator.serviceWorker
+        .register("./service-worker.js", { scope: "./" })
+        .then((reg) => console.log("Service Worker registrado:", reg.scope))
+        .catch((err) => console.error("Erro ao registrar o Service Worker:", err));
+    }
+  </script>
+</body>
+</html>
