@@ -37,16 +37,16 @@
   <nav class="sidebar">
     <ul>
       <li><a href="dashboard.html">🏠 Dashboard</a></li>
-      <li><a href="ordem-servico.html">📝 Ordem de Serviço - Manutenção Corretiva</a></li>
+      <li><a href="ordem-servico.html" class="active">📝 Ordem de Serviço - Manutenção Corretiva</a></li>
       <li><a href="calendario.html">📝 Agenda</a></li>
       <li><a href="local.html">📍 Locais / Unidades</a></li>
       <li><a href="tecnico.html">🧑‍🔧 Técnicos</a></li>
       <li><a href="usuarios.html">👤 Usuários - Acesso ao Sistema</a></li>
       <li><a href="aparelhos-por-unidade.html">🏥 Aparelhos por unidade</a></li>
+      <li><a href="pecas.html">🛠️ Peças / Catálogo</a></li>
       <li><a href="pmoc.html">✅ Checklist PMOC - Manutenção Preventiva</a></li>
       <li><a href="pmoc-historico.html">📂 Histórico PMOC por Aparelho</a></li>
       <li><a href="pmoc-qrcode.html">🔳 QR Code PMOC</a></li>
-      <li><a href="pecas.html">Pecas</a></li>
     </ul>
   </nav>
 
@@ -364,7 +364,82 @@
       if (linkAbrir) linkAbrir.style.display = "none";
     }
 
-    // Carregar lista de peças do backend
+    // ====== PEÇAS DA OS (frontend) ======
+    const pecasSelecionadas = []; // por enquanto só na tela
+
+    function renderizarTabelaPecas() {
+      const tbody = document.getElementById("pecasBody");
+      tbody.innerHTML = "";
+
+      if (pecasSelecionadas.length === 0) {
+        tbody.innerHTML = `
+          <tr>
+            <td colspan="3">Nenhuma peça adicionada.</td>
+          </tr>
+        `;
+        return;
+      }
+
+      pecasSelecionadas.forEach((item, idx) => {
+        const tr = document.createElement("tr");
+        tr.innerHTML = `
+          <td>${item.nome}</td>
+          <td>${item.quantidade}</td>
+          <td>
+            <button type="button" data-idx="${idx}" style="padding:4px 8px;">
+              Remover
+            </button>
+          </td>
+        `;
+        tbody.appendChild(tr);
+      });
+    }
+
+    function adicionarPecaNaLista() {
+      const select = document.getElementById("pecaId");
+      const inputQtd = document.getElementById("qtdPeca");
+
+      const pecaId = select.value;
+      const pecaNome = select.options[select.selectedIndex]?.text || "";
+      const qtd = parseInt(inputQtd.value || "1", 10);
+
+      if (!pecaId) {
+        alert("Selecione uma peça antes de adicionar.");
+        return;
+      }
+      if (!qtd || qtd <= 0) {
+        alert("Informe uma quantidade válida.");
+        return;
+      }
+
+      pecasSelecionadas.push({
+        id: pecaId,
+        nome: pecaNome,
+        quantidade: qtd
+      });
+
+      renderizarTabelaPecas();
+      // se quiser, reseta quantidade
+      inputQtd.value = "1";
+    }
+
+    document.getElementById("btnAddPeca")
+      .addEventListener("click", adicionarPecaNaLista);
+
+    // Remoção por delegação
+    document.getElementById("pecasBody")
+      .addEventListener("click", (ev) => {
+        const btn = ev.target.closest("button[data-idx]");
+        if (!btn) return;
+
+        const idx = parseInt(btn.dataset.idx, 10);
+        if (isNaN(idx)) return;
+
+        pecasSelecionadas.splice(idx, 1);
+        renderizarTabelaPecas();
+      });
+
+    // Carregar lista de peças do backend para o select
     async function carregarPecas() {
       const select = document.getElementById("pecaId");
       if (!select) return;
@@ -372,8 +447,12 @@
       select.innerHTML = '<option value="">Carregando peças...</option>';
 
       try {
-        // API_BASE é definida em js/script.js
-        const resp = await fetch(`${API_BASE}/api/pecas`);
+        const token = localStorage.getItem("token");
+        const resp = await fetch(`${API_BASE}/api/pecas`, {
+          headers: {
+            "Authorization": token ? `Bearer ${token}` : ""
+          }
+        });
 
         if (!resp.ok) {
           throw new Error("Erro HTTP: " + resp.status);
@@ -391,7 +470,8 @@
         pecas.forEach((p) => {
           const opt = document.createElement("option");
           opt.value = p.id;
-          opt.textContent = `${p.nome} (${p.codigo})`;
+          const codigo = p.codigo ? ` (${p.codigo})` : "";
+          opt.textContent = `${p.nome}${codigo}`;
           select.appendChild(opt);
         });
       } catch (erro) {
@@ -402,6 +482,10 @@
 
     // Chama assim que essa página carregar
     carregarPecas();
+
+    // OBS.: neste momento pecasSelecionadas está só no frontend.
+    // No próximo passo a gente liga esse array na criação de
+    // Solicitações de Peça (CriarSolicitacaoPecaDto) depois que a OS for salva.
   </script>
 
   <!-- Service Worker -->
@@ -415,3 +499,4 @@
   </script>
 </body>
 </html>
+
