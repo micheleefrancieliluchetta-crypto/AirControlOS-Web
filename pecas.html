@@ -15,6 +15,7 @@
   <meta name="mobile-web-app-capable" content="yes">
   <meta name="apple-mobile-web-app-capable" content="yes" />
   <meta name="apple-mobile-web-app-status-bar-style" content="default" />
+
   <script>
     const BRAND = localStorage.getItem('brand') || 'empresa';
     document.addEventListener('DOMContentLoaded', () => {
@@ -99,18 +100,24 @@
     </section>
   </main>
 
-  <!-- JS principal -->
+  <!-- JS principal (define API_BASE, requireLogin, role, logout, etc.) -->
   <script src="js/script.js"></script>
 
+  <!-- Se por algum motivo API_BASE não vier do script.js, definimos um padrão -->
   <script>
-    // Garante login
+    window.API_BASE = window.API_BASE || "https://aircontrolos-api.onrender.com";
+  </script>
+
+  <script>
+    // ========= CONTROLE DE LOGIN / PERMISSÕES =========
     requireLogin();
 
-    // Esconde menus se não for Admin (igual às outras telas)
     const cargoAtual = sessionStorage.getItem("cargo") || role();
     if (!cargoAtual) {
       window.location.href = "index.html";
     }
+
+    // Esconde menus se não for Admin
     if (cargoAtual !== "Admin") {
       const linkTecnico = document.querySelector('a[href="tecnico.html"]');
       if (linkTecnico) linkTecnico.style.display = "none";
@@ -119,25 +126,32 @@
       if (linkUsuarios) linkUsuarios.style.display = "none";
     }
 
+    // ========= ELEMENTOS =========
     const tbodyPecas = document.getElementById("tbodyPecas");
-    const formPeca  = document.getElementById("formPeca");
+    const formPeca   = document.getElementById("formPeca");
 
-    // Carregar peças do backend
+    // ========= CARREGAR PEÇAS =========
     async function carregarPecasCatalogo() {
       tbodyPecas.innerHTML = `
         <tr><td colspan="4">Carregando peças...</td></tr>
       `;
 
       try {
-        const token = localStorage.getItem("token");
+        const token = localStorage.getItem("token") || "";
         const resp = await fetch(`${API_BASE}/api/pecas`, {
+          method: "GET",
           headers: {
             "Authorization": token ? `Bearer ${token}` : ""
           }
         });
 
         if (!resp.ok) {
-          throw new Error("Erro HTTP: " + resp.status);
+          const txt = await resp.text();
+          console.error("Erro HTTP ao carregar peças:", resp.status, txt);
+          tbodyPecas.innerHTML = `
+            <tr><td colspan="4">Erro ao carregar peças (HTTP ${resp.status}).</td></tr>
+          `;
+          return;
         }
 
         const pecas = await resp.json();
@@ -170,12 +184,12 @@
       } catch (erro) {
         console.error("Erro ao carregar peças:", erro);
         tbodyPecas.innerHTML = `
-          <tr><td colspan="4">Erro ao carregar peças.</td></tr>
+          <tr><td colspan="4">Erro ao carregar peças. Ver console.</td></tr>
         `;
       }
     }
 
-    // Enviar nova peça
+    // ========= SALVAR NOVA PEÇA =========
     formPeca.addEventListener("submit", async (e) => {
       e.preventDefault();
 
@@ -189,9 +203,10 @@
       }
 
       try {
-        const token = localStorage.getItem("token");
+        const token = localStorage.getItem("token") || "";
         const resp = await fetch(`${API_BASE}/api/pecas`, {
           method: "POST",
+          mode: "cors",
           headers: {
             "Content-Type": "application/json",
             "Authorization": token ? `Bearer ${token}` : ""
@@ -205,7 +220,7 @@
 
         if (!resp.ok) {
           const txt = await resp.text();
-          console.error("Erro ao salvar peça:", txt);
+          console.error("Erro ao salvar peça (HTTP):", resp.status, txt);
           alert("Erro ao salvar peça. Veja o console do navegador.");
           return;
         }
@@ -213,12 +228,12 @@
         formPeca.reset();
         carregarPecasCatalogo();
       } catch (erro) {
-        console.error("Erro ao salvar peça:", erro);
-        alert("Erro ao salvar peça.");
+        console.error("Erro ao salvar peça (fetch falhou):", erro);
+        alert("Erro ao salvar peça (falha de conexão / CORS).");
       }
     });
 
-    // Exclusão de peça (delegação de evento na tabela)
+    // ========= EXCLUSÃO DE PEÇA =========
     tbodyPecas.addEventListener("click", async (ev) => {
       const btn = ev.target.closest("button[data-id]");
       if (!btn) return;
@@ -229,7 +244,7 @@
       if (!confirm("Deseja realmente excluir esta peça do catálogo?")) return;
 
       try {
-        const token = localStorage.getItem("token");
+        const token = localStorage.getItem("token") || "";
         const resp = await fetch(`${API_BASE}/api/pecas/${id}`, {
           method: "DELETE",
           headers: {
@@ -239,7 +254,7 @@
 
         if (!resp.ok) {
           const txt = await resp.text();
-          console.error("Erro ao excluir peça:", txt);
+          console.error("Erro ao excluir peça:", resp.status, txt);
           alert("Erro ao excluir peça.");
           return;
         }
@@ -247,15 +262,15 @@
         carregarPecasCatalogo();
       } catch (erro) {
         console.error("Erro ao excluir peça:", erro);
-        alert("Erro ao excluir peça.");
+        alert("Erro ao excluir peça (falha de conexão / CORS).");
       }
     });
 
-    // Carrega ao abrir a tela
+    // ========= CARREGAR AO ABRIR TELA =========
     carregarPecasCatalogo();
   </script>
 
-  <!-- Service Worker (opcional, igual às outras páginas) -->
+  <!-- Service Worker -->
   <script>
     if ("serviceWorker" in navigator && location.protocol.startsWith("http")) {
       navigator.serviceWorker
@@ -266,3 +281,5 @@
   </script>
 </body>
 </html>
+
+
