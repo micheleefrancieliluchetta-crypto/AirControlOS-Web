@@ -1,9 +1,9 @@
-<!DOCTYPE html>
+<!DOCTYPE html> 
 <html lang="pt-BR">
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Aparelhos por unidade - AirControl OS</title>
+  <title>Aparelhos por unidade - Sistemas Maxi</title>
 
   <style>
     body {
@@ -135,188 +135,188 @@
 </head>
 <body>
 
- <header class="topo">
+<header class="topo">
   <button class="voltar" onclick="window.location.href='dashboard.html'">←</button>
   Aparelhos por unidade
 </header>
 
-  <main class="container">
+<main class="container">
 
-    <!-- FILTRO -->
-    <section class="filtro-card">
-      <div class="filtro-row">
-        <div>
-          <label for="unidadeSelect">Unidade externa:</label><br />
-          <select id="unidadeSelect">
-            <option value="">Selecione...</option>
-            <!-- "Todas as unidades" será adicionada via JS -->
-          </select>
-        </div>
+  <!-- FILTRO -->
+  <section class="filtro-card">
+    <div class="filtro-row">
+      <div>
+        <label for="unidadeSelect">Unidade externa:</label><br />
+        <select id="unidadeSelect">
+          <option value="">Selecione...</option>
+          <!-- "Todas as unidades" será adicionada via JS -->
+        </select>
       </div>
-      <p class="msg" id="msgFiltro">
-        Selecione a unidade externa ou escolha "Todas as unidades" para listar todos os aparelhos.
-      </p>
-    </section>
+    </div>
+    <p class="msg" id="msgFiltro">
+      Selecione a unidade externa ou escolha "Todas as unidades" para listar todos os aparelhos.
+    </p>
+  </section>
 
-    <!-- TABELA -->
-    <section class="tabela-card">
-      <table>
-        <thead>
-          <tr>
-            <th>Unidade externa</th>
-            <th>Local</th>
-            <th>Marca</th>
-            <th>BTU</th>
-            <th>Modelo</th>
-          </tr>
-        </thead>
-        <tbody id="tabelaCorpo">
-          <!-- linhas criadas via JS -->
-        </tbody>
-      </table>
+  <!-- TABELA -->
+  <section class="tabela-card">
+    <table>
+      <thead>
+        <tr>
+          <th>Unidade externa</th>
+          <th>Local</th>
+          <th>Marca</th>
+          <th>BTU</th>
+          <th>Modelo</th>
+        </tr>
+      </thead>
+      <tbody id="tabelaCorpo">
+        <!-- linhas criadas via JS -->
+      </tbody>
+    </table>
 
-      <p class="msg" id="msgTabela"></p>
-    </section>
+    <p class="msg" id="msgTabela"></p>
+  </section>
 
-  </main>
+</main>
 
-  <script>
-    // URL base da SUA API no Render:
-    const API_BASE_URL = "https://aircontrolos-api.onrender.com/api/aparelhos-hdv";
+<script>
+  // URL base da SUA API no Render:
+  const API_BASE_URL = "https://aircontrolos-api.onrender.com/api/aparelhos-hdv";
 
-    const unidadeSelect = document.getElementById("unidadeSelect");
-    const tabelaCorpo = document.getElementById("tabelaCorpo");
-    const msgFiltro = document.getElementById("msgFiltro");
-    const msgTabela = document.getElementById("msgTabela");
+  const unidadeSelect = document.getElementById("unidadeSelect");
+  const tabelaCorpo = document.getElementById("tabelaCorpo");
+  const msgFiltro = document.getElementById("msgFiltro");
+  const msgTabela = document.getElementById("msgTabela");
 
-    // 1) Carregar todas as unidades externas únicas ao abrir a página
-    async function carregarUnidades() {
-      try {
-        const resp = await fetch(API_BASE_URL);
-        if (!resp.ok) throw new Error("Erro ao buscar aparelhos.");
+  // cache só com os aparelhos que vamos usar (ex.: SBC)
+  let dadosCache = [];
 
-        const dados = await resp.json();
+  // 1) Carregar todas as unidades externas únicas ao abrir a página
+  async function carregarUnidades() {
+    try {
+      const resp = await fetch(API_BASE_URL);
+      if (!resp.ok) throw new Error("Erro ao buscar aparelhos.");
 
-        // pega somente unidadeExterna não nula
-        const unidades = [...new Set(
-          dados
-            .map(a => a.unidadeExterna)
-            .filter(v => v !== null && v !== undefined)
-        )].sort((a, b) => a - b);
+      let dados = await resp.json();
 
-        // adiciona opção "Todas as unidades"
-        if (unidades.length > 0) {
-          const optTodas = document.createElement("option");
-          optTodas.value = "todas";
-          optTodas.textContent = "Todas as unidades";
-          unidadeSelect.appendChild(optTodas);
-        }
+      // 🔹 FILTRO PARA SÃO BERNARDO (Hospital das Clínicas)
+      // Se o backend já enviar "localId", filtramos pelo 2001.
+      const SBC_LOCAL_ID = 2001;
+      const temLocalId = Array.isArray(dados) && dados.length > 0 && ("localId" in dados[0]);
 
-        // preenche o select com cada unidade
-        unidades.forEach(u => {
-          const opt = document.createElement("option");
-          opt.value = u;
-          opt.textContent = u;
-          unidadeSelect.appendChild(opt);
-        });
-
-        if (unidades.length === 0) {
-          msgFiltro.textContent = "Nenhuma unidade externa encontrada na base de aparelhos.";
-        } else {
-          msgFiltro.textContent =
-            'Selecione a unidade externa ou escolha "Todas as unidades" para listar todos os aparelhos.';
-        }
-
-      } catch (e) {
-        console.error(e);
-        msgFiltro.textContent = "Erro ao carregar unidades externas.";
+      if (temLocalId) {
+        dados = dados.filter(a => a.localId === SBC_LOCAL_ID);
       }
-    }
+      // Se não tiver localId, usamos todos (e você garante no banco que só SBC está aqui)
+      dadosCache = dados;
 
-    // Função para desenhar a tabela
-    function preencherTabela(lista, descricao) {
-      tabelaCorpo.innerHTML = "";
-      msgTabela.textContent = "";
+      // pega somente unidadeExterna não nula
+      const unidades = [...new Set(
+        dadosCache
+          .map(a => a.unidadeExterna)
+          .filter(v => v !== null && v !== undefined)
+      )].sort((a, b) => a - b);
 
-      if (!lista || lista.length === 0) {
-        msgTabela.textContent = "Nenhum aparelho encontrado " + descricao;
-        return;
+      // adiciona opção "Todas as unidades"
+      if (unidades.length > 0) {
+        const optTodas = document.createElement("option");
+        optTodas.value = "todas";
+        optTodas.textContent = "Todas as unidades";
+        unidadeSelect.appendChild(optTodas);
       }
 
-      lista.forEach(item => {
-        const tr = document.createElement("tr");
-
-        const tdUnidade = document.createElement("td");
-        tdUnidade.textContent = item.unidadeExterna ?? "-";
-        tdUnidade.setAttribute("data-label", "Unidade externa");
-
-        const tdLocal = document.createElement("td");
-        tdLocal.textContent = item.local ?? "-";
-        tdLocal.setAttribute("data-label", "Local");
-
-        const tdMarca = document.createElement("td");
-        tdMarca.textContent = item.marca ?? "-";
-        tdMarca.setAttribute("data-label", "Marca");
-
-        const tdBtu = document.createElement("td");
-        tdBtu.textContent = item.btu ?? "-";
-        tdBtu.setAttribute("data-label", "BTU");
-
-        const tdModelo = document.createElement("td");
-        tdModelo.textContent = item.modelo ?? "-";
-        tdModelo.setAttribute("data-label", "Modelo");
-
-        tr.appendChild(tdUnidade);
-        tr.appendChild(tdLocal);
-        tr.appendChild(tdMarca);
-        tr.appendChild(tdBtu);
-        tr.appendChild(tdModelo);
-
-        tabelaCorpo.appendChild(tr);
+      // preenche o select com cada unidade
+      unidades.forEach(u => {
+        const opt = document.createElement("option");
+        opt.value = u;
+        opt.textContent = u;
+        unidadeSelect.appendChild(opt);
       });
 
-      msgTabela.textContent = `${lista.length} aparelho(s) encontrado(s) ${descricao}.`;
+      if (unidades.length === 0) {
+        msgFiltro.textContent = "Nenhuma unidade externa encontrada na base de aparelhos.";
+      } else {
+        msgFiltro.textContent =
+          'Selecione a unidade externa ou escolha "Todas as unidades" para listar todos os aparelhos.';
+      }
+
+    } catch (e) {
+      console.error(e);
+      msgFiltro.textContent = "Erro ao carregar unidades externas.";
+    }
+  }
+
+  // Função para desenhar a tabela
+  function preencherTabela(lista, descricao) {
+    tabelaCorpo.innerHTML = "";
+    msgTabela.textContent = "";
+
+    if (!lista || lista.length === 0) {
+      msgTabela.textContent = "Nenhum aparelho encontrado " + descricao;
+      return;
     }
 
-    // 2) Quando trocar o select, buscar aparelhos da unidade ou todos
-    unidadeSelect.addEventListener("change", async () => {
-      const valor = unidadeSelect.value;
-      tabelaCorpo.innerHTML = "";
-      msgTabela.textContent = "";
+    lista.forEach(item => {
+      const tr = document.createElement("tr");
 
-      if (!valor) {
-        msgTabela.textContent = "Escolha uma unidade externa ou 'Todas as unidades' para ver os aparelhos.";
-        return;
-      }
+      const tdUnidade = document.createElement("td");
+      tdUnidade.textContent = item.unidadeExterna ?? "-";
+      tdUnidade.setAttribute("data-label", "Unidade externa");
 
-      try {
-        let resp;
-        let lista;
+      const tdLocal = document.createElement("td");
+      tdLocal.textContent = item.local ?? "-";
+      tdLocal.setAttribute("data-label", "Local");
 
-        if (valor === "todas") {
-          // busca TODOS
-          resp = await fetch(API_BASE_URL);
-          if (!resp.ok) throw new Error("Erro ao buscar todos os aparelhos.");
-          lista = await resp.json();
-          preencherTabela(lista, "no total");
-        } else {
-          // busca somente da unidade
-          resp = await fetch(`${API_BASE_URL}/por-unidade/${valor}`);
-          if (!resp.ok) throw new Error("Erro ao buscar aparelhos por unidade.");
-          lista = await resp.json();
-          preencherTabela(lista, `para a unidade externa ${valor}`);
-        }
-      } catch (e) {
-        console.error(e);
-        msgTabela.textContent = "Erro ao carregar aparelhos.";
-      }
+      const tdMarca = document.createElement("td");
+      tdMarca.textContent = item.marca ?? "-";
+      tdMarca.setAttribute("data-label", "Marca");
+
+      const tdBtu = document.createElement("td");
+      tdBtu.textContent = item.btu ?? "-";
+      tdBtu.setAttribute("data-label", "BTU");
+
+      const tdModelo = document.createElement("td");
+      tdModelo.textContent = item.modelo ?? "-";
+      tdModelo.setAttribute("data-label", "Modelo");
+
+      tr.appendChild(tdUnidade);
+      tr.appendChild(tdLocal);
+      tr.appendChild(tdMarca);
+      tr.appendChild(tdBtu);
+      tr.appendChild(tdModelo);
+
+      tabelaCorpo.appendChild(tr);
     });
 
-    // iniciar
-    carregarUnidades();
-  </script>
+    msgTabela.textContent = `${lista.length} aparelho(s) encontrado(s) ${descricao}.`;
+  }
+
+  // 2) Quando trocar o select, filtrar usando o cache (sem novo fetch)
+  unidadeSelect.addEventListener("change", () => {
+    const valor = unidadeSelect.value;
+    tabelaCorpo.innerHTML = "";
+    msgTabela.textContent = "";
+
+    if (!valor) {
+      msgTabela.textContent = "Escolha uma unidade externa ou 'Todas as unidades' para ver os aparelhos.";
+      return;
+    }
+
+    let lista;
+
+    if (valor === "todas") {
+      lista = dadosCache;
+      preencherTabela(lista, "no total");
+    } else {
+      lista = dadosCache.filter(a => String(a.unidadeExterna) === String(valor));
+      preencherTabela(lista, `para a unidade externa ${valor}`);
+    }
+  });
+
+  // iniciar
+  carregarUnidades();
+</script>
 
 </body>
 </html>
-
-
