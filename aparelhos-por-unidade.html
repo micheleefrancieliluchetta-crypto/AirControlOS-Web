@@ -1,161 +1,198 @@
 <!DOCTYPE html>
 <html lang="pt-BR">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1">
-  <title>QR Codes PMOC - Sistemas Maxi</title>
-
-  <link rel="stylesheet" href="css/style.css">
-
-  <link rel="manifest" href="./manifest.webmanifest" />
-  <meta name="theme-color" content="#1e90ff" />
-  <link rel="apple-touch-icon" href="icons/icon-192.png" />
-  <meta name="mobile-web-app-capable" content="yes">
-  <meta name="apple-mobile-web-app-status-bar-style" content="default" />
-
-  <!-- QRCodeJS -->
-  <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Aparelhos por unidade - Sistemas Maxi</title>
 
   <style>
-    .qrcode-header {
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-      margin-bottom: 16px;
+    body {
+      margin: 0;
+      background: #f3f4f6;
+      font-family: Arial, sans-serif;
     }
 
-    .btn-imprimir {
-      padding: 8px 14px;
-      border-radius: 6px;
+    .topo {
+      background: #007bff;
+      color: white;
+      padding: 16px;
+      font-size: 20px;
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      font-weight: bold;
+      box-shadow: 0 2px 8px rgba(0,0,0,0.15);
+    }
+
+    .voltar {
+      background: rgba(255,255,255,0.25);
       border: none;
-      background: #1e90ff;
-      color: #fff;
+      padding: 6px 10px;
+      border-radius: 6px;
       cursor: pointer;
+      color: white;
       font-size: 14px;
     }
 
-    .qr-grid {
-      display: grid;
-      grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
-      gap: 16px;
+    .container {
+      max-width: 1000px;
+      margin: auto;
+      padding: 16px;
     }
 
-    .qr-card {
-      background: #fff;
-      border-radius: 10px;
-      padding: 12px;
-      box-shadow: 0 1px 4px rgba(0,0,0,0.1);
-      text-align: center;
+    .filtro-card {
+      background: white;
+      padding: 16px;
+      border-radius: 12px;
+      box-shadow: 0 2px 6px rgba(0,0,0,0.1);
+      margin-bottom: 16px;
     }
 
-    .qr-card h3 {
-      margin: 4px 0 6px;
-      font-size: 15px;
-    }
-
-    .qr-card p {
-      margin: 0;
-      font-size: 12px;
-    }
-
-    .qr-box {
-      margin: 10px auto 4px;
-    }
-
-    .qr-url {
-      font-size: 10px;
-      word-break: break-all;
-      color: #555;
-      margin-top: 4px;
-    }
-
-    .filtros {
+    .filtro-row {
       display: flex;
+      flex-wrap: wrap;
       gap: 12px;
       align-items: center;
-      margin-top: 8px;
     }
 
-    .filtros select {
-      padding: 6px 8px;
-      border-radius: 6px;
+    label {
+      font-size: 14px;
+      color: #444;
+    }
+
+    select {
+      padding: 8px;
+      border-radius: 8px;
       border: 1px solid #ccc;
-      font-size: 13px;
+      font-size: 14px;
+      min-width: 160px;
     }
 
-    @media print {
-      .topbar,
-      .sidebar,
-      .qrcode-header {
-        display: none !important;
+    .tabela-card {
+      background: white;
+      padding: 16px;
+      border-radius: 12px;
+      box-shadow: 0 2px 6px rgba(0,0,0,0.1);
+    }
+
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      font-size: 14px;
+    }
+
+    thead {
+      background: #e9f2ff;
+    }
+
+    th, td {
+      padding: 8px;
+      border-bottom: 1px solid #eee;
+      text-align: left;
+    }
+
+    th {
+      font-weight: 600;
+    }
+
+    tbody tr:hover {
+      background: #f7f9fc;
+    }
+
+    .msg {
+      margin-top: 10px;
+      font-size: 13px;
+      color: #666;
+    }
+
+    @media (max-width: 600px) {
+      table, thead, tbody, th, td, tr {
+        display: block;
       }
-      body {
-        background: #fff;
+
+      thead {
+        display: none;
       }
-      .qr-card {
-        box-shadow: none;
-        border: 1px solid #ddd;
+
+      tbody tr {
+        border: 1px solid #eee;
+        border-radius: 8px;
+        margin-bottom: 8px;
+        padding: 6px 8px;
+      }
+
+      td {
+        border-bottom: none;
+        padding: 4px 0;
+      }
+
+      td::before {
+        content: attr(data-label) ": ";
+        font-weight: bold;
       }
     }
   </style>
 </head>
 <body>
 
-<header class="topbar">
-  <button onclick="window.location.href='dashboard.html'" class="btn-voltar">←</button>
-  <h1>QR Codes PMOC</h1>
-  <button onclick="logout()">Sair</button>
+<header class="topo">
+  <button class="voltar" onclick="window.location.href='dashboard.html'">←</button>
+  Aparelhos por unidade
 </header>
 
-<nav class="sidebar">
-  <ul>
-    <li><a href="dashboard.html">🏠 Dashboard</a></li>
-    <li><a href="ordem-servico.html">📝 Ordem de Serviço - Manutenção Corretiva</a></li>
-    <li><a href="calendario.html">📅 Agenda</a></li>
-    <li><a href="local.html">📍 Locais / Unidades</a></li>
-    <li><a href="tecnico.html">🧑‍🔧 Técnicos</a></li>
-    <li><a href="usuarios.html">👤 Usuários - Acesso ao Sistema</a></li>
-    <li><a href="aparelhos-por-unidade.html">🏥 Aparelhos por unidade</a></li>
-    <li><a href="pmoc.html">✅ Checklist PMOC</a></li>
-    <li><a href="pmoc-historico.html">📂 Histórico PMOC</a></li>
-    <li><a href="pmoc-menu.html">📌 PMOC por cidade / unidade</a></li>
-    <li><a href="pmoc-qrcode.html" class="active">🔳 QR Codes PMOC</a></li>
-    <li><a href="pecas.html">🛠️ Peças / Catálogo</a></li>
-  </ul>
-</nav>
+<main class="container">
 
-<main class="main-content">
-  <div class="qrcode-header">
-    <div>
-      <h2>Gerar QR Codes para os aparelhos</h2>
-      <p style="font-size:13px; color:#555;">
-        Cada QR abre o histórico do aparelho em
-        <code>pmoc-historico.html?aparelhoId=...</code>
-      </p>
-      <div class="filtros">
-        <div>
-          <label for="cidadeFilter" style="font-size:13px;">Cidade:</label><br>
-          <select id="cidadeFilter">
-            <option value="todas">Todas</option>
-            <option value="São Vicente">São Vicente</option>
-            <option value="São Bernardo do Campo">São Bernardo do Campo</option>
-          </select>
-        </div>
+  <!-- FILTROS -->
+  <section class="filtro-card">
+    <div class="filtro-row">
+      <div>
+        <label for="cidadeSelect">Cidade:</label><br />
+        <select id="cidadeSelect">
+          <option value="todas">Todas</option>
+          <option value="São Vicente">São Vicente</option>
+          <option value="São Bernardo do Campo">São Bernardo do Campo</option>
+        </select>
       </div>
-      <p id="infoQuantidade" style="font-size:13px; color:#333;">
-        0 QR Code(s) gerado(s).
-      </p>
-    </div>
-    <button class="btn-imprimir" onclick="window.print()">Imprimir página</button>
-  </div>
 
-  <section id="listaQRCodes" class="qr-grid"></section>
+      <div>
+        <label for="unidadeSelect">Unidade / Código do equipamento:</label><br />
+        <select id="unidadeSelect">
+          <option value="">Selecione...</option>
+        </select>
+      </div>
+    </div>
+    <p class="msg" id="msgFiltro">
+      Selecione a cidade e a unidade / código para listar os aparelhos.
+    </p>
+  </section>
+
+  <!-- TABELA -->
+  <section class="tabela-card">
+    <table>
+      <thead>
+        <tr>
+          <th>Unidade / Código</th>
+          <th>Local / Ambiente</th>
+          <th>Marca / Hospital</th>
+          <th>BTU</th>
+          <th>Modelo</th>
+        </tr>
+      </thead>
+      <tbody id="tabelaCorpo">
+        <!-- linhas criadas via JS -->
+      </tbody>
+    </table>
+
+    <p class="msg" id="msgTabela"></p>
+  </section>
+
 </main>
 
-<script src="js/script.js"></script>
-
 <script>
-  // Mesma lista fixa do Hospital de Clínicas (SBC)
+  // ============================
+  // LISTA FIXA – HOSPITAL DE CLÍNICAS (SÃO BERNARDO)
+  // (Gerada a partir da planilha que você mandou)
+  // ============================
   const APARELHOS_SBC_HC = [
     { cidade: "São Bernardo do Campo", hospital: "Hospital de Clínicas", unidadeExterna: "HCLI-FC.-001", local: "", marca: "", btu: "", modelo: "" },
     { cidade: "São Bernardo do Campo", hospital: "Hospital de Clínicas", unidadeExterna: "HCLI-FC.-002", local: "", marca: "", btu: "", modelo: "" },
@@ -210,7 +247,6 @@
     { cidade: "São Bernardo do Campo", hospital: "Hospital de Clínicas", unidadeExterna: "HCLI-FC.-051", local: "", marca: "", btu: "", modelo: "" },
     { cidade: "São Bernardo do Campo", hospital: "Hospital de Clínicas", unidadeExterna: "HCLI-FC.-052", local: "", marca: "", btu: "", modelo: "" },
     { cidade: "São Bernardo do Campo", hospital: "Hospital de Clínicas", unidadeExterna: "HCLI-FC.-053", local: "", marca: "", btu: "", modelo: "" },
-
     { cidade: "São Bernardo do Campo", hospital: "Hospital de Clínicas", unidadeExterna: "HCLI-MSS-001", local: "", marca: "", btu: "", modelo: "" },
     { cidade: "São Bernardo do Campo", hospital: "Hospital de Clínicas", unidadeExterna: "HCLI-MSS-002", local: "", marca: "", btu: "", modelo: "" },
     { cidade: "São Bernardo do Campo", hospital: "Hospital de Clínicas", unidadeExterna: "HCLI-MSS-003", local: "", marca: "", btu: "", modelo: "" },
@@ -260,20 +296,24 @@
     { cidade: "São Bernardo do Campo", hospital: "Hospital de Clínicas", unidadeExterna: "HCLI-MSS-050", local: "", marca: "", btu: "", modelo: "" }
   ];
 
-  const API_APARELHOS_URL = "https://aircontrolos-api.onrender.com/api/aparelhos-hdv";
+  // ============================
+  // LÓGICA DE TELA
+  // ============================
 
-  const listaQRCodes = document.getElementById("listaQRCodes");
-  const infoQuantidade = document.getElementById("infoQuantidade");
-  const cidadeFilter = document.getElementById("cidadeFilter");
+  const API_BASE_URL = "https://aircontrolos-api.onrender.com/api/aparelhos-hdv";
+
+  const cidadeSelect = document.getElementById("cidadeSelect");
+  const unidadeSelect = document.getElementById("unidadeSelect");
+  const tabelaCorpo = document.getElementById("tabelaCorpo");
+  const msgFiltro = document.getElementById("msgFiltro");
+  const msgTabela = document.getElementById("msgTabela");
 
   let TODOS_APARELHOS = [];
 
-  async function carregarAparelhosDoBanco() {
-    listaQRCodes.innerHTML = "";
-    infoQuantidade.textContent = "Carregando aparelhos...";
-
+  // Carrega dados da API (São Vicente) + fixa (São Bernardo)
+  async function carregarAparelhos() {
     try {
-      const resp = await fetch(API_APARELHOS_URL);
+      const resp = await fetch(API_BASE_URL);
       let dados = [];
       if (resp.ok) {
         dados = await resp.json();
@@ -294,117 +334,132 @@
       TODOS_APARELHOS = [...aparelhosSV, ...APARELHOS_SBC_HC];
 
       if (!TODOS_APARELHOS.length) {
-        infoQuantidade.textContent = "Nenhum aparelho encontrado.";
+        msgFiltro.textContent = "Nenhum aparelho encontrado.";
         return;
       }
 
-      renderizarQRCodes();
+      msgFiltro.textContent =
+        'Escolha a cidade e, se quiser, uma unidade / código específico.';
+
+      atualizarSelectUnidades();
     } catch (e) {
       console.error(e);
-      infoQuantidade.textContent = "Erro ao carregar aparelhos para gerar QR Codes.";
+      msgFiltro.textContent = "Erro ao carregar aparelhos.";
     }
   }
 
-  function renderizarQRCodes() {
-    const cidadeSelecionada = cidadeFilter.value;
-    listaQRCodes.innerHTML = "";
-    let totalGerados = 0;
+  function atualizarSelectUnidades() {
+    const cidade = cidadeSelect.value;
+    unidadeSelect.innerHTML = '<option value="">Selecione...</option>';
 
     let lista = TODOS_APARELHOS;
-    if (cidadeSelecionada !== "todas") {
-      lista = lista.filter(a => a.cidade === cidadeSelecionada);
+    if (cidade !== "todas") {
+      lista = lista.filter(a => a.cidade === cidade);
     }
 
     if (!lista.length) {
-      infoQuantidade.textContent = "Nenhum aparelho para esta cidade.";
+      msgTabela.textContent = "Nenhum aparelho para esta cidade.";
+      tabelaCorpo.innerHTML = "";
       return;
     }
 
-    const baseUrlHistorico = `${window.location.origin}/pmoc-historico.html`;
+    const codigos = [...new Set(lista.map(a => a.unidadeExterna).filter(Boolean))].sort();
 
-    lista.forEach(ap => {
-      const aparelhoId = ap.unidadeExterna;
+    if (codigos.length > 0) {
+      const optTodas = document.createElement("option");
+      optTodas.value = "todas";
+      optTodas.textContent = "Todas as unidades / códigos";
+      unidadeSelect.appendChild(optTodas);
+    }
 
-      const desc =
-        ap.modelo ||
-        ap.descricao ||
-        (ap.marca && ap.btu ? `${ap.marca} ${ap.btu} BTU` : "Ar condicionado");
-
-      const unidadeExt = ap.unidadeExterna ?? "-";
-      const local = ap.local || "";
-      const cidadeText = ap.cidade || "";
-      const hospitalText = ap.hospital || "";
-
-      const card = document.createElement("article");
-      card.className = "qr-card";
-
-      const titulo = document.createElement("h3");
-      titulo.textContent = `#${aparelhoId ?? "?"} - ${desc}`;
-
-      const info = document.createElement("p");
-      info.textContent = `${cidadeText} • ${hospitalText} • Unidade: ${unidadeExt}`;
-
-      const info2 = document.createElement("p");
-      info2.textContent = local ? `Local / ambiente: ${local}` : "";
-
-      const qrBox = document.createElement("div");
-      qrBox.className = "qr-box";
-
-      const urlTexto = document.createElement("div");
-      urlTexto.className = "qr-url";
-
-      card.appendChild(titulo);
-      card.appendChild(info);
-      if (local) card.appendChild(info2);
-      card.appendChild(qrBox);
-      card.appendChild(urlTexto);
-
-      listaQRCodes.appendChild(card);
-
-      if (
-        aparelhoId !== null &&
-        aparelhoId !== undefined &&
-        aparelhoId !== "-" &&
-        aparelhoId !== ""
-      ) {
-        const urlHistorico =
-          `${baseUrlHistorico}?aparelhoId=${encodeURIComponent(aparelhoId)}`;
-
-        urlTexto.textContent = urlHistorico;
-
-        if (typeof QRCode !== "undefined") {
-          new QRCode(qrBox, {
-            text: urlHistorico,
-            width: 128,
-            height: 128
-          });
-          totalGerados++;
-        } else {
-          qrBox.textContent = "Erro ao carregar biblioteca de QR Code.";
-        }
-      } else {
-        qrBox.textContent = "Não foi possível gerar QR (sem ID).";
-        urlTexto.textContent = "";
-      }
+    codigos.forEach(cod => {
+      const opt = document.createElement("option");
+      opt.value = cod;
+      opt.textContent = cod;
+      unidadeSelect.appendChild(opt);
     });
 
-    infoQuantidade.textContent = `${totalGerados} QR Code(s) gerado(s).`;
+    msgTabela.textContent = "";
   }
 
-  cidadeFilter.addEventListener("change", renderizarQRCodes);
+  function preencherTabela(lista, descricao) {
+    tabelaCorpo.innerHTML = "";
+    msgTabela.textContent = "";
 
-  document.addEventListener("DOMContentLoaded", () => {
-    carregarAparelhosDoBanco();
+    if (!lista || !lista.length) {
+      msgTabela.textContent = "Nenhum aparelho encontrado " + descricao;
+      return;
+    }
+
+    lista.forEach(item => {
+      const tr = document.createElement("tr");
+
+      const tdUnidade = document.createElement("td");
+      tdUnidade.textContent = item.unidadeExterna ?? "-";
+      tdUnidade.setAttribute("data-label", "Unidade / Código");
+
+      const tdLocal = document.createElement("td");
+      const parteHospital = item.hospital ? item.hospital + " – " : "";
+      tdLocal.textContent = parteHospital + (item.local || "-");
+      tdLocal.setAttribute("data-label", "Local / Ambiente");
+
+      const tdMarca = document.createElement("td");
+      tdMarca.textContent = item.marca || item.cidade || "-";
+      tdMarca.setAttribute("data-label", "Marca / Hospital");
+
+      const tdBtu = document.createElement("td");
+      tdBtu.textContent = item.btu || "-";
+      tdBtu.setAttribute("data-label", "BTU");
+
+      const tdModelo = document.createElement("td");
+      tdModelo.textContent = item.modelo || "-";
+      tdModelo.setAttribute("data-label", "Modelo");
+
+      tr.appendChild(tdUnidade);
+      tr.appendChild(tdLocal);
+      tr.appendChild(tdMarca);
+      tr.appendChild(tdBtu);
+      tr.appendChild(tdModelo);
+
+      tabelaCorpo.appendChild(tr);
+    });
+
+    msgTabela.textContent = `${lista.length} aparelho(s) encontrado(s) ${descricao}.`;
+  }
+
+  cidadeSelect.addEventListener("change", () => {
+    atualizarSelectUnidades();
+    tabelaCorpo.innerHTML = "";
+    msgTabela.textContent = "Escolha uma unidade / código ou 'Todas as unidades'.";
   });
-</script>
 
-<script>
-  if ("serviceWorker" in navigator) {
-    navigator.serviceWorker
-      .register("./service-worker.js", { scope: "./" })
-      .catch(console.error);
-  }
+  unidadeSelect.addEventListener("change", () => {
+    const cidade = cidadeSelect.value;
+    const valor = unidadeSelect.value;
+
+    let lista = TODOS_APARELHOS;
+    if (cidade !== "todas") {
+      lista = lista.filter(a => a.cidade === cidade);
+    }
+
+    if (!valor) {
+      tabelaCorpo.innerHTML = "";
+      msgTabela.textContent =
+        "Escolha uma unidade / código ou 'Todas as unidades' para listar.";
+      return;
+    }
+
+    if (valor === "todas") {
+      preencherTabela(lista, `na cidade selecionada`);
+    } else {
+      const filtrados = lista.filter(a => a.unidadeExterna === valor);
+      preencherTabela(filtrados, `para o código ${valor}`);
+    }
+  });
+
+  carregarAparelhos();
 </script>
 
 </body>
 </html>
+
