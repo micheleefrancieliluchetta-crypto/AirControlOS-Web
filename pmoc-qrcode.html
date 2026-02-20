@@ -25,7 +25,6 @@
       gap: 12px;
       flex-wrap: wrap;
     }
-
     .btn-imprimir {
       padding: 8px 14px;
       border-radius: 6px;
@@ -35,15 +34,11 @@
       cursor: pointer;
       font-size: 14px;
     }
-
-    /* grid geral */
     .qr-grid {
       display: grid;
       grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
       gap: 16px;
     }
-
-    /* cartão menor (tipo etiqueta HC) */
     .qr-card {
       background: #fff;
       border-radius: 10px;
@@ -51,78 +46,34 @@
       box-shadow: 0 1px 4px rgba(0,0,0,0.1);
       max-width: 260px;
       margin: 0 auto;
-      display: flex;
-      flex-direction: column;
-      align-items: stretch;
       font-size: 11px;
     }
-
     .qr-card-topo {
       display: flex;
       justify-content: space-between;
-      align-items: center;
-      gap: 8px;
-      margin-bottom: 4px;
-    }
-
-    .qr-card-logo {
-      font-weight: 700;
+      font-weight: bold;
       font-size: 11px;
-      color: #0051a8;
+      margin-bottom: 6px;
     }
-
-    .qr-card-contato {
-      text-align: right;
-      font-size: 9px;
-      color: #555;
-      line-height: 1.2;
-    }
-
     .qr-box {
       margin: 4px auto;
-      display: flex;
-      align-items: center;
-      justify-content: center;
       width: 130px;
       height: 130px;
     }
-
     .qr-card-rodape {
       border-top: 1px solid #e5e7eb;
-      margin-top: 4px;
-      padding-top: 4px;
+      margin-top: 6px;
+      padding-top: 6px;
       font-size: 10px;
       line-height: 1.3;
     }
-
-    .qr-card-rodape b {
-      display: block;
-    }
-
-    .filtros {
-      display: flex;
-      gap: 12px;
-      align-items: center;
-      margin-top: 8px;
-      flex-wrap: wrap;
-    }
-
-    .filtros select {
-      padding: 6px 8px;
-      border-radius: 6px;
-      border: 1px solid #ccc;
-      font-size: 13px;
-    }
-
     @media print {
       .topbar,
       .sidebar,
       .qrcode-header {
         display: none !important;
       }
-      body {
-        background: #fff;
-      }
+      body { background: #fff; }
       .qr-card {
         box-shadow: none;
         border: 1px solid #ddd;
@@ -130,6 +81,7 @@
     }
   </style>
 </head>
+
 <body>
 
 <header class="topbar">
@@ -141,17 +93,16 @@
 <nav class="sidebar">
   <ul>
     <li><a href="dashboard.html">🏠 Dashboard</a></li>
-    <li><a href="ordem-servico.html">📝 Ordem de Serviço - Manutenção Corretiva</a></li>
+    <li><a href="ordem-servico.html">📝 Ordem de Serviço</a></li>
     <li><a href="calendario.html">📅 Agenda</a></li>
     <li><a href="local.html">📍 Locais / Unidades</a></li>
     <li><a href="tecnico.html">🧑‍🔧 Técnicos</a></li>
-    <li><a href="usuarios.html">👤 Usuários - Acesso ao Sistema</a></li>
+    <li><a href="usuarios.html">👤 Usuários</a></li>
     <li><a href="aparelhos-por-unidade.html">🏥 Aparelhos por unidade</a></li>
     <li><a href="pmoc.html">✅ Checklist PMOC</a></li>
     <li><a href="pmoc-historico.html">📂 Histórico PMOC</a></li>
-    <li><a href="pmoc-menu.html">📌 PMOC por cidade / unidade</a></li>
+    <li><a href="pmoc-menu.html">📌 PMOC por cidade</a></li>
     <li><a href="pmoc-qrcode.html" class="active">🔳 QR Codes PMOC</a></li>
-    <li><a href="pecas.html">🛠️ Peças / Catálogo</a></li>
   </ul>
 </nav>
 
@@ -160,213 +111,328 @@
     <div>
       <h2>Gerar QR Codes para os aparelhos</h2>
       <p style="font-size:13px; color:#555;">
-        Cada QR abre o histórico do aparelho em
+        Cada QR abre o histórico do aparelho em<br>
         <code>pmoc-historico.html?equipId=...</code>
       </p>
-      <div class="filtros">
-        <div>
-          <label for="cidadeFilter" style="font-size:13px;">Cidade:</label><br>
-          <select id="cidadeFilter">
-            <option value="todas">Todas</option>
-            <option value="São Vicente">São Vicente</option>
-            <option value="São Bernardo do Campo">São Bernardo do Campo</option>
-          </select>
-        </div>
-      </div>
-      <p id="infoQuantidade" style="font-size:13px; color:#333;">
-        0 QR Code(s) gerado(s).
-      </p>
+
+      <label style="font-size:13px;">Cidade:</label><br>
+      <select id="cidadeFilter">
+        <option value="todas">Todas</option>
+        <option value="São Vicente">São Vicente</option>
+        <option value="São Bernardo do Campo">São Bernardo do Campo</option>
+      </select>
+
+      <p id="infoQuantidade" style="font-size:13px; margin-top:6px;">0 QR gerados</p>
     </div>
+
     <button class="btn-imprimir" onclick="window.print()">Imprimir página</button>
   </div>
 
   <section id="listaQRCodes" class="qr-grid"></section>
 </main>
 
-<script src="js/script.js"></script>
-
 <script>
-  // 🔹 LISTA FIXA HC / SÃO BERNARDO DO CAMPO
-  // 👉 AQUI você cola TODA aquela lista gigante que já tinha (FC 001–053, MSS 001–050)
-  // Exemplo (primeiras linhas):
-  const APARELHOS_SBC_HC = [
-    { cidade: "São Bernardo do Campo", hospital: "Hospital de Clínicas", unidadeExterna: "HCLI-FC.-001", local: "", marca: "", btu: "", modelo: "" },
-    { cidade: "São Bernardo do Campo", hospital: "Hospital de Clínicas", unidadeExterna: "HCLI-FC.-002", local: "", marca: "", btu: "", modelo: "" },
-    { cidade: "São Bernardo do Campo", hospital: "Hospital de Clínicas", unidadeExterna: "HCLI-FC.-003", local: "", marca: "", btu: "", modelo: "" },
-    // 🔽 continue colando TODAS as linhas que você já tem até:
-    // { cidade: "São Bernardo do Campo", hospital: "Hospital de Clínicas", unidadeExterna: "HCLI-MSS-050", local: "", marca: "", btu: "", modelo: "" },
-  ];
-  // (no seu arquivo final, esse array fica COMPLETO com todos os ~180 aparelhos)
+/* ============================================================
+   LISTA FIXA – HOSPITAL DE CLÍNICAS DE SÃO BERNARDO DO CAMPO
+   COMPLETA – FC-001 a FC-053
+   ============================================================ */
 
-  // 👉 mantém sua API atual para São Vicente
-  const API_APARELHOS_URL = "https://aircontrolos-api.onrender.com/api/aparelhos-hdv";
+const APARELHOS_SBC_HC = [
+  { cidade:"São Bernardo do Campo", hospital:"Hospital de Clínicas", unidadeExterna:"HCLI-FC.-001" },
+  { cidade:"São Bernardo do Campo", hospital:"Hospital de Clínicas", unidadeExterna:"HCLI-FC.-002" },
+  { cidade:"São Bernardo do Campo", hospital:"Hospital de Clínicas", unidadeExterna:"HCLI-FC.-003" },
+  { cidade:"São Bernardo do Campo", hospital:"Hospital de Clínicas", unidadeExterna:"HCLI-FC.-004" },
+  { cidade:"São Bernardo do Campo", hospital:"Hospital de Clínicas", unidadeExterna:"HCLI-FC.-005" },
+  { cidade:"São Bernardo do Campo", hospital:"Hospital de Clínicas", unidadeExterna:"HCLI-FC.-006" },
+  { cidade:"São Bernardo do Campo", hospital:"Hospital de Clínicas", unidadeExterna:"HCLI-FC.-007" },
+  { cidade:"São Bernardo do Campo", hospital:"Hospital de Clínicas", unidadeExterna:"HCLI-FC.-008" },
+  { cidade:"São Bernardo do Campo", hospital:"Hospital de Clínicas", unidadeExterna:"HCLI-FC.-009" },
+  { cidade:"São Bernardo do Campo", hospital:"Hospital de Clínicas", unidadeExterna:"HCLI-FC.-010" },
+  { cidade:"São Bernardo do Campo", hospital:"Hospital de Clínicas", unidadeExterna:"HCLI-FC.-011" },
+  { cidade:"São Bernardo do Campo", hospital:"Hospital de Clínicas", unidadeExterna:"HCLI-FC.-012" },
+  { cidade:"São Bernardo do Campo", hospital:"Hospital de Clínicas", unidadeExterna:"HCLI-FC.-013" },
+  { cidade:"São Bernardo do Campo", hospital:"Hospital de Clínicas", unidadeExterna:"HCLI-FC.-014" },
+  { cidade:"São Bernardo do Campo", hospital:"Hospital de Clínicas", unidadeExterna:"HCLI-FC.-015" },
+  { cidade:"São Bernardo do Campo", hospital:"Hospital de Clínicas", unidadeExterna:"HCLI-FC.-016" },
+  { cidade:"São Bernardo do Campo", hospital:"Hospital de Clínicas", unidadeExterna:"HCLI-FC.-017" },
+  { cidade:"São Bernardo do Campo", hospital:"Hospital de Clínicas", unidadeExterna:"HCLI-FC.-018" },
+  { cidade:"São Bernardo do Campo", hospital:"Hospital de Clínicas", unidadeExterna:"HCLI-FC.-019" },
+  { cidade:"São Bernardo do Campo", hospital:"Hospital de Clínicas", unidadeExterna:"HCLI-FC.-020" },
+  { cidade:"São Bernardo do Campo", hospital:"Hospital de Clínicas", unidadeExterna:"HCLI-FC.-021" },
+  { cidade:"São Bernardo do Campo", hospital:"Hospital de Clínicas", unidadeExterna:"HCLI-FC.-022" },
+  { cidade:"São Bernardo do Campo", hospital:"Hospital de Clínicas", unidadeExterna:"HCLI-FC.-023" },
+  { cidade:"São Bernardo do Campo", hospital:"Hospital de Clínicas", unidadeExterna:"HCLI-FC.-024" },
+  { cidade:"São Bernardo do Campo", hospital:"Hospital de Clínicas", unidadeExterna:"HCLI-FC.-025" },
+  { cidade:"São Bernardo do Campo", hospital:"Hospital de Clínicas", unidadeExterna:"HCLI-FC.-026" },
+  { cidade:"São Bernardo do Campo", hospital:"Hospital de Clínicas", unidadeExterna:"HCLI-FC.-027" },
+  { cidade:"São Bernardo do Campo", hospital:"Hospital de Clínicas", unidadeExterna:"HCLI-FC.-028" },
+  { cidade:"São Bernardo do Campo", hospital:"Hospital de Clínicas", unidadeExterna:"HCLI-FC.-029" },
+  { cidade:"São Bernardo do Campo", hospital:"Hospital de Clínicas", unidadeExterna:"HCLI-FC.-030" },
+  { cidade:"São Bernardo do Campo", hospital:"Hospital de Clínicas", unidadeExterna:"HCLI-FC.-031" },
+  { cidade:"São Bernardo do Campo", hospital:"Hospital de Clínicas", unidadeExterna:"HCLI-FC.-032" },
+  { cidade:"São Bernardo do Campo", hospital:"Hospital de Clínicas", unidadeExterna:"HCLI-FC.-033" },
+  { cidade:"São Bernardo do Campo", hospital:"Hospital de Clínicas", unidadeExterna:"HCLI-FC.-034" },
+  { cidade:"São Bernardo do Campo", hospital:"Hospital de Clínicas", unidadeExterna:"HCLI-FC.-035" },
+  { cidade:"São Bernardo do Campo", hospital:"Hospital de Clínicas", unidadeExterna:"HCLI-FC.-036" },
+  { cidade:"São Bernardo do Campo", hospital:"Hospital de Clínicas", unidadeExterna:"HCLI-FC.-037" },
+  { cidade:"São Bernardo do Campo", hospital:"Hospital de Clínicas", unidadeExterna:"HCLI-FC.-038" },
+  { cidade:"São Bernardo do Campo", hospital:"Hospital de Clínicas", unidadeExterna:"HCLI-FC.-039" },
+  { cidade:"São Bernardo do Campo", hospital:"Hospital de Clínicas", unidadeExterna:"HCLI-FC.-040" },
+  { cidade:"São Bernardo do Campo", hospital:"Hospital de Clínicas", unidadeExterna:"HCLI-FC.-041" },
+  { cidade:"São Bernardo do Campo", hospital:"Hospital de Clínicas", unidadeExterna:"HCLI-FC.-042" },
+  { cidade:"São Bernardo do Campo", hospital:"Hospital de Clínicas", unidadeExterna:"HCLI-FC.-043" },
+  { cidade:"São Bernardo do Campo", hospital:"Hospital de Clínicas", unidadeExterna:"HCLI-FC.-044" },
+  { cidade:"São Bernardo do Campo", hospital:"Hospital de Clínicas", unidadeExterna:"HCLI-FC.-045" },
+  { cidade:"São Bernardo do Campo", hospital:"Hospital de Clínicas", unidadeExterna:"HCLI-FC.-046" },
+  { cidade:"São Bernardo do Campo", hospital:"Hospital de Clínicas", unidadeExterna:"HCLI-FC.-047" },
+  { cidade:"São Bernardo do Campo", hospital:"Hospital de Clínicas", unidadeExterna:"HCLI-FC.-048" },
+  { cidade:"São Bernardo do Campo", hospital:"Hospital de Clínicas", unidadeExterna:"HCLI-FC.-049" },
+  { cidade:"São Bernardo do Campo", hospital:"Hospital de Clínicas", unidadeExterna:"HCLI-FC.-050" },
+  { cidade:"São Bernardo do Campo", hospital:"Hospital de Clínicas", unidadeExterna:"HCLI-FC.-051" },
+  { cidade:"São Bernardo do Campo", hospital:"Hospital de Clínicas", unidadeExterna:"HCLI-FC.-052" },
+  { cidade:"São Bernardo do Campo", hospital:"Hospital de Clínicas", unidadeExterna:"HCLI-FC.-053" },
+  
+  /* ============================================================
+     LISTA MSS - MINI SPLIT SYSTEM - COMPLETA (001 a 050)
+     ============================================================ */
 
-  const listaQRCodes = document.getElementById("listaQRCodes");
-  const infoQuantidade = document.getElementById("infoQuantidade");
-  const cidadeFilter = document.getElementById("cidadeFilter");
+  { cidade:"São Bernardo do Campo", hospital:"Hospital de Clínicas", unidadeExterna:"HCLI-MSS-001" },
+  { cidade:"São Bernardo do Campo", hospital:"Hospital de Clínicas", unidadeExterna:"HCLI-MSS-002" },
+  { cidade:"São Bernardo do Campo", hospital:"Hospital de Clínicas", unidadeExterna:"HCLI-MSS-003" },
+  { cidade:"São Bernardo do Campo", hospital:"Hospital de Clínicas", unidadeExterna:"HCLI-MSS-004" },
+  { cidade:"São Bernardo do Campo", hospital:"Hospital de Clínicas", unidadeExterna:"HCLI-MSS-005" },
+  { cidade:"São Bernardo do Campo", hospital:"Hospital de Clínicas", unidadeExterna:"HCLI-MSS-006" },
+  { cidade:"São Bernardo do Campo", hospital:"Hospital de Clínicas", unidadeExterna:"HCLI-MSS-007" },
+  { cidade:"São Bernardo do Campo", hospital:"Hospital de Clínicas", unidadeExterna:"HCLI-MSS-008" },
+  { cidade:"São Bernardo do Campo", hospital:"Hospital de Clínicas", unidadeExterna:"HCLI-MSS-009" },
+  { cidade:"São Bernardo do Campo", hospital:"Hospital de Clínicas", unidadeExterna:"HCLI-MSS-010" },
+  { cidade:"São Bernardo do Campo", hospital:"Hospital de Clínicas", unidadeExterna:"HCLI-MSS-011" },
+  { cidade:"São Bernardo do Campo", hospital:"Hospital de Clínicas", unidadeExterna:"HCLI-MSS-012" },
+  { cidade:"São Bernardo do Campo", hospital:"Hospital de Clínicas", unidadeExterna:"HCLI-MSS-013" },
+  { cidade:"São Bernardo do Campo", hospital:"Hospital de Clínicas", unidadeExterna:"HCLI-MSS-014" },
+  { cidade:"São Bernardo do Campo", hospital:"Hospital de Clínicas", unidadeExterna:"HCLI-MSS-015" },
+  { cidade:"São Bernardo do Campo", hospital:"Hospital de Clínicas", unidadeExterna:"HCLI-MSS-016" },
+  { cidade:"São Bernardo do Campo", hospital:"Hospital de Clínicas", unidadeExterna:"HCLI-MSS-017" },
+  { cidade:"São Bernardo do Campo", hospital:"Hospital de Clínicas", unidadeExterna:"HCLI-MSS-018" },
+  { cidade:"São Bernardo do Campo", hospital:"Hospital de Clínicas", unidadeExterna:"HCLI-MSS-019" },
+  { cidade:"São Bernardo do Campo", hospital:"Hospital de Clínicas", unidadeExterna:"HCLI-MSS-020" },
+  { cidade:"São Bernardo do Campo", hospital:"Hospital de Clínicas", unidadeExterna:"HCLI-MSS-021" },
+  { cidade:"São Bernardo do Campo", hospital:"Hospital de Clínicas", unidadeExterna:"HCLI-MSS-022" },
+  { cidade:"São Bernardo do Campo", hospital:"Hospital de Clínicas", unidadeExterna:"HCLI-MSS-023" },
+  { cidade:"São Bernardo do Campo", hospital:"Hospital de Clínicas", unidadeExterna:"HCLI-MSS-024" },
+  { cidade:"São Bernardo do Campo", hospital:"Hospital de Clínicas", unidadeExterna:"HCLI-MSS-025" },
+  { cidade:"São Bernardo do Campo", hospital:"Hospital de Clínicas", unidadeExterna:"HCLI-MSS-026" },
+  { cidade:"São Bernardo do Campo", hospital:"Hospital de Clínicas", unidadeExterna:"HCLI-MSS-027" },
+  { cidade:"São Bernardo do Campo", hospital:"Hospital de Clínicas", unidadeExterna:"HCLI-MSS-028" },
+  { cidade:"São Bernardo do Campo", hospital:"Hospital de Clínicas", unidadeExterna:"HCLI-MSS-029" },
+  { cidade:"São Bernardo do Campo", hospital:"Hospital de Clínicas", unidadeExterna:"HCLI-MSS-030" },
+  { cidade:"São Bernardo do Campo", hospital:"Hospital de Clínicas", unidadeExterna:"HCLI-MSS-031" },
+  { cidade:"São Bernardo do Campo", hospital:"Hospital de Clínicas", unidadeExterna:"HCLI-MSS-032" },
+  { cidade:"São Bernardo do Campo", hospital:"Hospital de Clínicas", unidadeExterna:"HCLI-MSS-033" },
+  { cidade:"São Bernardo do Campo", hospital:"Hospital de Clínicas", unidadeExterna:"HCLI-MSS-034" },
+  { cidade:"São Bernardo do Campo", hospital:"Hospital de Clínicas", unidadeExterna:"HCLI-MSS-035" },
+  { cidade:"São Bernardo do Campo", hospital:"Hospital de Clínicas", unidadeExterna:"HCLI-MSS-036" },
+  { cidade:"São Bernardo do Campo", hospital:"Hospital de Clínicas", unidadeExterna:"HCLI-MSS-037" },
+  { cidade:"São Bernardo do Campo", hospital:"Hospital de Clínicas", unidadeExterna:"HCLI-MSS-038" },
+  { cidade:"São Bernardo do Campo", hospital:"Hospital de Clínicas", unidadeExterna:"HCLI-MSS-039" },
+  { cidade:"São Bernardo do Campo", hospital:"Hospital de Clínicas", unidadeExterna:"HCLI-MSS-040" },
+  { cidade:"São Bernardo do Campo", hospital:"Hospital de Clínicas", unidadeExterna:"HCLI-MSS-041" },
+  { cidade:"São Bernardo do Campo", hospital:"Hospital de Clínicas", unidadeExterna:"HCLI-MSS-042" },
+  { cidade:"São Bernardo do Campo", hospital:"Hospital de Clínicas", unidadeExterna:"HCLI-MSS-043" },
+  { cidade:"São Bernardo do Campo", hospital:"Hospital de Clínicas", unidadeExterna:"HCLI-MSS-044" },
+  { cidade:"São Bernardo do Campo", hospital:"Hospital de Clínicas", unidadeExterna:"HCLI-MSS-045" },
+  { cidade:"São Bernardo do Campo", hospital:"Hospital de Clínicas", unidadeExterna:"HCLI-MSS-046" },
+  { cidade:"São Bernardo do Campo", hospital:"Hospital de Clínicas", unidadeExterna:"HCLI-MSS-047" },
+  { cidade:"São Bernardo do Campo", hospital:"Hospital de Clínicas", unidadeExterna:"HCLI-MSS-048" },
+  { cidade:"São Bernardo do Campo", hospital:"Hospital de Clínicas", unidadeExterna:"HCLI-MSS-049" },
+  { cidade:"São Bernardo do Campo", hospital:"Hospital de Clínicas", unidadeExterna:"HCLI-MSS-050" }
+];
+  
+  // ============================================================
+//  APARELHOS DE SÃO VICENTE (vêm da API .NET)
+//  A URL abaixo é a MESMA que você já usava:
+//  https://aircontrolos-api.onrender.com/api/aparelhos-hdv
+// ============================================================
 
-  let TODOS_APARELHOS = [];
+const API_APARELHOS_URL = "https://aircontrolos-api.onrender.com/api/aparelhos-hdv";
 
-  async function carregarAparelhosDoBanco() {
-    listaQRCodes.innerHTML = "";
-    infoQuantidade.textContent = "Carregando aparelhos...";
+const listaQRCodes = document.getElementById("listaQRCodes");
+const infoQuantidade = document.getElementById("infoQuantidade");
+const cidadeFilter = document.getElementById("cidadeFilter");
 
-    try {
-      const resp = await fetch(API_APARELHOS_URL);
-      let dados = [];
-      if (resp.ok) {
-        dados = await resp.json();
-      }
+let TODOS_APARELHOS = [];
 
-      const aparelhosSV = Array.isArray(dados)
-        ? dados.map(ap => ({
-            cidade: ap.cidade || "São Vicente",
-            hospital: ap.hospital || "",
-            unidadeExterna: ap.unidadeExterna,
-            local: ap.local,
-            marca: ap.marca,
-            btu: ap.btu,
-            modelo: ap.modelo || ""
-          }))
-        : [];
+// Carrega aparelhos de São Vicente do banco + junta com lista fixa de SBC
+async function carregarAparelhosDoBanco() {
+  listaQRCodes.innerHTML = "";
+  infoQuantidade.textContent = "Carregando aparelhos...";
 
-      // Junta São Vicente (banco) + SBC (fixo HC)
-      TODOS_APARELHOS = [...aparelhosSV, ...APARELHOS_SBC_HC];
+  try {
+    const resp = await fetch(API_APARELHOS_URL);
+    let dados = [];
 
-      if (!TODOS_APARELHOS.length) {
-        infoQuantidade.textContent = "Nenhum aparelho encontrado.";
-        return;
-      }
-
-      renderizarQRCodes();
-    } catch (e) {
-      console.error(e);
-      infoQuantidade.textContent = "Erro ao carregar aparelhos para gerar QR Codes.";
+    if (resp.ok) {
+      dados = await resp.json();
     }
-  }
 
-  function descobrirModelo(ap) {
-    if (ap.modelo && ap.modelo.trim() !== "") return ap.modelo;
-    const cod = ap.unidadeExterna || "";
-    if (cod.includes("HCLI-FC")) return "Fancoil";
-    if (cod.includes("HCLI-MSS")) return "MSS - Mini Split System";
-    return (ap.marca && ap.btu) ? `${ap.marca} ${ap.btu} BTU` : "Ar condicionado";
-  }
+    // Mapear dados da API (São Vicente)
+    const aparelhosSV = Array.isArray(dados)
+      ? dados.map(ap => ({
+          cidade: ap.cidade || "São Vicente",
+          hospital: ap.hospital || "",
+          unidadeExterna: ap.unidadeExterna,
+          local: ap.local,
+          marca: ap.marca,
+          btu: ap.btu,
+          modelo: ap.modelo || ""
+        }))
+      : [];
 
-  function renderizarQRCodes() {
-    const cidadeSelecionada = cidadeFilter.value;
-    listaQRCodes.innerHTML = "";
-    let totalGerados = 0;
+    // Junta São Vicente (banco) + São Bernardo (lista fixa HC)
+    TODOS_APARELHOS = [...aparelhosSV, ...APARELHOS_SBC_HC];
 
-    let lista = TODOS_APARELHOS;
-    if (cidadeSelecionada !== "todas") {
-      lista = lista.filter(a => a.cidade === cidadeSelecionada);
-    }
-
-    if (!lista.length) {
-      infoQuantidade.textContent = "Nenhum aparelho para esta cidade.";
+    if (!TODOS_APARELHOS.length) {
+      infoQuantidade.textContent = "Nenhum aparelho encontrado.";
       return;
     }
 
-    const baseUrlHistorico = `${window.location.origin}/pmoc-historico.html`;
+    renderizarQRCodes();
+  } catch (erro) {
+    console.error(erro);
+    // 🔴 Se der erro na API, ainda assim mostra São Bernardo do Campo (lista fixa)
+    TODOS_APARELHOS = [...APARELHOS_SBC_HC];
 
-    lista.forEach(ap => {
-      const aparelhoId = ap.unidadeExterna; // usamos como equipId e código
+    if (!TODOS_APARELHOS.length) {
+      infoQuantidade.textContent = "Erro ao carregar aparelhos para gerar QR Codes.";
+      return;
+    }
 
-      const tipoOuModelo = descobrirModelo(ap);
-      const unidadeExt = ap.unidadeExterna ?? "-";
-      const local = ap.local || "";
-      const cidadeText = ap.cidade || "";
-      const hospitalText = ap.hospital || "";
+    infoQuantidade.textContent = "Erro na API. Mostrando apenas São Bernardo do Campo.";
+    renderizarQRCodes();
+  }
+}
+  
+    renderizarQRCodes();
+  } catch (erro) {
+    console.error(erro);
+    infoQuantidade.textContent = "Erro ao carregar aparelhos para gerar QR Codes.";
+  }
+}
 
-      const card = document.createElement("article");
-      card.className = "qr-card";
+// Descobre texto de modelo a partir dos dados
+function descobrirModelo(ap) {
+  if (ap.modelo && ap.modelo.trim() !== "") return ap.modelo;
 
-      // topo
-      const topo = document.createElement("div");
-      topo.className = "qr-card-topo";
+  const cod = ap.unidadeExterna || "";
+  if (cod.includes("HCLI-FC"))  return "Fancoil";
+  if (cod.includes("HCLI-MSS")) return "MSS - Mini Split System";
 
-      const logo = document.createElement("div");
-      logo.className = "qr-card-logo";
-      logo.textContent = "Maxi Serviços";
+  if (ap.marca && ap.btu) return `${ap.marca} ${ap.btu} BTU`;
+  return "Ar condicionado";
+}
 
-      const contato = document.createElement("div");
-      contato.className = "qr-card-contato";
-      contato.innerHTML = `
-        sistemasmaxi.vercel.app<br/>
-        (11) 99999-9999
-      `; // depois você troca pelo telefone real
+// Renderiza todos os cartões de QR Code
+function renderizarQRCodes() {
+  const cidadeSelecionada = cidadeFilter.value;
+  listaQRCodes.innerHTML = "";
+  let totalGerados = 0;
 
-      topo.appendChild(logo);
-      topo.appendChild(contato);
+  let lista = TODOS_APARELHOS;
 
-      // área do QR
-      const qrBox = document.createElement("div");
-      qrBox.className = "qr-box";
-
-      // rodapé
-      const rodape = document.createElement("div");
-      rodape.className = "qr-card-rodape";
-      rodape.innerHTML = `
-        <b>${hospitalText || "Hospital"}</b>
-        ${tipoOuModelo}<br/>
-        ${unidadeExt}
-      `;
-
-      card.appendChild(topo);
-      card.appendChild(qrBox);
-      card.appendChild(rodape);
-
-      listaQRCodes.appendChild(card);
-
-      // gera URL do histórico com TODOS os parâmetros que o pmoc-historico precisa
-      if (
-        aparelhoId !== null &&
-        aparelhoId !== undefined &&
-        aparelhoId !== "-" &&
-        aparelhoId !== ""
-      ) {
-        const params = new URLSearchParams({
-          equipId: aparelhoId,
-          codigo: unidadeExt,
-          hospital: hospitalText,
-          cidade: cidadeText
-        });
-
-        const urlHistorico = `${baseUrlHistorico}?${params.toString()}`;
-
-        if (typeof QRCode !== "undefined") {
-          new QRCode(qrBox, {
-            text: urlHistorico,
-            width: 128,
-            height: 128
-          });
-          totalGerados++;
-        } else {
-          qrBox.textContent = "Erro ao carregar biblioteca de QR Code.";
-        }
-      } else {
-        qrBox.textContent = "Não foi possível gerar QR (sem ID).";
-      }
-    });
-
-    infoQuantidade.textContent = `${totalGerados} QR Code(s) gerado(s).`;
+  if (cidadeSelecionada !== "todas") {
+    lista = lista.filter(a => a.cidade === cidadeSelecionada);
   }
 
-  cidadeFilter.addEventListener("change", renderizarQRCodes);
+  if (!lista.length) {
+    infoQuantidade.textContent = "Nenhum aparelho para esta cidade.";
+    return;
+  }
 
-  document.addEventListener("DOMContentLoaded", () => {
-    carregarAparelhosDoBanco();
+  const baseUrlHistorico = `${window.location.origin}/pmoc-historico.html`;
+
+  lista.forEach(ap => {
+    const aparelhoId = ap.unidadeExterna;
+
+    const tipoOuModelo = descobrirModelo(ap);
+    const unidadeExt   = ap.unidadeExterna ?? "-";
+    const local        = ap.local || "";
+    const cidadeText   = ap.cidade || "";
+    const hospitalText = ap.hospital || "";
+
+    // Monta cartão
+    const card = document.createElement("article");
+    card.className = "qr-card";
+
+    const topo = document.createElement("div");
+    topo.className = "qr-card-topo";
+    topo.innerHTML = `
+      <span>Maxi Serviços</span>
+      <span style="font-size:9px; text-align:right;">
+        sistemasmaxi.vercel.app<br>(11) 99999-9999
+      </span>
+    `;
+
+    const qrBox = document.createElement("div");
+    qrBox.className = "qr-box";
+
+    const rodape = document.createElement("div");
+    rodape.className = "qr-card-rodape";
+    rodape.innerHTML = `
+      <strong>${hospitalText || "Hospital"}</strong>
+      ${tipoOuModelo}<br>
+      ${unidadeExt}${local ? "<br>" + local : ""}
+    `;
+
+    card.appendChild(topo);
+    card.appendChild(qrBox);
+    card.appendChild(rodape);
+
+    listaQRCodes.appendChild(card);
+
+    // Gera URL do histórico e o QR
+    if (aparelhoId) {
+      const params = new URLSearchParams({
+        equipId: aparelhoId,
+        codigo: unidadeExt,
+        hospital: hospitalText,
+        cidade: cidadeText
+      });
+
+      const urlHistorico = `${baseUrlHistorico}?${params.toString()}`;
+
+      if (typeof QRCode !== "undefined") {
+        new QRCode(qrBox, {
+          text: urlHistorico,
+          width: 128,
+          height: 128
+        });
+        totalGerados++;
+      } else {
+        qrBox.textContent = "Erro ao carregar biblioteca de QR Code.";
+      }
+    } else {
+      qrBox.textContent = "Não foi possível gerar QR (sem ID).";
+    }
   });
+
+  infoQuantidade.textContent = `${totalGerados} QR Code(s) gerado(s).`;
+}
+
+// Eventos
+cidadeFilter.addEventListener("change", renderizarQRCodes);
+
+document.addEventListener("DOMContentLoaded", () => {
+  carregarAparelhosDoBanco();
+});
 </script>
 
 <script>
+  // Service Worker para PWA
   if ("serviceWorker" in navigator) {
     navigator.serviceWorker
       .register("./service-worker.js", { scope: "./" })
       .catch(console.error);
   }
 </script>
-
 </body>
 </html>
