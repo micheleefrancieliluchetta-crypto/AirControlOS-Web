@@ -133,8 +133,8 @@
 
 <script>
 /* ============================================================
-   LISTA FIXA – HOSPITAL DE CLÍNICAS DE SÃO BERNARDO DO CAMPO
-   COMPLETA – FC-001 a FC-053
+   1) LISTA FIXA – HOSPITAL DE CLÍNICAS DE SÃO BERNARDO DO CAMPO
+      FC-001 a FC-053 + MSS-001 a MSS-050
    ============================================================ */
 
 const APARELHOS_SBC_HC = [
@@ -191,10 +191,6 @@ const APARELHOS_SBC_HC = [
   { cidade:"São Bernardo do Campo", hospital:"Hospital de Clínicas", unidadeExterna:"HCLI-FC.-051" },
   { cidade:"São Bernardo do Campo", hospital:"Hospital de Clínicas", unidadeExterna:"HCLI-FC.-052" },
   { cidade:"São Bernardo do Campo", hospital:"Hospital de Clínicas", unidadeExterna:"HCLI-FC.-053" },
-  
-  /* ============================================================
-     LISTA MSS - MINI SPLIT SYSTEM - COMPLETA (001 a 050)
-     ============================================================ */
 
   { cidade:"São Bernardo do Campo", hospital:"Hospital de Clínicas", unidadeExterna:"HCLI-MSS-001" },
   { cidade:"São Bernardo do Campo", hospital:"Hospital de Clínicas", unidadeExterna:"HCLI-MSS-002" },
@@ -247,22 +243,21 @@ const APARELHOS_SBC_HC = [
   { cidade:"São Bernardo do Campo", hospital:"Hospital de Clínicas", unidadeExterna:"HCLI-MSS-049" },
   { cidade:"São Bernardo do Campo", hospital:"Hospital de Clínicas", unidadeExterna:"HCLI-MSS-050" }
 ];
-  
-  // ============================================================
-//  APARELHOS DE SÃO VICENTE (vêm da API .NET)
-//  A URL abaixo é a MESMA que você já usava:
-//  https://aircontrolos-api.onrender.com/api/aparelhos-hdv
-// ============================================================
+
+/* ============================================================
+   2) APARELHOS DE SÃO VICENTE (API .NET)
+   ============================================================ */
 
 const API_APARELHOS_URL = "https://aircontrolos-api.onrender.com/api/aparelhos-hdv";
 
-const listaQRCodes = document.getElementById("listaQRCodes");
+const listaQRCodes   = document.getElementById("listaQRCodes");
 const infoQuantidade = document.getElementById("infoQuantidade");
-const cidadeFilter = document.getElementById("cidadeFilter");
+const cidadeFilter   = document.getElementById("cidadeFilter");
 
-let TODOS_APARELHOS = [];
+// Começa já com São Bernardo carregado
+let TODOS_APARELHOS = [...APARELHOS_SBC_HC];
 
-// Carrega aparelhos de São Vicente do banco + junta com lista fixa de SBC
+// Carrega aparelhos de São Vicente (API) e junta com SBC
 async function carregarAparelhosDoBanco() {
   listaQRCodes.innerHTML = "";
   infoQuantidade.textContent = "Carregando aparelhos...";
@@ -275,51 +270,37 @@ async function carregarAparelhosDoBanco() {
       dados = await resp.json();
     }
 
-    // Mapear dados da API (São Vicente)
     const aparelhosSV = Array.isArray(dados)
       ? dados.map(ap => ({
-          cidade: ap.cidade || "São Vicente",
+          cidade:   ap.cidade || "São Vicente",
           hospital: ap.hospital || "",
           unidadeExterna: ap.unidadeExterna,
-          local: ap.local,
-          marca: ap.marca,
-          btu: ap.btu,
-          modelo: ap.modelo || ""
+          local:    ap.local,
+          marca:    ap.marca,
+          btu:      ap.btu,
+          modelo:   ap.modelo || ""
         }))
       : [];
 
-    // Junta São Vicente (banco) + São Bernardo (lista fixa HC)
+    // São Vicente (API) + São Bernardo (fixo)
     TODOS_APARELHOS = [...aparelhosSV, ...APARELHOS_SBC_HC];
 
-    if (!TODOS_APARELHOS.length) {
-      infoQuantidade.textContent = "Nenhum aparelho encontrado.";
-      return;
-    }
-
-    renderizarQRCodes();
   } catch (erro) {
-    console.error(erro);
-    // 🔴 Se der erro na API, ainda assim mostra São Bernardo do Campo (lista fixa)
+    console.error("Erro na API de São Vicente:", erro);
+    // Se der erro, mantém pelo menos São Bernardo
     TODOS_APARELHOS = [...APARELHOS_SBC_HC];
-
-    if (!TODOS_APARELHOS.length) {
-      infoQuantidade.textContent = "Erro ao carregar aparelhos para gerar QR Codes.";
-      return;
-    }
-
     infoQuantidade.textContent = "Erro na API. Mostrando apenas São Bernardo do Campo.";
-    renderizarQRCodes();
   }
-}
-  
-    renderizarQRCodes();
-  } catch (erro) {
-    console.error(erro);
-    infoQuantidade.textContent = "Erro ao carregar aparelhos para gerar QR Codes.";
+
+  if (!TODOS_APARELHOS.length) {
+    infoQuantidade.textContent = "Nenhum aparelho encontrado.";
+    return;
   }
+
+  renderizarQRCodes();
 }
 
-// Descobre texto de modelo a partir dos dados
+// Descobre texto do modelo para exibir no cartão
 function descobrirModelo(ap) {
   if (ap.modelo && ap.modelo.trim() !== "") return ap.modelo;
 
@@ -351,15 +332,13 @@ function renderizarQRCodes() {
   const baseUrlHistorico = `${window.location.origin}/pmoc-historico.html`;
 
   lista.forEach(ap => {
-    const aparelhoId = ap.unidadeExterna;
-
+    const aparelhoId   = ap.unidadeExterna;
     const tipoOuModelo = descobrirModelo(ap);
     const unidadeExt   = ap.unidadeExterna ?? "-";
     const local        = ap.local || "";
     const cidadeText   = ap.cidade || "";
     const hospitalText = ap.hospital || "";
 
-    // Monta cartão
     const card = document.createElement("article");
     card.className = "qr-card";
 
@@ -386,16 +365,14 @@ function renderizarQRCodes() {
     card.appendChild(topo);
     card.appendChild(qrBox);
     card.appendChild(rodape);
-
     listaQRCodes.appendChild(card);
 
-    // Gera URL do histórico e o QR
     if (aparelhoId) {
       const params = new URLSearchParams({
         equipId: aparelhoId,
-        codigo: unidadeExt,
+        codigo:  unidadeExt,
         hospital: hospitalText,
-        cidade: cidadeText
+        cidade:   cidadeText
       });
 
       const urlHistorico = `${baseUrlHistorico}?${params.toString()}`;
@@ -434,5 +411,7 @@ document.addEventListener("DOMContentLoaded", () => {
       .catch(console.error);
   }
 </script>
+
 </body>
 </html>
+
