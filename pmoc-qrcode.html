@@ -43,7 +43,7 @@
       gap: 16px;
     }
 
-    /* cartão menor (tipo etiqueta) */
+    /* cartão menor (tipo etiqueta HC) */
     .qr-card {
       background: #fff;
       border-radius: 10px;
@@ -186,14 +186,17 @@
 <script src="js/script.js"></script>
 
 <script>
-  // 🔹 Lista fixa do Hospital de Clínicas (SBC) – HC
-  // unidadeExterna será usada como ID/código no histórico
+  // 🔹 LISTA FIXA HC / SÃO BERNARDO DO CAMPO
+  // 👉 AQUI você cola TODA aquela lista gigante que já tinha (FC 001–053, MSS 001–050)
+  // Exemplo (primeiras linhas):
   const APARELHOS_SBC_HC = [
-    { cidade: "São Bernardo do Campo", hospital: "Hospital de Clínicas", unidadeExterna: "HCLI-FC.-001", local: "", marca: "", btu: "", modelo: "Fancoil" },
-    { cidade: "São Bernardo do Campo", hospital: "Hospital de Clínicas", unidadeExterna: "HCLI-FC.-002", local: "", marca: "", btu: "", modelo: "Fancoil" },
-    // ... (mantém todas as linhas que você já tem)
-    { cidade: "São Bernardo do Campo", hospital: "Hospital de Clínicas", unidadeExterna: "HCLI-MSS-050", local: "", marca: "", btu: "", modelo: "MSS - Mini Split System" }
+    { cidade: "São Bernardo do Campo", hospital: "Hospital de Clínicas", unidadeExterna: "HCLI-FC.-001", local: "", marca: "", btu: "", modelo: "" },
+    { cidade: "São Bernardo do Campo", hospital: "Hospital de Clínicas", unidadeExterna: "HCLI-FC.-002", local: "", marca: "", btu: "", modelo: "" },
+    { cidade: "São Bernardo do Campo", hospital: "Hospital de Clínicas", unidadeExterna: "HCLI-FC.-003", local: "", marca: "", btu: "", modelo: "" },
+    // 🔽 continue colando TODAS as linhas que você já tem até:
+    // { cidade: "São Bernardo do Campo", hospital: "Hospital de Clínicas", unidadeExterna: "HCLI-MSS-050", local: "", marca: "", btu: "", modelo: "" },
   ];
+  // (no seu arquivo final, esse array fica COMPLETO com todos os ~180 aparelhos)
 
   // 👉 mantém sua API atual para São Vicente
   const API_APARELHOS_URL = "https://aircontrolos-api.onrender.com/api/aparelhos-hdv";
@@ -223,7 +226,7 @@
             local: ap.local,
             marca: ap.marca,
             btu: ap.btu,
-            modelo: ap.modelo || "Ar condicionado"
+            modelo: ap.modelo || ""
           }))
         : [];
 
@@ -240,6 +243,14 @@
       console.error(e);
       infoQuantidade.textContent = "Erro ao carregar aparelhos para gerar QR Codes.";
     }
+  }
+
+  function descobrirModelo(ap) {
+    if (ap.modelo && ap.modelo.trim() !== "") return ap.modelo;
+    const cod = ap.unidadeExterna || "";
+    if (cod.includes("HCLI-FC")) return "Fancoil";
+    if (cod.includes("HCLI-MSS")) return "MSS - Mini Split System";
+    return (ap.marca && ap.btu) ? `${ap.marca} ${ap.btu} BTU` : "Ar condicionado";
   }
 
   function renderizarQRCodes() {
@@ -262,10 +273,7 @@
     lista.forEach(ap => {
       const aparelhoId = ap.unidadeExterna; // usamos como equipId e código
 
-      const tipoOuModelo =
-        ap.modelo ||
-        (ap.marca && ap.btu ? `${ap.marca} ${ap.btu} BTU` : "Ar condicionado");
-
+      const tipoOuModelo = descobrirModelo(ap);
       const unidadeExt = ap.unidadeExterna ?? "-";
       const local = ap.local || "";
       const cidadeText = ap.cidade || "";
@@ -362,4 +370,3 @@
 
 </body>
 </html>
-
