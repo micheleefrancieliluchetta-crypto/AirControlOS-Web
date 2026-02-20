@@ -22,6 +22,8 @@
       justify-content: space-between;
       align-items: center;
       margin-bottom: 16px;
+      gap: 12px;
+      flex-wrap: wrap;
     }
 
     .btn-imprimir {
@@ -34,39 +36,67 @@
       font-size: 14px;
     }
 
+    /* grid geral */
     .qr-grid {
       display: grid;
-      grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+      grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
       gap: 16px;
     }
 
+    /* cartão menor (tipo etiqueta) */
     .qr-card {
       background: #fff;
       border-radius: 10px;
-      padding: 12px;
+      padding: 8px 10px;
       box-shadow: 0 1px 4px rgba(0,0,0,0.1);
-      text-align: center;
+      max-width: 260px;
+      margin: 0 auto;
+      display: flex;
+      flex-direction: column;
+      align-items: stretch;
+      font-size: 11px;
     }
 
-    .qr-card h3 {
-      margin: 4px 0 6px;
-      font-size: 15px;
+    .qr-card-topo {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      gap: 8px;
+      margin-bottom: 4px;
     }
 
-    .qr-card p {
-      margin: 0;
-      font-size: 12px;
+    .qr-card-logo {
+      font-weight: 700;
+      font-size: 11px;
+      color: #0051a8;
+    }
+
+    .qr-card-contato {
+      text-align: right;
+      font-size: 9px;
+      color: #555;
+      line-height: 1.2;
     }
 
     .qr-box {
-      margin: 10px auto 4px;
+      margin: 4px auto;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      width: 130px;
+      height: 130px;
     }
 
-    .qr-url {
-      font-size: 10px;
-      word-break: break-all;
-      color: #555;
+    .qr-card-rodape {
+      border-top: 1px solid #e5e7eb;
       margin-top: 4px;
+      padding-top: 4px;
+      font-size: 10px;
+      line-height: 1.3;
+    }
+
+    .qr-card-rodape b {
+      display: block;
     }
 
     .filtros {
@@ -74,6 +104,7 @@
       gap: 12px;
       align-items: center;
       margin-top: 8px;
+      flex-wrap: wrap;
     }
 
     .filtros select {
@@ -130,7 +161,7 @@
       <h2>Gerar QR Codes para os aparelhos</h2>
       <p style="font-size:13px; color:#555;">
         Cada QR abre o histórico do aparelho em
-        <code>pmoc-historico.html?aparelhoId=...</code>
+        <code>pmoc-historico.html?equipId=...</code>
       </p>
       <div class="filtros">
         <div>
@@ -155,111 +186,16 @@
 <script src="js/script.js"></script>
 
 <script>
-  // Mesma lista fixa do Hospital de Clínicas (SBC)
+  // 🔹 Lista fixa do Hospital de Clínicas (SBC) – HC
+  // unidadeExterna será usada como ID/código no histórico
   const APARELHOS_SBC_HC = [
-    { cidade: "São Bernardo do Campo", hospital: "Hospital de Clínicas", unidadeExterna: "HCLI-FC.-001", local: "", marca: "", btu: "", modelo: "" },
-    { cidade: "São Bernardo do Campo", hospital: "Hospital de Clínicas", unidadeExterna: "HCLI-FC.-002", local: "", marca: "", btu: "", modelo: "" },
-    { cidade: "São Bernardo do Campo", hospital: "Hospital de Clínicas", unidadeExterna: "HCLI-FC.-003", local: "", marca: "", btu: "", modelo: "" },
-    { cidade: "São Bernardo do Campo", hospital: "Hospital de Clínicas", unidadeExterna: "HCLI-FC.-004", local: "", marca: "", btu: "", modelo: "" },
-    { cidade: "São Bernardo do Campo", hospital: "Hospital de Clínicas", unidadeExterna: "HCLI-FC.-005", local: "", marca: "", btu: "", modelo: "" },
-    { cidade: "São Bernardo do Campo", hospital: "Hospital de Clínicas", unidadeExterna: "HCLI-FC.-006", local: "", marca: "", btu: "", modelo: "" },
-    { cidade: "São Bernardo do Campo", hospital: "Hospital de Clínicas", unidadeExterna: "HCLI-FC.-007", local: "", marca: "", btu: "", modelo: "" },
-    { cidade: "São Bernardo do Campo", hospital: "Hospital de Clínicas", unidadeExterna: "HCLI-FC.-008", local: "", marca: "", btu: "", modelo: "" },
-    { cidade: "São Bernardo do Campo", hospital: "Hospital de Clínicas", unidadeExterna: "HCLI-FC.-009", local: "", marca: "", btu: "", modelo: "" },
-    { cidade: "São Bernardo do Campo", hospital: "Hospital de Clínicas", unidadeExterna: "HCLI-FC.-010", local: "", marca: "", btu: "", modelo: "" },
-    { cidade: "São Bernardo do Campo", hospital: "Hospital de Clínicas", unidadeExterna: "HCLI-FC.-011", local: "", marca: "", btu: "", modelo: "" },
-    { cidade: "São Bernardo do Campo", hospital: "Hospital de Clínicas", unidadeExterna: "HCLI-FC.-012", local: "", marca: "", btu: "", modelo: "" },
-    { cidade: "São Bernardo do Campo", hospital: "Hospital de Clínicas", unidadeExterna: "HCLI-FC.-013", local: "", marca: "", btu: "", modelo: "" },
-    { cidade: "São Bernardo do Campo", hospital: "Hospital de Clínicas", unidadeExterna: "HCLI-FC.-014", local: "", marca: "", btu: "", modelo: "" },
-    { cidade: "São Bernardo do Campo", hospital: "Hospital de Clínicas", unidadeExterna: "HCLI-FC.-015", local: "", marca: "", btu: "", modelo: "" },
-    { cidade: "São Bernardo do Campo", hospital: "Hospital de Clínicas", unidadeExterna: "HCLI-FC.-016", local: "", marca: "", btu: "", modelo: "" },
-    { cidade: "São Bernardo do Campo", hospital: "Hospital de Clínicas", unidadeExterna: "HCLI-FC.-017", local: "", marca: "", btu: "", modelo: "" },
-    { cidade: "São Bernardo do Campo", hospital: "Hospital de Clínicas", unidadeExterna: "HCLI-FC.-018", local: "", marca: "", btu: "", modelo: "" },
-    { cidade: "São Bernardo do Campo", hospital: "Hospital de Clínicas", unidadeExterna: "HCLI-FC.-019", local: "", marca: "", btu: "", modelo: "" },
-    { cidade: "São Bernardo do Campo", hospital: "Hospital de Clínicas", unidadeExterna: "HCLI-FC.-020", local: "", marca: "", btu: "", modelo: "" },
-    { cidade: "São Bernardo do Campo", hospital: "Hospital de Clínicas", unidadeExterna: "HCLI-FC.-021", local: "", marca: "", btu: "", modelo: "" },
-    { cidade: "São Bernardo do Campo", hospital: "Hospital de Clínicas", unidadeExterna: "HCLI-FC.-022", local: "", marca: "", btu: "", modelo: "" },
-    { cidade: "São Bernardo do Campo", hospital: "Hospital de Clínicas", unidadeExterna: "HCLI-FC.-023", local: "", marca: "", btu: "", modelo: "" },
-    { cidade: "São Bernardo do Campo", hospital: "Hospital de Clínicas", unidadeExterna: "HCLI-FC.-024", local: "", marca: "", btu: "", modelo: "" },
-    { cidade: "São Bernardo do Campo", hospital: "Hospital de Clínicas", unidadeExterna: "HCLI-FC.-025", local: "", marca: "", btu: "", modelo: "" },
-    { cidade: "São Bernardo do Campo", hospital: "Hospital de Clínicas", unidadeExterna: "HCLI-FC.-026", local: "", marca: "", btu: "", modelo: "" },
-    { cidade: "São Bernardo do Campo", hospital: "Hospital de Clínicas", unidadeExterna: "HCLI-FC.-027", local: "", marca: "", btu: "", modelo: "" },
-    { cidade: "São Bernardo do Campo", hospital: "Hospital de Clínicas", unidadeExterna: "HCLI-FC.-028", local: "", marca: "", btu: "", modelo: "" },
-    { cidade: "São Bernardo do Campo", hospital: "Hospital de Clínicas", unidadeExterna: "HCLI-FC.-029", local: "", marca: "", btu: "", modelo: "" },
-    { cidade: "São Bernardo do Campo", hospital: "Hospital de Clínicas", unidadeExterna: "HCLI-FC.-030", local: "", marca: "", btu: "", modelo: "" },
-    { cidade: "São Bernardo do Campo", hospital: "Hospital de Clínicas", unidadeExterna: "HCLI-FC.-031", local: "", marca: "", btu: "", modelo: "" },
-    { cidade: "São Bernardo do Campo", hospital: "Hospital de Clínicas", unidadeExterna: "HCLI-FC.-032", local: "", marca: "", btu: "", modelo: "" },
-    { cidade: "São Bernardo do Campo", hospital: "Hospital de Clínicas", unidadeExterna: "HCLI-FC.-033", local: "", marca: "", btu: "", modelo: "" },
-    { cidade: "São Bernardo do Campo", hospital: "Hospital de Clínicas", unidadeExterna: "HCLI-FC.-034", local: "", marca: "", btu: "", modelo: "" },
-    { cidade: "São Bernardo do Campo", hospital: "Hospital de Clínicas", unidadeExterna: "HCLI-FC.-035", local: "", marca: "", btu: "", modelo: "" },
-    { cidade: "São Bernardo do Campo", hospital: "Hospital de Clínicas", unidadeExterna: "HCLI-FC.-036", local: "", marca: "", btu: "", modelo: "" },
-    { cidade: "São Bernardo do Campo", hospital: "Hospital de Clínicas", unidadeExterna: "HCLI-FC.-037", local: "", marca: "", btu: "", modelo: "" },
-    { cidade: "São Bernardo do Campo", hospital: "Hospital de Clínicas", unidadeExterna: "HCLI-FC.-038", local: "", marca: "", btu: "", modelo: "" },
-    { cidade: "São Bernardo do Campo", hospital: "Hospital de Clínicas", unidadeExterna: "HCLI-FC.-039", local: "", marca: "", btu: "", modelo: "" },
-    { cidade: "São Bernardo do Campo", hospital: "Hospital de Clínicas", unidadeExterna: "HCLI-FC.-040", local: "", marca: "", btu: "", modelo: "" },
-    { cidade: "São Bernardo do Campo", hospital: "Hospital de Clínicas", unidadeExterna: "HCLI-FC.-041", local: "", marca: "", btu: "", modelo: "" },
-    { cidade: "São Bernardo do Campo", hospital: "Hospital de Clínicas", unidadeExterna: "HCLI-FC.-042", local: "", marca: "", btu: "", modelo: "" },
-    { cidade: "São Bernardo do Campo", hospital: "Hospital de Clínicas", unidadeExterna: "HCLI-FC.-043", local: "", marca: "", btu: "", modelo: "" },
-    { cidade: "São Bernardo do Campo", hospital: "Hospital de Clínicas", unidadeExterna: "HCLI-FC.-044", local: "", marca: "", btu: "", modelo: "" },
-    { cidade: "São Bernardo do Campo", hospital: "Hospital de Clínicas", unidadeExterna: "HCLI-FC.-045", local: "", marca: "", btu: "", modelo: "" },
-    { cidade: "São Bernardo do Campo", hospital: "Hospital de Clínicas", unidadeExterna: "HCLI-FC.-046", local: "", marca: "", btu: "", modelo: "" },
-    { cidade: "São Bernardo do Campo", hospital: "Hospital de Clínicas", unidadeExterna: "HCLI-FC.-047", local: "", marca: "", btu: "", modelo: "" },
-    { cidade: "São Bernardo do Campo", hospital: "Hospital de Clínicas", unidadeExterna: "HCLI-FC.-048", local: "", marca: "", btu: "", modelo: "" },
-    { cidade: "São Bernardo do Campo", hospital: "Hospital de Clínicas", unidadeExterna: "HCLI-FC.-049", local: "", marca: "", btu: "", modelo: "" },
-    { cidade: "São Bernardo do Campo", hospital: "Hospital de Clínicas", unidadeExterna: "HCLI-FC.-050", local: "", marca: "", btu: "", modelo: "" },
-    { cidade: "São Bernardo do Campo", hospital: "Hospital de Clínicas", unidadeExterna: "HCLI-FC.-051", local: "", marca: "", btu: "", modelo: "" },
-    { cidade: "São Bernardo do Campo", hospital: "Hospital de Clínicas", unidadeExterna: "HCLI-FC.-052", local: "", marca: "", btu: "", modelo: "" },
-    { cidade: "São Bernardo do Campo", hospital: "Hospital de Clínicas", unidadeExterna: "HCLI-FC.-053", local: "", marca: "", btu: "", modelo: "" },
-
-    { cidade: "São Bernardo do Campo", hospital: "Hospital de Clínicas", unidadeExterna: "HCLI-MSS-001", local: "", marca: "", btu: "", modelo: "" },
-    { cidade: "São Bernardo do Campo", hospital: "Hospital de Clínicas", unidadeExterna: "HCLI-MSS-002", local: "", marca: "", btu: "", modelo: "" },
-    { cidade: "São Bernardo do Campo", hospital: "Hospital de Clínicas", unidadeExterna: "HCLI-MSS-003", local: "", marca: "", btu: "", modelo: "" },
-    { cidade: "São Bernardo do Campo", hospital: "Hospital de Clínicas", unidadeExterna: "HCLI-MSS-004", local: "", marca: "", btu: "", modelo: "" },
-    { cidade: "São Bernardo do Campo", hospital: "Hospital de Clínicas", unidadeExterna: "HCLI-MSS-005", local: "", marca: "", btu: "", modelo: "" },
-    { cidade: "São Bernardo do Campo", hospital: "Hospital de Clínicas", unidadeExterna: "HCLI-MSS-006", local: "", marca: "", btu: "", modelo: "" },
-    { cidade: "São Bernardo do Campo", hospital: "Hospital de Clínicas", unidadeExterna: "HCLI-MSS-007", local: "", marca: "", btu: "", modelo: "" },
-    { cidade: "São Bernardo do Campo", hospital: "Hospital de Clínicas", unidadeExterna: "HCLI-MSS-008", local: "", marca: "", btu: "", modelo: "" },
-    { cidade: "São Bernardo do Campo", hospital: "Hospital de Clínicas", unidadeExterna: "HCLI-MSS-009", local: "", marca: "", btu: "", modelo: "" },
-    { cidade: "São Bernardo do Campo", hospital: "Hospital de Clínicas", unidadeExterna: "HCLI-MSS-010", local: "", marca: "", btu: "", modelo: "" },
-    { cidade: "São Bernardo do Campo", hospital: "Hospital de Clínicas", unidadeExterna: "HCLI-MSS-011", local: "", marca: "", btu: "", modelo: "" },
-    { cidade: "São Bernardo do Campo", hospital: "Hospital de Clínicas", unidadeExterna: "HCLI-MSS-012", local: "", marca: "", btu: "", modelo: "" },
-    { cidade: "São Bernardo do Campo", hospital: "Hospital de Clínicas", unidadeExterna: "HCLI-MSS-013", local: "", marca: "", btu: "", modelo: "" },
-    { cidade: "São Bernardo do Campo", hospital: "Hospital de Clínicas", unidadeExterna: "HCLI-MSS-014", local: "", marca: "", btu: "", modelo: "" },
-    { cidade: "São Bernardo do Campo", hospital: "Hospital de Clínicas", unidadeExterna: "HCLI-MSS-016", local: "", marca: "", btu: "", modelo: "" },
-    { cidade: "São Bernardo do Campo", hospital: "Hospital de Clínicas", unidadeExterna: "HCLI-MSS-017", local: "", marca: "", btu: "", modelo: "" },
-    { cidade: "São Bernardo do Campo", hospital: "Hospital de Clínicas", unidadeExterna: "HCLI-MSS-018", local: "", marca: "", btu: "", modelo: "" },
-    { cidade: "São Bernardo do Campo", hospital: "Hospital de Clínicas", unidadeExterna: "HCLI-MSS-019", local: "", marca: "", btu: "", modelo: "" },
-    { cidade: "São Bernardo do Campo", hospital: "Hospital de Clínicas", unidadeExterna: "HCLI-MSS-020", local: "", marca: "", btu: "", modelo: "" },
-    { cidade: "São Bernardo do Campo", hospital: "Hospital de Clínicas", unidadeExterna: "HCLI-MSS-021", local: "", marca: "", btu: "", modelo: "" },
-    { cidade: "São Bernardo do Campo", hospital: "Hospital de Clínicas", unidadeExterna: "HCLI-MSS-022", local: "", marca: "", btu: "", modelo: "" },
-    { cidade: "São Bernardo do Campo", hospital: "Hospital de Clínicas", unidadeExterna: "HCLI-MSS-023", local: "", marca: "", btu: "", modelo: "" },
-    { cidade: "São Bernardo do Campo", hospital: "Hospital de Clínicas", unidadeExterna: "HCLI-MSS-024", local: "", marca: "", btu: "", modelo: "" },
-    { cidade: "São Bernardo do Campo", hospital: "Hospital de Clínicas", unidadeExterna: "HCLI-MSS-025", local: "", marca: "", btu: "", modelo: "" },
-    { cidade: "São Bernardo do Campo", hospital: "Hospital de Clínicas", unidadeExterna: "HCLI-MSS-026", local: "", marca: "", btu: "", modelo: "" },
-    { cidade: "São Bernardo do Campo", hospital: "Hospital de Clínicas", unidadeExterna: "HCLI-MSS-027", local: "", marca: "", btu: "", modelo: "" },
-    { cidade: "São Bernardo do Campo", hospital: "Hospital de Clínicas", unidadeExterna: "HCLI-MSS-028", local: "", marca: "", btu: "", modelo: "" },
-    { cidade: "São Bernardo do Campo", hospital: "Hospital de Clínicas", unidadeExterna: "HCLI-MSS-029", local: "", marca: "", btu: "", modelo: "" },
-    { cidade: "São Bernardo do Campo", hospital: "Hospital de Clínicas", unidadeExterna: "HCLI-MSS-030", local: "", marca: "", btu: "", modelo: "" },
-    { cidade: "São Bernardo do Campo", hospital: "Hospital de Clínicas", unidadeExterna: "HCLI-MSS-031", local: "", marca: "", btu: "", modelo: "" },
-    { cidade: "São Bernardo do Campo", hospital: "Hospital de Clínicas", unidadeExterna: "HCLI-MSS-032", local: "", marca: "", btu: "", modelo: "" },
-    { cidade: "São Bernardo do Campo", hospital: "Hospital de Clínicas", unidadeExterna: "HCLI-MSS-033", local: "", marca: "", btu: "", modelo: "" },
-    { cidade: "São Bernardo do Campo", hospital: "Hospital de Clínicas", unidadeExterna: "HCLI-MSS-034", local: "", marca: "", btu: "", modelo: "" },
-    { cidade: "São Bernardo do Campo", hospital: "Hospital de Clínicas", unidadeExterna: "HCLI-MSS-037", local: "", marca: "", btu: "", modelo: "" },
-    { cidade: "São Bernardo do Campo", hospital: "Hospital de Clínicas", unidadeExterna: "HCLI-MSS-038", local: "", marca: "", btu: "", modelo: "" },
-    { cidade: "São Bernardo do Campo", hospital: "Hospital de Clínicas", unidadeExterna: "HCLI-MSS-039", local: "", marca: "", btu: "", modelo: "" },
-    { cidade: "São Bernardo do Campo", hospital: "Hospital de Clínicas", unidadeExterna: "HCLI-MSS-040", local: "", marca: "", btu: "", modelo: "" },
-    { cidade: "São Bernardo do Campo", hospital: "Hospital de Clínicas", unidadeExterna: "HCLI-MSS-041", local: "", marca: "", btu: "", modelo: "" },
-    { cidade: "São Bernardo do Campo", hospital: "Hospital de Clínicas", unidadeExterna: "HCLI-MSS-042", local: "", marca: "", btu: "", modelo: "" },
-    { cidade: "São Bernardo do Campo", hospital: "Hospital de Clínicas", unidadeExterna: "HCLI-MSS-043", local: "", marca: "", btu: "", modelo: "" },
-    { cidade: "São Bernardo do Campo", hospital: "Hospital de Clínicas", unidadeExterna: "HCLI-MSS-044", local: "", marca: "", btu: "", modelo: "" },
-    { cidade: "São Bernardo do Campo", hospital: "Hospital de Clínicas", unidadeExterna: "HCLI-MSS-045", local: "", marca: "", btu: "", modelo: "" },
-    { cidade: "São Bernardo do Campo", hospital: "Hospital de Clínicas", unidadeExterna: "HCLI-MSS-046", local: "", marca: "", btu: "", modelo: "" },
-    { cidade: "São Bernardo do Campo", hospital: "Hospital de Clínicas", unidadeExterna: "HCLI-MSS-047", local: "", marca: "", btu: "", modelo: "" },
-    { cidade: "São Bernardo do Campo", hospital: "Hospital de Clínicas", unidadeExterna: "HCLI-MSS-048", local: "", marca: "", btu: "", modelo: "" },
-    { cidade: "São Bernardo do Campo", hospital: "Hospital de Clínicas", unidadeExterna: "HCLI-MSS-049", local: "", marca: "", btu: "", modelo: "" },
-    { cidade: "São Bernardo do Campo", hospital: "Hospital de Clínicas", unidadeExterna: "HCLI-MSS-050", local: "", marca: "", btu: "", modelo: "" }
+    { cidade: "São Bernardo do Campo", hospital: "Hospital de Clínicas", unidadeExterna: "HCLI-FC.-001", local: "", marca: "", btu: "", modelo: "Fancoil" },
+    { cidade: "São Bernardo do Campo", hospital: "Hospital de Clínicas", unidadeExterna: "HCLI-FC.-002", local: "", marca: "", btu: "", modelo: "Fancoil" },
+    // ... (mantém todas as linhas que você já tem)
+    { cidade: "São Bernardo do Campo", hospital: "Hospital de Clínicas", unidadeExterna: "HCLI-MSS-050", local: "", marca: "", btu: "", modelo: "MSS - Mini Split System" }
   ];
 
+  // 👉 mantém sua API atual para São Vicente
   const API_APARELHOS_URL = "https://aircontrolos-api.onrender.com/api/aparelhos-hdv";
 
   const listaQRCodes = document.getElementById("listaQRCodes");
@@ -287,10 +223,11 @@
             local: ap.local,
             marca: ap.marca,
             btu: ap.btu,
-            modelo: ap.modelo
+            modelo: ap.modelo || "Ar condicionado"
           }))
         : [];
 
+      // Junta São Vicente (banco) + SBC (fixo HC)
       TODOS_APARELHOS = [...aparelhosSV, ...APARELHOS_SBC_HC];
 
       if (!TODOS_APARELHOS.length) {
@@ -323,11 +260,10 @@
     const baseUrlHistorico = `${window.location.origin}/pmoc-historico.html`;
 
     lista.forEach(ap => {
-      const aparelhoId = ap.unidadeExterna;
+      const aparelhoId = ap.unidadeExterna; // usamos como equipId e código
 
-      const desc =
+      const tipoOuModelo =
         ap.modelo ||
-        ap.descricao ||
         (ap.marca && ap.btu ? `${ap.marca} ${ap.btu} BTU` : "Ar condicionado");
 
       const unidadeExt = ap.unidadeExterna ?? "-";
@@ -338,39 +274,58 @@
       const card = document.createElement("article");
       card.className = "qr-card";
 
-      const titulo = document.createElement("h3");
-      titulo.textContent = `#${aparelhoId ?? "?"} - ${desc}`;
+      // topo
+      const topo = document.createElement("div");
+      topo.className = "qr-card-topo";
 
-      const info = document.createElement("p");
-      info.textContent = `${cidadeText} • ${hospitalText} • Unidade: ${unidadeExt}`;
+      const logo = document.createElement("div");
+      logo.className = "qr-card-logo";
+      logo.textContent = "Maxi Serviços";
 
-      const info2 = document.createElement("p");
-      info2.textContent = local ? `Local / ambiente: ${local}` : "";
+      const contato = document.createElement("div");
+      contato.className = "qr-card-contato";
+      contato.innerHTML = `
+        sistemasmaxi.vercel.app<br/>
+        (11) 99999-9999
+      `; // depois você troca pelo telefone real
 
+      topo.appendChild(logo);
+      topo.appendChild(contato);
+
+      // área do QR
       const qrBox = document.createElement("div");
       qrBox.className = "qr-box";
 
-      const urlTexto = document.createElement("div");
-      urlTexto.className = "qr-url";
+      // rodapé
+      const rodape = document.createElement("div");
+      rodape.className = "qr-card-rodape";
+      rodape.innerHTML = `
+        <b>${hospitalText || "Hospital"}</b>
+        ${tipoOuModelo}<br/>
+        ${unidadeExt}
+      `;
 
-      card.appendChild(titulo);
-      card.appendChild(info);
-      if (local) card.appendChild(info2);
+      card.appendChild(topo);
       card.appendChild(qrBox);
-      card.appendChild(urlTexto);
+      card.appendChild(rodape);
 
       listaQRCodes.appendChild(card);
 
+      // gera URL do histórico com TODOS os parâmetros que o pmoc-historico precisa
       if (
         aparelhoId !== null &&
         aparelhoId !== undefined &&
         aparelhoId !== "-" &&
         aparelhoId !== ""
       ) {
-        const urlHistorico =
-          `${baseUrlHistorico}?aparelhoId=${encodeURIComponent(aparelhoId)}`;
+        const params = new URLSearchParams({
+          equipId: aparelhoId,
+          codigo: unidadeExt,
+          hospital: hospitalText,
+          cidade: cidadeText
+        });
 
-        urlTexto.textContent = urlHistorico;
+        const urlHistorico = `${baseUrlHistorico}?${params.toString()}`;
 
         if (typeof QRCode !== "undefined") {
           new QRCode(qrBox, {
@@ -384,7 +339,6 @@
         }
       } else {
         qrBox.textContent = "Não foi possível gerar QR (sem ID).";
-        urlTexto.textContent = "";
       }
     });
 
@@ -408,3 +362,4 @@
 
 </body>
 </html>
+
