@@ -302,9 +302,11 @@ async function carregarAparelhosDoBanco() {
 
 // Descobre texto do modelo para exibir no cartão
 function descobrirModelo(ap) {
+  // 🔧 CORREÇÃO: garante que cod é STRING
+  const cod = String(ap.unidadeExterna || "");
+
   if (ap.modelo && ap.modelo.trim() !== "") return ap.modelo;
 
-  const cod = ap.unidadeExterna || "";
   if (cod.includes("HCLI-FC"))  return "Fancoil";
   if (cod.includes("HCLI-MSS")) return "MSS - Mini Split System";
 
@@ -414,4 +416,3 @@ document.addEventListener("DOMContentLoaded", () => {
 
 </body>
 </html>
-
