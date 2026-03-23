@@ -226,7 +226,7 @@ function codigoOSApi(os) {
 /*************************************************
  * IndexedDB p/ FOTOS (sem limite prático)
  *************************************************/
-const IDB_NAME = "AirControlOS";
+const IDB_NAME = "SistemasMaxi";
 const IDB_VERSION = 1;
 let idbPromise = null;
 
