@@ -1457,7 +1457,7 @@ async function salvarChecklistPmoc(ev) {
   const payload = {
     aparelhoHdvId: aparelhoId,
     data: new Date().toISOString(),
-    tecnicoEmail: tecnicoEmail || "pmoc@aircontrolos", // fallback
+    tecnicoEmail: tecnicoEmail || "flmultitec@gmail.com", // fallback
     itensJson,
     observacoesTecnicas,
   };
