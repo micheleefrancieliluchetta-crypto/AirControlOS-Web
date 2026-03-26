@@ -3,7 +3,7 @@
     "relation": ["delegate_permission/common.handle_all_urls"],
     "target": {
       "namespace": "android_app",
-      "package_name": "com.suaempresa.aircontrol",
+      "package_name": "com.sistemasmaxi.oficial",
       "sha256_cert_fingerprints": [
         "AA:BB:CC:DD:EE:...:ZZ" 
       ]
